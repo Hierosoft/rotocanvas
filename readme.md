@@ -1,6 +1,20 @@
 # RotoCanvas
 https://github.com/poikilos/rotocanvas
 
+RotoCanvas will be a manual rotoscoping tool which includes a set of
+tools for editing, viewing and managing images and image sequences. For
+parts which are finished, see `entry_points` in [setup.py](setup.py).
+- findbyappearance: Find images of the same size by appearance!
+- diffimage: Generate a difference image file (similar to the diffimg
+  project, but with different flag colors such as for different size)
+- The channeltinker module is an image processing library that can work
+  with either GIMP or PIL images, so it can be used for either GIMP
+  plugins or standalone applications!
+- "Channel Tinker" GIMP Plugin:
+  - Remove halo caused by bad alpha (a fringe that is an old
+    background color usually).
+  - Draw a centered square (such as for pixel art or other uses).
+
 This project may serve as a backend or companion or replacement for the
 [RotoCanvasPaint](https://github.com/poikilos/RotoCanvasPaint), project
 where you can find more information about the goals and scope of the
@@ -10,7 +24,17 @@ This project now includes and replaces the gimp-plugin-channel-tinker
 project (See the "Merging gimp-plugin-channel-tinker" section).
 
 
+## Install
+(See also: "Install GIMP Plugin" section)
+```
+pip install --user https://github.com/poikilos/rotocanvas/archive/refs/heads/main.zip
+```
+
+
 ## Requires
+- Pillow
+
+### Optional dependencies
 - opencv for certain features such as AI super resolution
   - See tests/rcsource_tests.py under `except ImportError` for how to
     install it.
@@ -52,7 +76,11 @@ cp realsr-ncnn-vulkan $HOME/bin
   models via `cv2.dnn.readNetFromONNX(`--See [Super Resolution with
   OpenCV](https://bleedai.com/super-resolution-with-opencv/))
 
+
 ## Authors
+
+All work is by Jake "Poikilos" Gustafson except that which is listed
+below in this section or in its subsections.
 
 ### super_res_image_save
 super_res_image_save is based on super_res_image.py
@@ -150,6 +178,8 @@ sub-menu in the GIMP "Colors" menu.
 ### Install GIMP Plugin
 #### Linux
 ```
+mkdir -p ~/git
+git clone https://github.com/poikilos/rotocanvas
 if [ -f ~/.config/GIMP/2.10/plug-ins/channel_tinker.py ]; then
     rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py
 fi
@@ -173,8 +203,8 @@ fi
 cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
 cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
 # or
-# ln -s ~/git/gimp-plugin-channel-tinker/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
-# ln -s ~/git/gimp-plugin-channel-tinker/channeltinker ~/.config/GIMP/2.10/plug-ins/
+# ln -s ~/git/rotocanvas/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
+# ln -s ~/git/rotocanvas/channeltinker ~/.config/GIMP/2.10/plug-ins/
 # ls -l ~/.config/GIMP/2.10/plug-ins/channeltinker
 ```
 

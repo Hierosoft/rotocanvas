@@ -477,6 +477,8 @@ def diff_images(base, head, diff_size, diff=None,
     results['head'] = {}
     results['head']['size'] = base.size
     results['head']['ratio'] = float(head.size[0]) / float(head.size[1])
+    total_diff = 0
+    total_count = 0
 
     w, h = diff_size
     add_color = (0, c_max, 0, c_max)  # green (expanded part if any)
@@ -537,6 +539,8 @@ def diff_images(base, head, diff_size, diff=None,
                     raise ex
                 d = diff_color(base_color, head_color, c_max=c_max,
                                max_count=max_count)
+                total_diff += math.fabs(d)
+                total_count += 1
                 if d != 0.0:
                     # color = (c_max, c_max, c_max, c_max)
                     this_len = min(pix_len, 3)
@@ -552,7 +556,10 @@ def diff_images(base, head, diff_size, diff=None,
             else:
                 if results["same"] is None:
                     results["same"] = True
-
+    if total_count <= 0:
+        results['error'] = "WARNING: There were no pixels."
+    else:
+        results['mean_diff'] = float(total_diff) / float(total_count)
     return results
 
 

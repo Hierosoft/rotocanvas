@@ -33,15 +33,45 @@ from channeltinker import (
     debug,
 )
 
-
-def diff_images_by_path(base_path, head_path, diff_path=None):
+def gen_diff_image(base, head, diff_path=None):
     """
-    Compare two images.
+    Compare two PIL-compatible image objects visually.
 
     Keyword arguments:
     diff_path -- If not None, then save a graphical representation of
     the difference: black is same, closer to white differs (if images
     are different sizes, red is deleted, green is added).
+    """
+    w = max(base.size[0], head.size[0])
+    h = max(base.size[1], head.size[1])
+    diff_size = w, h
+    debug("* base size:{}".format(base.size))
+    debug("* head size:{}".format(head.size))
+    diff = None
+    # draw = None
+    nochange_color = (0, 0, 0, 255)
+    if diff_path is not None:
+        diff = Image.new('RGBA', diff_size, nochange_color)
+        # error("* generated diff image in memory")
+        # draw = ImageDraw.Draw(diff)
+        error("* diff size:{}".format(diff.size))
+    debug("Checking {} zone...".format(diff_size))
+    result = diff_images(base, head, diff_size, diff=diff,
+                         nochange_color=nochange_color)
+    if diff_path is not None:
+        diff_path = os.path.abspath(diff_path)
+        diff.save(diff_path)
+        result['diff'] = {}
+        result['diff']['path'] = diff_path
+        error("* saved \"{}\"".format(diff_path))
+    return result
+
+
+
+def diff_images_by_path(base_path, head_path, diff_path=None):
+    """
+    Compare two images. See gen_diff_image for further documentation.
+
     """
     result = None
     try:
@@ -71,28 +101,5 @@ def diff_images_by_path(base_path, head_path, diff_path=None):
     if result is not None:
         # Return an error.
         return result
-    w = max(base.size[0], head.size[0])
-    h = max(base.size[1], head.size[1])
-    diff_size = w, h
-    debug("* base size:{}".format(base.size))
-    debug("* head size:{}".format(head.size))
-    diff = None
-    # draw = None
-    nochange_color = (0, 0, 0, 255)
-    if diff_path is not None:
-        diff = Image.new('RGBA', diff_size, nochange_color)
-        # error("* generated diff image in memory")
-        # draw = ImageDraw.Draw(diff)
-        error("* diff size:{}".format(diff.size))
-    debug("Checking {} zone...".format(diff_size))
-    result = diff_images(base, head, diff_size, diff=diff,
-                         nochange_color=nochange_color)
-    if diff_path is not None:
-        diff_path = os.path.abspath(diff_path)
-        diff.save(diff_path)
-        result['diff'] = {}
-        result['diff']['path'] = diff_path
-        error("* saved \"{}\"".format(diff_path))
-    return result
-
+    return gen_diff_image(base, head, diff_path=diff_path)
 
