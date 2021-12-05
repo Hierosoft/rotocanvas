@@ -1,9 +1,9 @@
 # RotoCanvas
 https://github.com/poikilos/rotocanvas
 
-RotoCanvas will be a manual rotoscoping tool which includes a set of
-tools for editing, viewing and managing images and image sequences. For
-parts which are finished, see `entry_points` in [setup.py](setup.py).
+RotoCanvas aims to be a manual rotoscoping tool which includes a set of
+tools for editing, viewing and managing images and image sequences.
+Parts that are finished:
 - findbyappearance: Find images of the same size by appearance!
 - diffimage: Generate a difference image file (similar to the diffimg
   project, but with different flag colors such as for different size)
@@ -14,6 +14,8 @@ parts which are finished, see `entry_points` in [setup.py](setup.py).
   - Remove halo caused by bad alpha (a fringe that is an old
     background color usually).
   - Draw a centered square (such as for pixel art or other uses).
+- For all commands implemented, see `entry_points` in
+  [setup.py](setup.py).
 
 This project may serve as a backend or companion or replacement for the
 [RotoCanvasPaint](https://github.com/poikilos/RotoCanvasPaint), project

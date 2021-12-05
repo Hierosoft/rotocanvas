@@ -20,7 +20,7 @@ except ImportError:
 
 # List theme names:
 
-from pyrotocanvas.rcproject import RCProject
+from rotocanvas.rcproject import RCProject
 
 class ProjectFrame(ttk.Frame):
     def __init__(self, parent):
