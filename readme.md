@@ -1,10 +1,14 @@
-# PyRotoCanvas
-https://github.com/poikilos/pyrotocanvas
+# RotoCanvas
+https://github.com/poikilos/rotocanvas
 
 This project may serve as a backend or companion or replacement for the
 [RotoCanvasPaint](https://github.com/poikilos/RotoCanvasPaint), project
 where you can find more information about the goals and scope of the
 project.
+
+This project now includes and replaces the gimp-plugin-channel-tinker
+project (See the "Merging gimp-plugin-channel-tinker" section).
+
 
 ## Requires
 - opencv for certain features such as AI super resolution
@@ -126,3 +130,87 @@ ln -s $REPOS_PATH/super-resolution-implementations/TF-LAPSRN/export/LapSRN_x8.pb
 
 deactivate
 ```
+
+### Merging gimp-plugin-channel-tinker
+The gimp-plugin-channel-tinker project was merged into and replaced by
+rotocanvas (formerly pyrotocanvas).
+- See the [changelog](changelog.md) entry for 2021-12-04.
+
+## Channel Tinker GIMP plugin
+
+This is a GIMP plugin with tools for manipulating color and alpha.
+
+This package contains a generalized advanced color channel manipulation
+module called channeltinker that is currently only available here.
+
+In GIMP, you can manipulate color and alpha using new "Channel Tinker"
+sub-menu in the GIMP "Colors" menu.
+
+
+### Install GIMP Plugin
+#### Linux
+```
+if [ -f ~/.config/GIMP/2.10/plug-ins/channel_tinker.py ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py
+fi
+if [ -f ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py
+fi
+if [ -d ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker  # try symlink FIRST
+    if [ $? -ne 0 ]; then
+        # If there was an error, assume it is a directory:
+        rm -Rf ~/.config/GIMP/2.10/plug-ins/channel_tinker
+    fi
+fi
+if [ -d ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/channeltinker  # try symlink FIRST
+    if [ $? -ne 0 ]; then
+        # If there was an error, assume it is a directory:
+        rm -Rf ~/.config/GIMP/2.10/plug-ins/channeltinker
+    fi
+fi
+cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
+cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
+# or
+# ln -s ~/git/gimp-plugin-channel-tinker/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
+# ln -s ~/git/gimp-plugin-channel-tinker/channeltinker ~/.config/GIMP/2.10/plug-ins/
+# ls -l ~/.config/GIMP/2.10/plug-ins/channeltinker
+```
+
+### How to Help
+- ChannelTinkerProgressInterface and ChannelTinkerInterface are
+  available so that far less duck typing is necessary to work with
+  radically different backends such as PIL and GIMP. You can make the
+  channeltinker module work with additional things beyond PIL and GIMP
+  by making your own implementation. See channel_tinker_gimp for an
+  example.
+  - You do not have to implement ChannelTinkerInterface if you provide
+    the functions in channeltinker with a PIL image.
+  - You do not have to implement ChannelTinkerProgressInterface if you
+    simply do not provide a ctpi argument to the channeltinker
+    functions.
+
+### Tasks
+- [ ] Add hotkey 'r' for Channel Tinker (not yet taken in top level of
+  Colors menu).
+
+### Python-fu sites
+- [API Documentation](https://www.gimp.org/docs/python/index.html)
+- [Gimp Scripting: Python Fu, Automating Workflows, coding a complete plug-in](https://www.youtube.com/watch?v=uSt80abcmJs) by Jason Bates Sep 13, 2015
+- [Python fu #6: Accepting user input](https://jacksonbates.wordpress.com/2015/09/14/python-fu-6-accepting-user-input/) by Jason Bates
+
+### GIMP API
+- Booleans (non-zero if true):
+  - drawable.is_color
+  - drawable.has_alpha
+  - drawable.is_gray
+  - drawable.is_indexed
+  - drawable.visible
+- Other
+  - image.active_channel (assignable)
+  - image.cmap (color map)
+  - image.layers (list of layers)
+  - image.selection (selection mask)
+  - image.add_layer_mask(layer, mask)
+

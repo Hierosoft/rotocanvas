@@ -1,1 +1,15 @@
 include tests/*.py
+include share/pixmaps/*
+include pyrotocanvas/*.py
+include channeltinkerpil/*.py
+include channeltinkerpil/tests/*.py
+include channeltinkerpil/tests/data/*
+include license.txt
+include readme.md
+include changelog.md
+include dfl_gui.py
+include run.pyw
+include imageprocessorx.pyw
+include channeltinkergimp.py
+include channeltinkerpil/diffimage.py
+include channeltinkerpil/diffimagesratio.py
