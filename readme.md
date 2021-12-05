@@ -28,10 +28,17 @@ project (See the "Merging gimp-plugin-channel-tinker" section).
 
 ## Install
 (See also: "Install GIMP Plugin" section)
+
+From the web:
 ```
-pip install --user https://github.com/poikilos/rotocanvas/archive/refs/heads/main.zip
+pip install --user --upgrade https://github.com/poikilos/rotocanvas/archive/refs/heads/main.zip
 ```
 
+From this directory (`ls findbyappearance` makes sure you're in the
+correct directory, so an error will be shown if you're not):
+```
+ls findbyappearance && pip install --user --upgrade .
+```
 
 ## Requires
 - Pillow
