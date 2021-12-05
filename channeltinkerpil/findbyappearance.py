@@ -164,9 +164,13 @@ def main():
         imagePath,
         dirPath,
     )
-    error("* The most similar images are shown first:")
-    for result in results:
-        print("{}".format(result))
+    if len(results) > 0:
+        error("* The most similar images are shown first:")
+        for result in results:
+            print("{}".format(result))
+    else:
+        error("* No images were found in the destination, so no"
+              " comparisons were made.")
 
 
 if __name__ == "__main__":
