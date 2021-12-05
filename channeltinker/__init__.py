@@ -88,11 +88,10 @@ _error_func = None
 
 
 def _error(msg):
-    sys.stderr.write(msg + "\n")
+    sys.stderr.write("{}\n".format(msg))
     sys.stderr.flush()
 
 _error_func = _error
-
 
 def error(msg):
     """
@@ -422,7 +421,8 @@ def diff_color(base_color, head_color, enable_convert=False,
 def diff_images(base, head, diff_size, diff=None,
                 nochange_color=(0,0,0,255),
                 enable_variance=True, c_max=255, max_count=4,
-                base_indices=(0,1,2,3), head_indices=(0,1,2,3)):
+                base_indices=(0,1,2,3), head_indices=(0,1,2,3),
+                clear_in_stats=False):
     """
     Compare two images, and return a dict with information.
 
@@ -464,6 +464,8 @@ def diff_images(base, head, diff_size, diff=None,
     head_indices -- only compare these channels from head (length must
                     match either that of base_indices, or if that is
                     None, then match the base channel count.
+    clear_in_stats -- Whether to use transparent pixels when calculating
+        statistics such as diff_mean.
     """
     base = base.convert(mode='RGBA')
     head = head.convert(mode='RGBA')
@@ -526,8 +528,12 @@ def diff_images(base, head, diff_size, diff=None,
             color = nochange_color
             if (x >= base.size[0]) or (y >= base.size[1]):
                 color = add_color
+                total_diff += 1.0
+                total_count += 1
             elif (x >= head.size[0]) or (y >= head.size[1]):
                 color = del_color
+                total_diff += 1.0
+                total_count += 1
             else:
                 try:
                     base_color = base.getpixel(pos)
@@ -539,8 +545,26 @@ def diff_images(base, head, diff_size, diff=None,
                     raise ex
                 d = diff_color(base_color, head_color, c_max=c_max,
                                max_count=max_count)
-                total_diff += math.fabs(d)
-                total_count += 1
+                base_a = c_max
+                head_a = c_max
+                if pix_len > 3:
+                    base_a = base_color[3]
+                    head_a = head_color[3]
+                if clear_in_stats:
+                    if (base_a > 0) and (head_a>0):
+                        total_diff += math.fabs(d)
+                        total_count += 1
+                    else:
+                        total_diff += 1.0
+                        total_count += 1
+                else:
+                    if (base_a > 0) and (head_a>0):
+                        total_diff += math.fabs(d)
+                        total_count += 1
+                    elif (base_a > 0) or (head_a>0):
+                        total_diff += 1.0
+                        total_count += 1
+                    # Else don't even count it toward total or weight.
                 if d != 0.0:
                     # color = (c_max, c_max, c_max, c_max)
                     this_len = min(pix_len, 3)
