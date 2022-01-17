@@ -49,7 +49,8 @@ ls findbyappearance && pip install --user --upgrade .
     install it.
 - pretrained models
   - Before using super resolution methods, you must add pb files via:
-    ```
+
+```
 from RCSettings import settings
 settings.addModel(pbFilePath)
 ```
