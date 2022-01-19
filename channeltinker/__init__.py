@@ -6,11 +6,35 @@ on a specific library.
 import os
 import math
 import sys
+import platform
 
 name_fmt0 = "{}-{}-vs-{}.png"
 name_fmt1 = "diffimage {}.png"
 name_fmt2 = "diffimage {} vs. {}.png"
 verbose = False
+
+
+def safePathParam(path):
+    if "'" in path:
+        return "'" + path.replace("'", "\\'") + "'"
+    quotableChars = " \""
+    for quotableChar in quotableChars:
+        if quotableChar in path:
+            return "'" + path + "'"
+    return path
+
+platformCmds = {
+    'cp': 'cp',
+    'mv': 'mv',
+    'rm': 'rm',
+}
+if platform.system() == "Windows":
+    platformCmds = {
+        'cp': 'copy',
+        'mv': 'move',
+        'rm': 'del',
+    }
+    # TODO: Redefine safePathParam if necessary.
 
 class ChannelTinkerProgressInterface:
 
