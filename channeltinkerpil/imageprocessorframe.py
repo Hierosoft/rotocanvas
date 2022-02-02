@@ -275,14 +275,17 @@ class MainFrame(ttk.Frame):
         if (len(path) < 1):
             self.generateList(os.getcwd())
         elif os.path.isdir(path):
-            self.listSV.set("")  # It isn't a listfile but a folder.
+            # self.listSV.set("")  # It isn't a listfile but a folder.
             # prerr("* generateList for \"{}\"...".format(path))
-            self.setPath(path)
+            # self.setPath(path)
             # ^ So relative paths don't use the current working
             #   directory as set by the previous call to setPath
             self.generateList(path)
         else:
-            self.loadList(path)
+            try:
+                self.loadList(path)
+            except UnicodeDecodeError as ex:
+                self.generateList(path)  # auto-detects a file
         if len(self.metas) > 0:
             self.showCurrentImage()
             self.prevBtn['state'] = tk.DISABLED
@@ -297,6 +300,8 @@ class MainFrame(ttk.Frame):
         self.metaI = 0
         self.generated = True
         if os.path.isdir(path):
+            self.listSV.set("")  # It isn't a listfile but a folder.
+            self.setPath(path)
             for sub in os.listdir(path):
                 subPath = os.path.join(path, sub)
                 if sub.startswith("."):
@@ -312,12 +317,23 @@ class MainFrame(ttk.Frame):
                 # prerr("* set path: \"{}\"".format(path))
                 self.setPath(path)
         elif os.path.isfile(path):
+            self.listSV.set("")
+            # ^ It isn't a listfile but a folder containing the
+            #   specified image file.
             parent = os.path.dirname(path)
-            self.generateList(parent)
+            self.generateList(parent)  # does call setPath if folder
             self.gotoPath(path)
+            parent = os.path.dirname(path)
             return
         if found > 0:
             self.removeIssue(MainFrame.ISSUE_DIR)
+
+    def gotoPath(self, path):
+        for i in range(len(self.metas)):
+            meta = self.metas[i]
+            if meta.get('name') == path:
+                self.metaI = i
+                break
 
     def prevFile(self):
         self.metaI -= 1
