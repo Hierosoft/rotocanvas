@@ -74,8 +74,8 @@ share = os.path.join(prefix, "share")
 pixmaps = os.path.join(share, "pixmaps")
 
 class MainFrame(ttk.Frame):
-    ISSUE_DIR = 'Specify a main directory.'
-    ISSUE_LIST = 'Specify a list file.'
+    ISSUE_DIR = 'Specify a main directory (not detected).'
+    ISSUE_LIST = 'Specify a list or image file.'
 
     def __init__(self, parent):
         self.generated = False  # use generated metas only, not listPath
