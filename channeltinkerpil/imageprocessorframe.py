@@ -45,6 +45,10 @@ from decimal import Decimal
 import decimal
 import locale as lc
 
+from rotocanvas import (
+    prerr,
+)
+
 session = {}
 playerIndex = 0
 
@@ -74,6 +78,9 @@ class MainFrame(ttk.Frame):
     ISSUE_LIST = 'Specify a list file.'
 
     def __init__(self, parent):
+        self.generated = False  # use generated metas only, not listPath
+        # ^ Use mainSV.get() to get the directory for saving any output
+        #   in this case.
         self.parent = parent  # tk root
         self.timedMsg = None
         self.prevMsg = None
@@ -261,20 +268,56 @@ class MainFrame(ttk.Frame):
                     self.metas.append({
                         'line': rawL.rstrip(),
                     })
-        if found > 0:
-            self.removeIssue(MainFrame.ISSUE_DIR)
         # print("metas: {}".format(self.metas))
 
     def onFormLoaded(self):
         path = self.listSV.get().strip()
-        if len(path) < 1:
-            return
-        self.loadList(path)
+        if (len(path) < 1):
+            self.generateList(os.getcwd())
+        elif os.path.isdir(path):
+            self.listSV.set("")  # It isn't a listfile but a folder.
+            # prerr("* generateList for \"{}\"...".format(path))
+            self.setPath(path)
+            # ^ So relative paths don't use the current working
+            #   directory as set by the previous call to setPath
+            self.generateList(path)
+        else:
+            self.loadList(path)
         if len(self.metas) > 0:
             self.showCurrentImage()
             self.prevBtn['state'] = tk.DISABLED
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
+
+    def generateList(self, path, indent = ""):
+        found = 0
+        path = os.path.realpath(path)
+        isFound = False
+        self.metas = []
+        self.metaI = 0
+        self.generated = True
+        if os.path.isdir(path):
+            for sub in os.listdir(path):
+                subPath = os.path.join(path, sub)
+                if sub.startswith("."):
+                    continue
+                self.metas.append({
+                    'name': subPath,
+                    'line': None,
+                    'prefix': indent,
+                })
+                found += 1
+                isFound = True
+            if isFound:
+                # prerr("* set path: \"{}\"".format(path))
+                self.setPath(path)
+        elif os.path.isfile(path):
+            parent = os.path.dirname(path)
+            self.generateList(parent)
+            self.gotoPath(path)
+            return
+        if found > 0:
+            self.removeIssue(MainFrame.ISSUE_DIR)
 
     def prevFile(self):
         self.metaI -= 1
@@ -300,12 +343,23 @@ class MainFrame(ttk.Frame):
         self.pathSV.set(path)
         # self.imgLabel = tk.Label(window, image=self.img).pack()
 
+    def previewFolder(self, path):
+        self.statusSV.set("(folder)")
+        self.imgLabel.configure(image=None)
+        self.markBtn['state'] = tk.NORMAL
+        self.nameSV.set(os.path.split(path)[1])
+        self.pathSV.set(path)
+
+
     def showCurrentImage(self):
         meta = self.metas[self.metaI]
         name = meta.get('name')
         if name is not None:
-            self.statusSV.set("")
-            self.showImage(name)
+            self.statusSV.set("...")
+            if os.path.isdir(name):
+                self.previewFolder(name)
+            else:
+                self.showImage(name)
             if meta.get('checked') is True:
                 self.markSV.set(True)
             else:
