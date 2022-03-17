@@ -86,7 +86,6 @@ cp realsr-ncnn-vulkan $HOME/bin
   models via `cv2.dnn.readNetFromONNX(`--See [Super Resolution with
   OpenCV](https://bleedai.com/super-resolution-with-opencv/))
 
-
 ## Authors
 
 All work is by Jake "Poikilos" Gustafson except that which is listed
@@ -219,21 +218,22 @@ cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
 ```
 
 ### How to Help
-- ChannelTinkerProgressInterface and ChannelTinkerInterface are
-  available so that far less duck typing is necessary to work with
-  radically different backends such as PIL and GIMP. You can make the
-  channeltinker module work with additional things beyond PIL and GIMP
-  by making your own implementation. See channel_tinker_gimp for an
-  example.
-  - You do not have to implement ChannelTinkerInterface if you provide
-    the functions in channeltinker with a PIL image.
-  - You do not have to implement ChannelTinkerProgressInterface if you
-    simply do not provide a ctpi argument to the channeltinker
-    functions.
+ChannelTinkerProgressInterface and ChannelTinkerInterface are
+available so that far less duck typing is necessary to work with
+radically different backends such as PIL and GIMP. You can make the
+channeltinker module work with additional things beyond PIL and GIMP
+by making your own implementation. See channel_tinker_gimp for an
+example.
+- You do not have to implement ChannelTinkerInterface if you provide
+  the functions in channeltinker with a PIL image.
+- You do not have to implement ChannelTinkerProgressInterface if you
+  simply do not provide a ctpi argument to the channeltinker
+  functions.
 
 ### Tasks
 - [ ] Add hotkey 'r' for Channel Tinker (not yet taken in top level of
   Colors menu).
+- [ ] Add [NTSC color gamut conversion](doc/development/NTSC.md) (at least recover from NTSC to RGB).
 
 ### Python-fu sites
 - [API Documentation](https://www.gimp.org/docs/python/index.html)
