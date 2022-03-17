@@ -29,16 +29,16 @@ Camera & Settings:
 - ISO: 200
 - Color Balance: Faithful
 
-Test Image:
-![MSX2 Screen8 palette color test chart](images/MSX2_Screen8_palette_color_test_chart.png)
+Test Image:\
+![MSX2 Screen8 palette color test chart](images/MSX2_Screen8_palette_color_test_chart.png)\
 *CC0 Ricardo Cancho Niemietz on wikimedia.org*
 - converted to VOB using (NTSC DVD 4:3 preset)
 - converted to DVD using DVDStyler
 
-LCD Photo (ISO 100):
+LCD Photo (ISO 100):\
 ![LCD Photo (ISO 100)](images/LCD-ISO=100-258x200.png)
 
-CRT Photo (ISO 100):
+CRT Photo (ISO 100):\
 ![CRT Photo (ISO 100)](images/CRT-ISO=100-258x200.png)
 
 Processing:
