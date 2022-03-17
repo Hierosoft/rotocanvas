@@ -35,10 +35,10 @@ Test Image:\
 - converted to VOB using (NTSC DVD 4:3 preset)
 - converted to DVD using DVDStyler
 
-LCD Photo (ISO 100):\
+LCD (ISO 100):\
 ![LCD Photo (ISO 100)](images/LCD-ISO=100-258x200.png)
 
-CRT Photo (ISO 100):\
+CRT (ISO 100):\
 ![CRT Photo (ISO 100)](images/CRT-ISO=100-258x200.png)
 
 Processing:
