@@ -64,6 +64,9 @@ def frame_to_ffmpeg_timecode(frame_number, fps):
     # I originally posted this code at
     # <https://github.com/mifi/lossless-cut/issues/126
     # #issuecomment-1159735807>
+    # but it is based on <https://github.com/poikilos/RetroEngine-cs/
+    # blob/433773855ab8e792f9756ed0b39c80d4976a097a/RConvert.cs#L257>
+    # ^ fixed since then to add `1000.0 *` in millisecond formula
     fps = float(fps)
     frame_remainder = float(frame_number)
     second_to_hour = 60.0 * 60.0
