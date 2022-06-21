@@ -17,7 +17,6 @@ import sys
 import platform
 import math
 
-dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
 try:
     import Tkinter as tk
     import ttk
@@ -28,8 +27,20 @@ except ModuleNotFoundError:
     import tkinter as tk
     from tkinter import ttk
 
-import PIL
-from PIL import Image
+# region same as anewcommit
+
+dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
+
+try:
+    import PIL
+    from PIL import Image
+except ModuleNotFoundError as ex:
+    print("{}".format(ex))
+    print()
+    print("You must install ImageTk such as via:")
+    print(dephelp)
+    print()
+    sys.exit(1)
 
 try:
     from PIL import ImageTk  # Place this at the end (to avoid any conflicts/errors)
@@ -39,7 +50,8 @@ except ImportError as ex:
     print("You must install ImageTk such as via:")
     print(dephelp)
     print()
-    exit(1)
+    sys.exit(1)
+# endregion same as anewcommit
 
 from decimal import Decimal
 import decimal
