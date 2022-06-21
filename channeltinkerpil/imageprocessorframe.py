@@ -46,7 +46,9 @@ import decimal
 import locale as lc
 
 from rotocanvas import (
-    prerr,
+    echo0,
+    echo1,
+    echo2,
 )
 
 session = {}
@@ -276,7 +278,7 @@ class MainFrame(ttk.Frame):
             self.generateList(os.getcwd())
         elif os.path.isdir(path):
             # self.listSV.set("")  # It isn't a listfile but a folder.
-            # prerr("* generateList for \"{}\"...".format(path))
+            # echo0("* generateList for \"{}\"...".format(path))
             # self.setPath(path)
             # ^ So relative paths don't use the current working
             #   directory as set by the previous call to setPath
@@ -314,7 +316,7 @@ class MainFrame(ttk.Frame):
                 found += 1
                 isFound = True
             if isFound:
-                # prerr("* set path: \"{}\"".format(path))
+                # echo1("* set path: \"{}\"".format(path))
                 self.setPath(path)
         elif os.path.isfile(path):
             self.listSV.set("")

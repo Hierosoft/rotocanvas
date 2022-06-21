@@ -4,7 +4,9 @@ from datetime import datetime, timedelta
 import copy
 from rotocanvas.timestamp import srtTsToDelta, deltaToSrtTs
 from rotocanvas import (
-    prerr,
+    echo0,
+    echo1,
+    echo2,
 )
 
 class Subtitle:
@@ -114,7 +116,7 @@ class Subtitles:
                         sub.index = int(lineStrip)
                     except Exception as ex:
                         lsLen = len(lineStrip)
-                        prerr("{}:{}: bad index format len {}: {}"
+                        echo0("{}:{}: bad index format len {}: {}"
                               "".format(path, lineN, lsLen, lineStrip))
                         raise ex
                     context = TS
@@ -127,7 +129,7 @@ class Subtitles:
                     try:
                         sub.parse()
                     except Exception as ex:
-                        prerr("{}:{}: bad timestamp format"
+                        echo0("{}:{}: bad timestamp format"
                               "").format(path, lineN)
                         raise ex
                     context = DATA
