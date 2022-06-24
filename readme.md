@@ -17,13 +17,83 @@ Parts that are finished:
 - For all commands implemented, see `entry_points` in
   [setup.py](setup.py).
 
-This project may serve as a backend or companion or replacement for the
-[RotoCanvasPaint](https://github.com/poikilos/RotoCanvasPaint), project
-where you can find more information about the goals and scope of the
-project.
-
 This project now includes and replaces the gimp-plugin-channel-tinker
 project (See the "Merging gimp-plugin-channel-tinker" section).
+
+For now this repository serves as a collection of GUIs and modules for
+manipulating videos and DVDs (being gradually moved from
+[RotoCanvasPaint](https://github.com/poikilos/RotoCanvasPaint)). Star
+this repo for updates. See [Using FFmpeg](#using-ffmpeg) below, and the
+"more" directory in RotoCanvasPaint. Upstream ideas and code from "more" directory that
+are implemented will be moved to "references". Please read "Purpose"
+and "Why aren't there more rotoscoping applications?" below before
+commenting on the code or submitting pull requests.
+
+
+## Purpose
+This is a manual rotoscoping (frame by frame painting) application.
+Rotoscoping is the only accurate way to achieve effects such as manual
+object removal (such as removing wires for flying scenes), cartoons
+mixed with live action, correction of layer order errors (such as if the
+wrong fingers get in the way of a virtual object that is held), doing
+energy effects without 3D mockups of characters (3D mockups [invisible
+blockers] are normally needed in order to address situations where part
+or all of the energy effect goes behind a character or some of the
+character's fingers), or detailed junk matte tweaking (such as is needed
+when all or part of an actor appears in front of a studio wall instead
+of a green screen). Before the digital age, these issues were addressed
+by hand, and rotoscoping was considered an essential part of post
+effects to address a whole domain of issues. The fact that there are so
+few applications like this has become an obstacle. Ideally this project
+will be used as a basis to create plugins (see Developer Notes) so that
+more video editing applications will include rotoscoping, in this case
+**nondestructive** rotoscoping. RotoCanvas is being tested and compiled
+in a standalone application ("RotoCanvas Paint") so that the software
+can be used right away.
+
+### Why aren't there more rotoscoping applications?
+Possibly, rotoscoping applications are not considered commercially
+viable since there is unavoidable lag situations that can't be
+reasonably blamed on developers but inevitably are (see "Caveats"
+below). Unavoidable lag and video format complexity issues could be
+reasons for the discontinuation of such programs as Ulead &reg;
+VideoPaint &#174; (this project is not affiliated with Corel &reg; or
+Ulead &reg;). Another reason could be that rotoscoping is highly
+dependent on the source frame remaining the same, whereas MPEG (variants
+of which are used almost everywhere) has inherently inexact frame
+seeking. These issues may be partially or completely resolved by
+advanced caching (for the lag issue) and advanced frame seeking
+algorithms (for the accuracy issue), either of which are not easily
+achieved but both of which are needed in a professional video
+application (since video, which has slow seeking would be required,
+and MPEG, which is normally inaccurate would be required). Even if image
+sequences are used to resolve the seek lag and seek accuracy issues,
+seek lag normally remains simply because the edits have to be re-applied
+or re-loaded (basically, a multi-layer image project needs to be loaded
+each time seeking to a different frame). Leaving rotoscoping out
+entirely is often seen as the only way to avoid these issues. This
+program aims to implement rotoscoping regardless of the possibility of
+seek lag or requiring image sequences (to avoid seek accuracy issues).
+In this project, rotoscoping (the core feature) is considered to be an
+indispensable part of video editing, regardless of the fact that meeting
+the expectations of normal consumers (primarily expectations for speed
+and format support) may be impractical to be achieved by volunteer
+programmers, or may be impossible for technical reasons described above.
+
+
+## Caveats
+Lag during frame loading cannot be avoided, since each video frame
+must be loaded at full quality, which at 1080p takes up an unavoidable
+8100kb per layer. Maximum performance could be achieved when one or more
+frames in either direction of the current frame are cached, in their
+edited form. However, upon editing, the cache will have to be updated
+and the image, redrawn. To prevent further lag in that situation, the
+source frame (base layer) could be cached so that editing layers can be
+applied without reloading the frame from the source video file.
+
+At this time, image sequences are required. MPEG-derived formats may
+or may not ever be added, since MPEG-style frame seeking is inexact and
+rotoscoping is highly dependent on the source frame remaining the same.
 
 
 ## Install
@@ -39,6 +109,7 @@ correct directory, so an error will be shown if you're not):
 ```
 ls findbyappearance && pip install --user --upgrade .
 ```
+
 
 ## Requires
 - Pillow
@@ -56,38 +127,38 @@ settings.addModel(pbFilePath)
 ```
 
 
-## Tasks
-- [ ] for upscaling VHS (tested using Rebel Assault IX), use one of the
-  following G'MIC plugins after upscaling:
-  - "Sharpen [Richardson-Lucy]"; Sigma: 1.25; Iterations: 10 (default);
-    Blur: Gaussian (default); cut: True (default)
-  - Sharpen [Octave Sharpening]; Parallel Processing: Four Threads (or
-    more--use a global setting); (others: default)
-  - Simple Local Contrast (seems to add noise or false detail, but may
-    be ok); Edge Sensitivity: 4.05; Iterations: 1; (others: default)
-- [ ] Try making the "Smart Sharpening" tutorial into a script:
-  https://www.gimp.org/tutorials/Smart_Sharpening/
-- [ ] Try TecoGAN
-  - Docker version: https://github.com/tom-doerr/TecoGAN-Docker
-- [ ] Try enhancenet-pretrained:
-  ~/Videos/Demo_Reel-Recovered-SD_but_2nd_Gen/enhancenet_pretrained/
-- [ ] Try RealSR (requires Vulkan):
-```
-wget https://github.com/nihui/realsr-ncnn-vulkan/releases/download/20200818/realsr-ncnn-vulkan-20200818-linux.zip
-unzip realsr-ncnn-vulkan-20200818-linux.zip
-cd realsr-ncnn-vulkan-20200818-linux
-mkdir -p $HOME/bin/realsr-ncnn-vulkan-models
-cp -r models-DF2K models-DF2K_JPEG $HOME/bin/realsr-ncnn-vulkan-models
-cp realsr-ncnn-vulkan $HOME/bin
-```
-  -<https://linuxreviews.org/RealSR#Installation>
-- [ ] Automatically download models from [ONNX Model
-  Zoo](https://github.com/onnx/models) (OpenCV allows loading ONNX
-  models via `cv2.dnn.readNetFromONNX(`--See [Super Resolution with
-  OpenCV](https://bleedai.com/super-resolution-with-opencv/))
+## Planned Features
+* [ ] Add markers to media OR timeline, separately (media markers are
+  also on timeline behave differently: ghosted until media is selected,
+  has filmstrip icon if from a clip; reversed if video is reversed,
+  changed placement if speed is changed, etc).
+* [ ] Use alpha.png for reducing opacity of parts of background layer.
+* [ ] Allow a blocker layer type (make an animated object that seems to
+  "undo" previous edits, such as to reveal parts of characters under
+  the effect, without permanently erasing any part of the effect).
+* [ ] Use the layer cache (purpose for unused variable cacheMaxMB).
+* [ ] Keyboard controls for fast operation:
+  * Ctrl Scrollwheel: zoom
+  * Shift Alt Scrollwheel: brush hardness
+  * Shift Scrollwheel: brush size
+* [ ] Add exception handling in appropriate situations.
+- Bake all changes including ffmpeg filters to png files then overlay
+  them onto the video (to use frame rate from video automatically):
+  `ffmpeg -i foo.mkv -i bar%04d.png -filter_complex "[1:v]format=argb,geq=r='r(X,Y)':a='alpha(X,Y)'[zork]; [0:v][zork]overlay" -vcodec libx264 myresult.mkv`
+  - based on
+    <https://stackoverflow.com/questions/38753739/ffmpeg-overlay-a-png-image-on-a-video-with-custom-transparency>
+    answered Aug 3 '16 at 22:00 RocketNuts
+    - overall opacity can be multiplied by prepending a value such
+      as `0.5*`, for example: `a=0.5*'alpha(X,Y)'`
+    - For no custom opacity (only 2nd layer's alpha), simplify to the
+      line in the question at that link:
+      `ffmpeg -i foo.mkv -i bar.png -filter_complex "[0:v][1:v]overlay" -vcodec libx264 myresult.mkv`
+
+### Low-priority Features
+See [doc/development/readme.md](doc/development/readme.md).
+
 
 ## Authors
-
 All work is by Jake "Poikilos" Gustafson except that which is listed
 below in this section or in its subsections.
 
@@ -99,79 +170,9 @@ super_res_image_save is based on super_res_image.py
 Learning](https://www.pyimagesearch.com/2020/11/09/opencv-super-resolution-with-deep-learning/)
 by Adrian Rosebrock on November 9, 2020
 
-I requested for the Wayback Machine to archive it:
-- [snapshot](https://web.archive.org/web/20201109211028/https://www.pyimagesearch.com/2020/11/09/opencv-super-resolution-with-deep-learning/)
-- [screen shot](https://web.archive.org/web/20201109211028/http://web.archive.org/screenshot/https://www.pyimagesearch.com/2020/11/09/opencv-super-resolution-with-deep-learning/)
+For more info (and alternatives) see the up-res section of
+[doc/development/readme.md](doc/development/readme.md).
 
-> ...there are super resolution deep neural networks that are both:
->
-> 1. Pre-trained (meaning you don’t have to train them yourself on a dataset)
-> 2. Compatible with OpenCV
-> However, OpenCV’s super resolution functionality is actually “hidden”
-> in a submodule named in `dnn_superres` in an obscure function called
-> `DnnSuperResImpl_create`.
-
-
-> Photoshop, GIMP, Image Magick, OpenCV (via the cv2.resize function),
-> etc. all use classic interpolation techniques and algorithms (ex.,
-> nearest neighbor interpolation, linear interpolation, bicubic
-> interpolation)
-
-Related methods and corresponding papers:
-> - _**EDSR:** [Enhanced Deep Residual Networks for Single Image Super-Resolution](https://arxiv.org/abs/1707.02921) ([implementation](https://github.com/Saafke/EDSR_Tensorflow))_
-> - **ESPCN:** _[Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional Neural Network](https://arxiv.org/abs/1609.05158)_ ([implementation](https://github.com/fannymonori/TF-ESPCN))
-> - **FSRCNN:** _[Accelerating the Super-Resolution Convolutional Neural Network](https://arxiv.org/abs/1608.00367)_ ([implementation](https://github.com/Saafke/FSRCNN_Tensorflow))
-> - **LapSRN:** _[Fast and Accurate Image Super-Resolution with Deep Laplacian Pyramid Networks](https://arxiv.org/abs/1710.01992)_ ([implementation](https://github.com/fannymonori/TF-LAPSRN))
-> A big thank you to Taha Anwar from BleedAI for putting together
-> [his guide](https://bleedai.com/super-resolution-going-from-3x-to-8x-resolution-in-opencv/)
-> on OpenCV super resolution, which curated much of this information —
-> it was immensely helpful when authoring this piece.
-
-
-## Developer Notes
-
-### RCSource
-- if `_first` is `None`, it is a single image.
-  - Use `self.os.path.split(self._vidPathNoExt)[1]` not `_prefix` to
-    generate a name (along with `self._ext`).
-  - `self.getFrameName` will still work but will always return the same
-    image file name.
-
-### First-time Setup of This Repo
-(running some of these steps again may not be necessary)
-
-```
-#python3 -m pip install --user virtualenv
-REPO_PATH=`pwd`
-python3 -m venv ../opencvenv
-source ../opencvenv/bin/activate
-pip install opencv-contrib-python
-# Rosebrock recommends `pip install opencv-contrib-python==4.1.0.25`
-# at https://www.pyimagesearch.com/2018/09/19/pip-install-opencv/
-# pip install --upgrade pip
-mkdir ../super-resolution-implementations
-cd ../super-resolution-implementations
-git clone https://github.com/Saafke/EDSR_Tensorflow.git
-git clone https://github.com/fannymonori/TF-ESPCN.git
-git clone https://github.com/Saafke/FSRCNN_Tensorflow.git
-git clone https://github.com/fannymonori/TF-LAPSRN.git
-cd $REPO_PATH
-cd ..
-REPOS_PATH=`pwd`
-cd $REPO_PATH
-mkdir models
-ln -s $REPOS_PATH/super-resolution-implementations/EDSR_Tensorflow/models/EDSR_x4.pb models/
-ln -s $REPOS_PATH/super-resolution-implementations/TF-ESPCN/export/ESPCN_x4.pb models/
-ln -s $REPOS_PATH/super-resolution-implementations/FSRCNN_Tensorflow/models/FSRCNN_x3.pb models/
-ln -s $REPOS_PATH/super-resolution-implementations/TF-LAPSRN/export/LapSRN_x8.pb models/
-
-deactivate
-```
-
-### Merging gimp-plugin-channel-tinker
-The gimp-plugin-channel-tinker project was merged into and replaced by
-rotocanvas (formerly pyrotocanvas).
-- See the [changelog](changelog.md) entry for 2021-12-04.
 
 ## Channel Tinker GIMP plugin
 
@@ -183,39 +184,9 @@ module called channeltinker that is currently only available here.
 In GIMP, you can manipulate color and alpha using new "Channel Tinker"
 sub-menu in the GIMP "Colors" menu.
 
-
 ### Install GIMP Plugin
 #### Linux
-```
-mkdir -p ~/git
-git clone https://github.com/poikilos/rotocanvas
-if [ -f ~/.config/GIMP/2.10/plug-ins/channel_tinker.py ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py
-fi
-if [ -f ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py
-fi
-if [ -d ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker  # try symlink FIRST
-    if [ $? -ne 0 ]; then
-        # If there was an error, assume it is a directory:
-        rm -Rf ~/.config/GIMP/2.10/plug-ins/channel_tinker
-    fi
-fi
-if [ -d ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channeltinker  # try symlink FIRST
-    if [ $? -ne 0 ]; then
-        # If there was an error, assume it is a directory:
-        rm -Rf ~/.config/GIMP/2.10/plug-ins/channeltinker
-    fi
-fi
-cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
-cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
-# or
-# ln -s ~/git/rotocanvas/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
-# ln -s ~/git/rotocanvas/channeltinker ~/.config/GIMP/2.10/plug-ins/
-# ls -l ~/.config/GIMP/2.10/plug-ins/channeltinker
-```
+See [setup-channeltinkergimp.sh](setup-channeltinkergimp.sh).
 
 ### How to Help
 ChannelTinkerProgressInterface and ChannelTinkerInterface are
@@ -254,3 +225,8 @@ example.
   - image.selection (selection mask)
   - image.add_layer_mask(layer, mask)
 
+
+## Using FFmpeg
+Notes on features not yet added but which you can do manually with the
+ffmpeg command are at:
+[doc/development/ffmpeg.md](doc/development/ffmpeg.md)
