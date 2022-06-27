@@ -27,7 +27,6 @@ except ModuleNotFoundError:
     import tkinter as tk
     from tkinter import ttk
 
-# region same as anewcommit
 
 dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
 
@@ -43,7 +42,8 @@ except ModuleNotFoundError as ex:
     sys.exit(1)
 
 try:
-    from PIL import ImageTk  # Place this at the end (to avoid any conflicts/errors)
+    from PIL import ImageTk
+    # ^ Place this at the end (to avoid any conflicts/errors)
 except ImportError as ex:
     print("{}".format(ex))
     print()
@@ -51,7 +51,6 @@ except ImportError as ex:
     print(dephelp)
     print()
     sys.exit(1)
-# endregion same as anewcommit
 
 from decimal import Decimal
 import decimal
@@ -86,6 +85,7 @@ if os.path.isfile(os.path.join(myPath, goodFlagRel)):
 
 share = os.path.join(prefix, "share")
 pixmaps = os.path.join(share, "pixmaps")
+
 
 class MainFrame(ttk.Frame):
     ISSUE_DIR = 'Specify a main directory (not detected).'
@@ -137,17 +137,25 @@ class MainFrame(ttk.Frame):
         # ^ rowconfigure with weight makes buttons stay spaced evenly
         row = 0
         wide_width = 30
-        ttk.Label(self, textvariable=self.statusSV).grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
+        statusLbl = ttk.Label(self, textvariable=self.statusSV)
+        statusLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
         self.statusSV.set("Specify a main directory. Specify a file list.")
         row += 1
-        ttk.Label(self, text="Main Directory:").grid(column=0, row=row, sticky=tk.E)
-        ttk.Entry(self, width=25, textvariable=self.mainSV, state="readonly").grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        mainLbl = ttk.Label(self, text="Main Directory:")
+        mainLbl.grid(column=0, row=row, sticky=tk.E)
+        mainEntry = ttk.Entry(self, width=25, textvariable=self.mainSV,
+                              state="readonly")
+        mainEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
         row += 1
         ttk.Label(self, text="List:").grid(column=0, row=row, sticky=tk.E)
-        ttk.Entry(self, width=25, textvariable=self.listSV, state="readonly").grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        listEntry = ttk.Entry(self, width=25, textvariable=self.listSV,
+                              state="readonly")
+        listEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
         row += 1
         ttk.Label(self, text="Name:").grid(column=0, row=row, sticky=tk.E)
-        ttk.Entry(self, width=25, textvariable=self.nameSV, state="readonly").grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        nameEntry = ttk.Entry(self, width=25, textvariable=self.nameSV,
+                              state="readonly")
+        nameEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
         row += 1
         ttk.Label(self, text="Path:").grid(column=0, row=row, sticky=tk.E)
         self.pathEntry = ttk.Entry(self, width=25, textvariable=self.pathSV)
@@ -158,9 +166,11 @@ class MainFrame(ttk.Frame):
         self.nextBtn = ttk.Button(self, text="Next", command=self.nextFile)
         self.nextBtn.grid(column=2, row=row, sticky=tk.W)
         # row += 1
-        self.markBtn = ttk.Checkbutton(self, onvalue=True, offvalue=False, variable=self.markSV)
+        self.markBtn = ttk.Checkbutton(self, onvalue=True, offvalue=False,
+                                       variable=self.markSV)
         self.markBtn.grid(column=1, row=row)
-        # ttk.Button(self, text="Exit", command=root.destroy).grid(column=2, row=row, sticky=tk.W)
+        # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
+        # exitBtn.grid(column=2, row=row, sticky=tk.W)
         row += 1
         self.imgLabel = ttk.Label(self)  # , text="..."
         self.imgLabel.grid(column=0, row=row, columnspan=3)
@@ -216,7 +226,6 @@ class MainFrame(ttk.Frame):
                 if not keep:
                     continue
                 outs.write("{}\n".format(meta['line']))
-
 
     def setPath(self, path):
         self.removeIssue(MainFrame.ISSUE_DIR)
@@ -306,7 +315,7 @@ class MainFrame(ttk.Frame):
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
 
-    def generateList(self, path, indent = ""):
+    def generateList(self, path, indent=""):
         found = 0
         path = os.path.realpath(path)
         isFound = False
@@ -379,7 +388,6 @@ class MainFrame(ttk.Frame):
         self.markBtn['state'] = tk.NORMAL
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
-
 
     def showCurrentImage(self):
         meta = self.metas[self.metaI]
@@ -464,12 +472,15 @@ class MainFrame(ttk.Frame):
             <KeyPress event keysym=minus keycode=20 char='-' x=-1160 y=322>
             <KeyPress event keysym=equal keycode=21 char='=' x=-1160 y=322>
             <KeyPress event keysym=Shift_L keycode=50 x=-1160 y=322>
-            <KeyPress event state=Shift keysym=underscore keycode=20 char='_' x=-1160 y=322>
-            <KeyPress event state=Shift keysym=plus keycode=21 char='+' x=-1160 y=322>
+            <KeyPress event state=Shift keysym=underscore
+             keycode=20 char='_' x=-1160 y=322>
+            <KeyPress event state=Shift keysym=plus keycode=21 char='+'
+             x=-1160 y=322>
             <KeyPress event keysym=1 keycode=10 char='1' x=-1160 y=322>
             <KeyPress event keysym=space keycode=65 char=' ' x=-1160 y=322>
             <KeyPress event keysym=Return keycode=36 char='\r' x=-1160 y=322>
             '''
+
 
 def main():
     global session
@@ -492,7 +503,8 @@ def main():
     mainframe = MainFrame(root)
     if os.path.isfile(iconPath):
         # root.iconbitmap(default=iconPath)
-        # ^ "root.MyIcon = Tk.PhotoImage(file='/usr/share/icons/gnome/32x32/apps/zen-icon.png')"
+        # ^ "root.MyIcon = Tk.PhotoImage(file='/usr/share/icons/gnome/
+        #   32x32/apps/zen-icon.png')"
         # See <https://forums.raspberrypi.com/viewtopic.php?t=254725>
         root.MyIcon = tk.PhotoImage(file=iconPath)
         root.iconphoto(True, root.MyIcon)
@@ -520,6 +532,7 @@ def main():
     else:
         print("Save failed.")
     '''
+
 
 if __name__ == "__main__":
     main()
