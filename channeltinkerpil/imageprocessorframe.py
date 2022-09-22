@@ -8,8 +8,8 @@ images. The last column in the space-separated columns is considered as
 the filename. If that is not a file, more columns to the left will be
 appended until a file is found, otherwise the line is skipped.
 
-If the filenames are relative, the current working directory must be the
-base path in which the relative paths can be used.
+Filenames can optionally be relative to the current working directory or
+the list file.
 '''
 
 import os
@@ -17,16 +17,13 @@ import sys
 import platform
 import math
 
-try:
-    import Tkinter as tk
-    import ttk
-    # Python 2
-    dephelp = "sudo apt-get install python-imaging python-pil.imagetk"
-except ModuleNotFoundError:
-    # Python 3
+if sys.version_info.major >= 3:
     import tkinter as tk
     from tkinter import ttk
-
+else:
+    import Tkinter as tk
+    import ttk
+    dephelp = "sudo apt-get install python-imaging python-pil.imagetk"
 # region same as anewcommit
 
 dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
@@ -43,7 +40,7 @@ except ModuleNotFoundError as ex:
     sys.exit(1)
 
 try:
-    from PIL import ImageTk  # Place this at the end (to avoid any conflicts/errors)
+    from PIL import ImageTk  # Place this at end (to avoid any conflicts/errors)
 except ImportError as ex:
     print("{}".format(ex))
     print()
@@ -86,6 +83,7 @@ if os.path.isfile(os.path.join(myPath, goodFlagRel)):
 
 share = os.path.join(prefix, "share")
 pixmaps = os.path.join(share, "pixmaps")
+
 
 class MainFrame(ttk.Frame):
     ISSUE_DIR = 'Specify a main directory (not detected).'
@@ -217,7 +215,6 @@ class MainFrame(ttk.Frame):
                     continue
                 outs.write("{}\n".format(meta['line']))
 
-
     def setPath(self, path):
         self.removeIssue(MainFrame.ISSUE_DIR)
         self.mainSV.set(path)
@@ -285,7 +282,7 @@ class MainFrame(ttk.Frame):
         # print("metas: {}".format(self.metas))
 
     def onFormLoaded(self):
-        path = self.listSV.get().strip()
+        path = self.getListPath()
         if (len(path) < 1):
             self.generateList(os.getcwd())
         elif os.path.isdir(path):
@@ -306,7 +303,7 @@ class MainFrame(ttk.Frame):
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
 
-    def generateList(self, path, indent = ""):
+    def generateList(self, path, indent=""):
         found = 0
         path = os.path.realpath(path)
         isFound = False
@@ -361,8 +358,10 @@ class MainFrame(ttk.Frame):
         See Apostolos' Apr 14 '18 at 16:20 answer edited Oct 26 '18 at
         8:40 on <https://stackoverflow.com/a/49833564>
         '''
+        echo1('showImage "{}"'.format(path))
         try:
             self.img = ImageTk.PhotoImage(Image.open(path))
+            echo1('- loaded.')
             self.statusSV.set("")
             self.imgLabel.configure(image=self.img)
             self.markBtn['state'] = tk.NORMAL
@@ -380,22 +379,47 @@ class MainFrame(ttk.Frame):
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
 
+    def getListPath(self):
+        return self.listSV.get().strip()
+
+    def getAbs(self, relative_path):
+        '''
+        Get the absolute path based on the location of the list,
+        otherwise return relative_path.
+        '''
+        path = relative_path
+        list_path = self.getListPath()
+        list_dir = os.path.dirname(list_path)
+        try_path = os.path.join(list_dir, relative_path)
+        if os.path.exists(try_path):
+            path = try_path
+        return path
 
     def showCurrentImage(self):
         meta = self.metas[self.metaI]
         name = meta.get('name')
+        path = name
+        echo1("showCurrentImage...")
+        if name is None:
+            echo1("no name (using bare line as path)...")
+            path = meta.get('line')
+        try_path = self.getAbs(path)
+        if os.path.exists(try_path):
+            path = try_path
         if name is not None:
             self.statusSV.set("...")
-            if os.path.isdir(name):
-                self.previewFolder(name)
+            if os.path.isdir(path):
+                self.previewFolder(path)
             else:
-                self.showImage(name)
+                self.showImage(path)
             if meta.get('checked') is True:
                 self.markSV.set(True)
             else:
                 self.markSV.set(False)
         else:
-            self.statusSV.set(meta.get('line'))
+            self.statusSV.set(line)
+            if os.path.isfile(path):
+                self.showImage(path)
             self.nameSV.set("")
             self.pathSV.set("")
             self.imgLabel.configure(image='')
@@ -471,6 +495,7 @@ class MainFrame(ttk.Frame):
             <KeyPress event keysym=Return keycode=36 char='\r' x=-1160 y=322>
             '''
 
+
 def main():
     global session
     session = {}
@@ -520,6 +545,7 @@ def main():
     else:
         print("Save failed.")
     '''
+
 
 if __name__ == "__main__":
     main()
