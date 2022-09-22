@@ -108,6 +108,11 @@ class MainFrame(ttk.Frame):
         self.markBV = tk.BooleanVar()
         def on_marked_changed(tkVarID, param, event, var=self.markBV,
                 key='checked'):
+            '''
+            Keyword argument defaults force early binding (they
+            come from the outer scope, not the call).
+            '''
+            # See also: anewcommit/anewcommit/gui_tkinter.py
             if self.metaI < 0:
                 echo0("Error: self.metaI={} (can't set '{}')"
                       "".format(self.metaI, key))
