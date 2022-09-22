@@ -105,7 +105,18 @@ class MainFrame(ttk.Frame):
         self.mainSV = tk.StringVar()
         self.listSV = tk.StringVar()
         self.statusSV = tk.StringVar()
-        self.markSV = tk.BooleanVar()
+        self.markBV = tk.BooleanVar()
+        def on_marked_changed(tkVarID, param, event, var=self.markBV,
+                key='checked'):
+            if self.metaI < 0:
+                echo0("Error: self.metaI={} (can't set '{}')"
+                      "".format(self.metaI, key))
+            meta = self.metas[self.metaI]
+            meta[key] = var.get()
+        if sys.version_info.major >= 3:
+            self.markBV.trace_add('write', on_marked_changed)
+        else:
+            self.markBV.trace('wu', on_marked_changed)
         ttk.Frame.__init__(self, parent)
         self.style = ttk.Style(parent)
         # print("{}".format(self.style.theme_names()))
@@ -165,7 +176,7 @@ class MainFrame(ttk.Frame):
         self.nextBtn.grid(column=2, row=row, sticky=tk.W)
         # row += 1
         self.markBtn = ttk.Checkbutton(self, onvalue=True, offvalue=False,
-                                       variable=self.markSV)
+                                       variable=self.markBV)
         self.markBtn.grid(column=1, row=row)
         # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
         # exitBtn.grid(column=2, row=row, sticky=tk.W)
@@ -443,6 +454,7 @@ class MainFrame(ttk.Frame):
         tolerance code is in one place.
         '''
         meta = self.metas[self.metaI]
+        echo2("self.metaI={}".format(self.metaI))
         name = meta.get('name')
         status_msg = name
         path = name
@@ -465,16 +477,19 @@ class MainFrame(ttk.Frame):
             else:
                 ok, err = self.showImage(path)
                 status_msg = path
-            if meta.get('checked') is True:
-                self.markSV.set(True)
-            else:
-                self.markSV.set(False)
         else:
             ok, err = self.showImage(path)
             self.nameSV.set("")
             self.pathSV.set("")
             self.imgLabel.configure(image='')
-            self.markSV.set(False)
+            self.markBV.set(False)
+        echo2("meta['checked']={}".format(meta.get('checked')))
+
+        if meta.get('checked') is True:
+            self.markBV.set(True)
+        else:
+            self.markBV.set(False)
+
         if err is not None:
             status_msg = err + ": {}".format(path)
         self.statusSV.set(status_msg)
@@ -511,7 +526,8 @@ class MainFrame(ttk.Frame):
         self.updateButtonStates()
 
     def markFile(self, mark):
-        self.markSV.set(mark)
+        echo2("marked")
+        self.markBV.set(mark)
         if mark:
             self.metas[self.metaI]['checked'] = True
 
