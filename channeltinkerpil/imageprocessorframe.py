@@ -226,6 +226,7 @@ class MainFrame(ttk.Frame):
                 outs.write("{}\n".format(meta['line']))
 
     def setPath(self, path):
+        echo1('* set path to "{}"'.format(path))
         self.removeIssue(MainFrame.ISSUE_DIR)
         self.mainSV.set(path)
 
@@ -251,11 +252,39 @@ class MainFrame(ttk.Frame):
             result = tmp
         return result
 
+    """
     def getFullPath(self, rel):
+        '''
+        Get a list item's absolute path using the base path (or ".").
+        '''
         return os.path.join(self.getBasePath(), rel)
+
+    """
+
+    def getFullPath(self, relative_path):
+        '''
+        Get the absolute path based on the location of the list,
+        otherwise return relative_path.
+        '''
+        # formerly getAbs
+        # getBasePath gets the path containing the list file (or the
+        #   directory which was used if the list was generated)
+        path = relative_path
+        list_path = self.getListPath()
+        list_dir = os.path.dirname(list_path)
+        try_path = os.path.join(list_dir, relative_path)
+        if os.path.exists(try_path):
+            path = try_path
+        return path
 
     def loadList(self, path):
         self.listPath = path
+        if len(self.mainSV.get().strip()) == "":
+            self.setPath(os.path.dirname())
+            echo0('* set base path to directory of list: "{}"'
+                  ''.format(self.getBasePath()))
+        else:
+            echo1('* using base path "{}"'.format(self.getBasePath()))
         self.metas = []
         self.metaI = 0
         found = 0
@@ -306,6 +335,8 @@ class MainFrame(ttk.Frame):
             try:
                 self.loadList(path)
             except UnicodeDecodeError as ex:
+                echo0("* loading the list failed: {}".format(ex))
+                echo0("  - generating a list instead...")
                 self.generateList(path)  # auto-detects a file
         if len(self.metas) > 0:
             self.showCurrentImage()
@@ -370,17 +401,27 @@ class MainFrame(ttk.Frame):
         '''
         echo1('showImage "{}"'.format(path))
         try:
+            echo1('- working directory: "{}"'.format(os.getcwd()))
+            if not os.path.isfile(path):
+                raise FileNotFoundError(path)
             self.img = ImageTk.PhotoImage(Image.open(path))
-            echo1('- loaded.')
             self.statusSV.set("")
             self.imgLabel.configure(image=self.img)
             self.markBtn['state'] = tk.NORMAL
+            echo1('- loaded.')
         except PIL.UnidentifiedImageError:
             self.imgLabel.configure(image='')
-            self.statusSV.set("Error: unreadable image")
+            err = "Error: unreadable image"
+            self.statusSV.set(err)
+            return False, err
+        except Exception as ex:
+            err = 'Unhandled {}: "{}"'.format(type(ex).__name__, ex)
+            self.statusSV.set(err)
+            return False, err
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
         # self.imgLabel = tk.Label(window, image=self.img).pack()
+        return True, None
 
     def previewFolder(self, path):
         self.statusSV.set("(folder)")
@@ -392,50 +433,51 @@ class MainFrame(ttk.Frame):
     def getListPath(self):
         return self.listSV.get().strip()
 
-    def getAbs(self, relative_path):
-        '''
-        Get the absolute path based on the location of the list,
-        otherwise return relative_path.
-        '''
-        path = relative_path
-        list_path = self.getListPath()
-        list_dir = os.path.dirname(list_path)
-        try_path = os.path.join(list_dir, relative_path)
-        if os.path.exists(try_path):
-            path = try_path
-        return path
-
     def showCurrentImage(self):
+        '''
+        Show whatever image is the current one in the loaded/generated
+        list using showImage, or if the item is a subdirectory, call
+        previewFolder.
+
+        Always let showImage handle paths, so that all path fault
+        tolerance code is in one place.
+        '''
         meta = self.metas[self.metaI]
         name = meta.get('name')
         status_msg = name
         path = name
         echo1("showCurrentImage...")
         if name is None:
-            echo1("no name (using bare line as path)...")
+            echo1('* no name: using bare line as path: "{}"'.format(path))
             path = meta.get('line')
             status_msg = meta.get('line')
-        try_path = self.getAbs(path)
+        try_path = self.getFullPath(path)  # formerly getAbs
+        ok = True
+        err = None
         if os.path.exists(try_path):
             path = try_path
         if name is not None:
-            self.statusSV.set("...")
+            echo1('* name="{}"'.format(name))
+            status_msg = "..."
             if os.path.isdir(path):
                 self.previewFolder(path)
+                status_msg = 'loaded folder "{}"'.format(path)
             else:
-                self.showImage(path)
+                ok, err = self.showImage(path)
+                status_msg = path
             if meta.get('checked') is True:
                 self.markSV.set(True)
             else:
                 self.markSV.set(False)
         else:
-            self.statusSV.set(status_msg)
-            if os.path.isfile(path):
-                self.showImage(path)
+            ok, err = self.showImage(path)
             self.nameSV.set("")
             self.pathSV.set("")
             self.imgLabel.configure(image='')
             self.markSV.set(False)
+        if err is not None:
+            status_msg = err + ": {}".format(path)
+        self.statusSV.set(status_msg)
 
     def hasNext(self):
         if self.metas is None:
