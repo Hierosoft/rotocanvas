@@ -57,6 +57,7 @@ from rotocanvas import (
     echo0,
     echo1,
     echo2,
+    set_verbosity,
 )
 
 session = {}
@@ -407,11 +408,13 @@ class MainFrame(ttk.Frame):
     def showCurrentImage(self):
         meta = self.metas[self.metaI]
         name = meta.get('name')
+        status_msg = name
         path = name
         echo1("showCurrentImage...")
         if name is None:
             echo1("no name (using bare line as path)...")
             path = meta.get('line')
+            status_msg = meta.get('line')
         try_path = self.getAbs(path)
         if os.path.exists(try_path):
             path = try_path
@@ -426,7 +429,7 @@ class MainFrame(ttk.Frame):
             else:
                 self.markSV.set(False)
         else:
-            self.statusSV.set(line)
+            self.statusSV.set(status_msg)
             if os.path.isfile(path):
                 self.showImage(path)
             self.nameSV.set("")
@@ -537,17 +540,28 @@ def main():
     prevArg = None
     mainDirPath = None
     listPath = None
+    code = 0
     for arg in sys.argv:
         if prevArg is None:
             prevArg = arg  # the command that ran this script
             continue
-        if listPath is None:
+        if arg.startswith("--"):
+            if arg == "--verbose":
+                set_verbosity(1)
+            elif arg == "--debug":
+                set_verbosity(2)
+            else:
+                echo0("Error: {} is not a valid option.".format(arg))
+                code = 1
+        elif listPath is None:
             listPath = arg
             mainframe.setList(arg)
         elif mainDirPath is None:
             mainDirPath = arg
             mainframe.setPath(arg)
         prevArg = arg
+    print("listPath={}".format(listPath))
+    print("mainDirPath={}".format(mainDirPath))
     root.after(1, mainframe.onFormLoaded)  # (milliseconds, function)
     root.mainloop()
     '''
@@ -557,7 +571,8 @@ def main():
     else:
         print("Save failed.")
     '''
+    return code
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
