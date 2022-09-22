@@ -16,6 +16,8 @@ import os
 import sys
 import platform
 import math
+import subprocess
+import shlex
 
 if sys.version_info.major >= 3:
     import tkinter as tk
@@ -59,6 +61,14 @@ from rotocanvas import (
     echo2,
     set_verbosity,
 )
+
+HOME = None
+if platform.system == "Windows":
+    HOME = os.environ['USERPROFILE']
+else:
+    HOME = os.environ['HOME']
+
+HOME_BIN = os.path.join(HOME, ".local", "bin")
 
 session = {}
 playerIndex = 0
@@ -135,6 +145,10 @@ class MainFrame(ttk.Frame):
         self.fileMenu = tk.Menu(self.menuBar, tearoff=0)
         self.fileMenu.add_command(label="Save Filename List (Checked)",
                                   command=self.saveChecked)
+        self.fileMenu.add_command(label="Open in Default Application",
+                                  command=self.openInDefaultApplication)
+        self.fileMenu.add_command(label="Open in Editor",
+                                  command=self.openWith)
         self.fileMenu.add_separator()
         self.fileMenu.add_command(label="Exit", command=quit)
         self.menuBar.add_cascade(label="File", menu=self.fileMenu)
@@ -449,21 +463,36 @@ class MainFrame(ttk.Frame):
     def getListPath(self):
         return self.listSV.get().strip()
 
-    def showCurrentImage(self):
-        '''
-        Show whatever image is the current one in the loaded/generated
-        list using showImage, or if the item is a subdirectory, call
-        previewFolder.
+    def openInDefaultApplication(self):
+        # See https://stackoverflow.com/a/435669
+        path = self.getCurrentFullPath()
+        # import subprocess, os, platform
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', path))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(path)
+        else:                                   # GNU/Linux-like
+            subprocess.call(('xdg-open', path))
 
-        Always let showImage handle paths, so that all path fault
-        tolerance code is in one place.
-        '''
+    def openWith(self, exe=None):
+        if exe is None:
+            exe = "gimp"
+        path = self.getCurrentFullPath()
+        if exe == "gimp":
+            try_gimp = os.path.join(HOME_BIN, "gimp-flatpak.sh")
+            if os.path.isfile(try_gimp):
+                exe = try_gimp
+        cmd_parts = (exe, path)
+        echo0("Running: " + shlex.join(cmd_parts))
+        subprocess.call(cmd_parts)
+
+    def getCurrentFullPath(self):
         meta = self.metas[self.metaI]
         echo2("self.metaI={}".format(self.metaI))
         name = meta.get('name')
         status_msg = name
         path = name
-        echo1("showCurrentImage...")
+        echo1("getCurrentFullPath...")
         if name is None:
             echo1('* no name: using bare line as path: "{}"'.format(path))
             path = meta.get('line')
@@ -473,6 +502,21 @@ class MainFrame(ttk.Frame):
         err = None
         if os.path.exists(try_path):
             path = try_path
+        return path
+
+    def showCurrentImage(self):
+        '''
+        Show whatever image is the current one in the loaded/generated
+        list using showImage, or if the item is a subdirectory, call
+        previewFolder.
+
+        Always let showImage handle paths, so that all path fault
+        tolerance code is in one place.
+        '''
+        path = self.getCurrentFullPath()
+        status_msg = path
+        meta = self.metas[self.metaI]
+        name = meta.get('name')
         if name is not None:
             echo1('* name="{}"'.format(name))
             status_msg = "..."
