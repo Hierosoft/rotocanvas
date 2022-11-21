@@ -6,10 +6,9 @@ import sys
 #   - https://github.com/poikilos/pypicolcd/blob/master/setup.py
 #   - (For nose) https://github.com/poikilos/mgep/blob/master/setup.py
 
-python_mr = sys.version_info.major
 versionedModule = {}
 versionedModule['urllib'] = 'urllib'
-if python_mr == 2:
+if sys.version_info.major < 3:
     versionedModule['urllib'] = 'urllib2'
 long_description = ""
 with open("readme.md", "r") as fh:
