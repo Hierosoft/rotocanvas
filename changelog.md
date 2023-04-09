@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [git] - 2023-04-08
+### Added
+- Add a Kivy-based GUI.
+  - Merge KivySpriteTouch with this project as the main GUI (main.py).
+
 
 ## [git] - 2021-12-04
 ### Added
