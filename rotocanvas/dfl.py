@@ -1,8 +1,34 @@
 #!/usr/bin/env python
 """
-Command DeepFace Lab automatically.
+Command DeepFaceLab (DFL) using a step by step GUI.
+
+This module needs to be radically rewritten because batch files are no
+longer necessary in the latest DeepFaceLab.
+
+The ultimate goal was to avoid the batch files anyway and to stay in
+Python to show GUI error messages to the user instead of crashing, so
+now that everything upstream is Python but not a separate main function
+yet, accomplish the goal using `exec(open(dfl_main_py_path).read())`
+(`execfile(dfl_main_py_path)` on Python 2).
+
+Big parts are missing--please submit pull requests since this is a
+tricky project especially due to:
+1. All of the options
+2. All of the steps
+3. Detection of what steps are done
+4. Automating manual steps (mostly just removing the faces you don't
+   want to replace from the sorted faces) is essential for this GUI to
+   be worthwhile.
+
+Note that the most recent version of DeepFaceLab uses main.py to do
+everything, so batch files are no longer necessary (and the Linux fork
+is no longer necessary). On Linux, see doc/development/dfl-linux.md
+for the system requirements and modified requirements-cuda.txt to get it
+to run.
 """
+from __future__ import print_function
 import os
+import sys
 import shutil
 import platform
 import subprocess
@@ -31,25 +57,99 @@ def enqueue_output(out, state, isStdErr):
 # edited Aug 6 '18 at 15:02 by ankostis
 
 """
+def echo0(*args):
+    print(*args, file=sys.stderr)
+
+HOME = None
+REPOS = None
+MODULE_DIRS = {}
+MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
+MODULES_DIR = os.path.dirname(MODULE_DIR)  # such as
+
+if platform.system() == "Windows":
+    HOME = os.environ['USERPROFILE']
+    # In order of least common but most-likely-customized 1st:
+    REPOS_DIRS = [
+        os.path.join(HOME, "git"),
+        os.path.join(HOME, "GitHub"),
+        os.path.join(HOME, "Documents", "GitHub"),
+    ]
+else:
+    HOME = os.environ['HOME']
+    REPOS_DIRS = [
+        os.path.join(HOME, "git")
+    ]
+
+REPOS_DIRS.insert(0, os.path.dirname(MODULES_DIR))
+REPOS_DIRS.append(os.path.join(HOME, "Downloads", "git", "iperov"))
+# ^ This directory contains DeepFaceLab if it was Downloaded using
+#   get-repo.sh from the https://github.com/Poikilos/linux-preinstall
+#   project.
+# INFO: ^ .insert works fine even if the index is >= len(REPOS_DIRS) but
+#   use append so iperov is placed after HOME's repos in case HOME's has
+#   a fork.
+
+REPO_DIRS = []
+MODULE_DIRS = []
+
+foundSelf = False
+for try_repos_dir in REPOS_DIRS:
+    try_repo_path = os.path.join(try_repos_dir, "rotocanvas")
+    try_module_path = os.path.join(try_repo_path, "rotocanvas")  # 2 deep
+    if os.path.isdir(try_module_path):
+        echo0('Found "{}".'.format(os.path.dirname(try_module_path)))
+        foundSelf = True
+        if try_repo_path not in sys.path:
+            echo0('Adding path: "{}"'
+                  ''.format(try_module_path))
+            sys.path.insert(0, try_repo_path)  # prioritize most customized
+        break
+if not foundSelf:
+    echo0("Warning: rotocanvas/rotocanvas was not in any REPOS_DIRS: {}"
+          "".format(REPOS_DIRS))
+del foundSelf
+
+foundDFL = False
+for try_repos_dir in REPOS_DIRS:
+    try_repo_path = os.path.join(try_repos_dir, "DeepFaceLab")
+    try_module_path = os.path.join(try_repo_path, "facelib")  # 2 deep
+    if os.path.isdir(try_module_path):
+        echo0('Found "{}".'.format(os.path.dirname(try_module_path)))
+        foundDFL = True
+        if try_repo_path not in sys.path:
+            echo0('Adding path: "{}"'
+                  ''.format(try_module_path))
+            sys.path.insert(0, try_repo_path)  # prioritize most customized
+        break
+if not foundDFL:
+    echo0("Warning: DeepFaceLab/facelib was not in any REPOS_DIRS: {}"
+          "".format(REPOS_DIRS))
+del foundDFL
+
+if sys.version_info.major < 3:
+    ModuleNotFoundError = ImportError
 
 try:
-    from pyrotocanvas.rcproject import RCProject
+    from rotocanvas.rcproject import RCProject
     enableDLM = True
 except ModuleNotFoundError:
-    mod_paths = ["C:\\Users\\Owner\\GitHub\\pyrotocanvas\\pyrotocanvas"]
-    for modules in mod_paths:
+    raise
+    '''
+    MODULE_DIRS = ["C:\\Users\\Owner\\GitHub\\rotocanvas\\rotocanvas"]
+    for modules in MODULE_DIRS:
         if os.path.isdir(modules):
             sys.path.append(modules)
             break
     if modules is None:
-        print("You do not have pyrotocanvas in the path nor in any of"
-              " the following known locations: {}".format(mod_paths))
+        print("You do not have rotocanvas in the path nor in any of"
+              " the following known locations: {}".format(MODULE_DIRS))
     else:
         print("[choose_dfl_dst] * using {} for modules."
               "".format(modules))
         from dfl import DLMItem
         from dfl import DLM
         enableDLM = True
+    '''
 
 
 dfl_install_help_fmt = """
@@ -132,7 +232,7 @@ class DLMItem:
                 without an extension.
         """
         if dlm is None:
-            raise ValueError("You must specify a pyrotocanvas.dfl.DLM()"
+            raise ValueError("You must specify a rotocanvas.dfl.DLM()"
                              " instance.")
         self.dlm = dlm
         for name in DLMItem.SAVES:
@@ -212,11 +312,11 @@ class DLMItem:
 
 
 class DLMWorkspace:
-    LOG_NAME = "pyrotocanvas-dlm.log"
+    LOG_NAME = "rotocanvas-dlm.log"
 
     def __init__(self, dlm, path):
         if dlm is None:
-            raise ValueError("You must specify a pyrotocanvas.dfl.DLM()"
+            raise ValueError("You must specify a rotocanvas.dfl.DLM()"
                              " instance.")
         self.path = path  # must be set before load
         self.dlm = dlm  # must be set before load
@@ -1136,7 +1236,7 @@ class DLM:
         self._continuePrompts = []
         self._continuePrompts.append("to continue")
         self._continuePrompts.append("Done.")
-        self.logName = "pyrotocanvas-dlm.log"
+        self.logName = "rotocanvas-dlm.log"
 
         try:
             result = self.setDFLDir(dflDir)
@@ -1238,9 +1338,11 @@ class DLM:
             env["~dp0"] += os.sep
         env["INTERNAL"] = os.path.join(self._dflDir, "_internal")
         if not os.path.isdir(env["INTERNAL"]):
-            raise ValueError("{} does not exist. You must provide a"
-                             " valid DeepFaceLabs directory."
-                             "".format(env["INTERNAL"]))
+            raise ValueError(
+                "{} does not exist."
+                " You must provide a valid DeepFaceLabs directory."
+                "".format(env["INTERNAL"])
+            )
         intl = env["INTERNAL"]
         env["LOCALENV_DIR"] = os.path.join(intl, "_e")
         le = env["LOCALENV_DIR"]

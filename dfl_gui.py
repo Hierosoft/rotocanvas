@@ -17,28 +17,32 @@ except ImportError:
 import os
 import sys
 
+if sys.version_info.major < 3:
+    ModuleNotFoundError = ImportError
+
 enableDLM = False
 
-try:
-    from pyrotocanvas.dfl import DLMItem
-    from pyrotocanvas.dfl import DLM
-    enableDLM = True
+#try:
+from rotocanvas.dfl import DLMItem
+from rotocanvas.dfl import DLM
+enableDLM = True
+'''
 except ModuleNotFoundError:
-    mod_paths = ["C:\\Users\\Owner\\GitHub\\pyrotocanvas\\pyrotocanvas"]
-    for modules in mod_paths:
+    MODULE_DIRS = ["C:\\Users\\Owner\\GitHub\\rotocanvas\\rotocanvas"]
+    for modules in MODULE_DIRS:
         if os.path.isdir(modules):
             sys.path.append(modules)
             break
     if modules is None:
-        print("You do not have pyrotocanvas in the path nor in any of"
-              " the following known locations: {}".format(mod_paths))
+        print("You do not have rotocanvas in the path nor in any of"
+              " the following known locations: {}".format(MODULE_DIRS))
     else:
         print("[choose_dfl_dst] * using {} for modules."
               "".format(modules))
         from dfl import DLMItem
         from dfl import DLM
         enableDLM = True
-
+'''
 
 
 class GridButton(tk.Button):
@@ -71,7 +75,7 @@ class DFLGUI:
         # except NameError:
         # ^ hides too many errors
         else:
-             self.greeting = "Close & add pyrotocanvas to your path."
+             self.greeting = "Close & add rotocanvas to your path."
         ZONE_STORAGE = 'storage'
         ZONE_LAB = 'lab'
         if self.dlm is not None:
