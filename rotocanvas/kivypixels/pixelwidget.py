@@ -25,6 +25,8 @@ class PixelWidget(Widget):
     texture = ObjectProperty(None, allownone=True)
     alpha = NumericProperty(1)
     viewImage = None
+    texture_flipped = True  # True for MDFloatLayout, False for BoxLayout
+    # ^ (False causes KivyPixels save & saveAs to perform un-flipping)
     # TOTALBYTECOUNT = None
     # TOTALPIXELCOUNT = None
     # STRIDE = None
@@ -289,7 +291,10 @@ class PixelWidget(Widget):
         self.viewImage.saveAs(saveFileName)
         if self.enableDebug:
             if self.brushImage is not None:
-                self.brushImage.saveAs("debug-save-brush.png")
+                self.brushImage.saveAs(
+                    "debug-save-brush.png",
+                    texture_flipped=self.texture_flipped,
+                )
 
    # def onColorButtonClick(self,instance):
        # self.paletteWidget.open()

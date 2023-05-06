@@ -243,7 +243,14 @@ class KPImage(PPImage):
     def getNew(self, size, byteDepth=4):
         return KPImage(size, byteDepth=byteDepth)
 
-    def saveAs(self, fileName, flip_enable=False):
+    def saveAs(self, fileName, texture_flipped=True):
+        '''
+        Keyword arguments:
+        texture_flipped -- Set to False for BoxLayout, True for
+            MDFloatLayout. For other widgets, do whichever works.
+            If True (flipped), manual un-flipping will occur so
+            the image will be saved properly.
+        '''
         IsOK = None
         print("Saving '" + fileName + "'")
         # os.path.join(os.getcwd(), fileName)
@@ -325,7 +332,7 @@ class KPImage(PPImage):
                 translatedImage = self
                 print("  tricking Kivy so flipped warning won't"
                       " matter...")
-                if not flip_enable:
+                if not texture_flipped:
                     # kivy texture is upside-down, so negate that:
                     print("  manually un-flipping")
                     translatedImage = self.copy_flipped_v()
@@ -380,8 +387,12 @@ class KPImage(PPImage):
 
         return IsOK
 
-    def save(self):
-        return self.saveAs(self.lastUsedFileName)
+    def save(self, texture_flipped=True):
+        '''
+        Keyword arguments:
+        texture_flipped -- See saveAs.
+        '''
+        return self.saveAs(self.lastUsedFileName, texture_flipped=texture_flipped)
 
     def brushAt(self, centerX, centerY):
         # normalSize = self.brushImage.get_norm_image_size()
