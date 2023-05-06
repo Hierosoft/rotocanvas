@@ -18,6 +18,7 @@ from kivy.properties import ObjectProperty, NumericProperty
 from kivy.graphics import Canvas, Color, Rectangle
 from rotocanvas.pythonpixels import ibgr_from_hex  # , vec4_from_vec3
 
+__all__ = ('PixelWidget', )
 
 class PixelWidget(Widget):
     enableDebug = False
