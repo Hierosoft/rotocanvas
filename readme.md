@@ -3,18 +3,24 @@ https://github.com/poikilos/rotocanvas
 
 RotoCanvas aims to be a manual rotoscoping tool which includes a set of
 tools for editing, viewing and managing images and image sequences.
-Parts that are finished:
+
+Main Interface:
+- main.py (RotoCanvas, an App made using Kivy): Paint single images.
+
+Plugins:
+- "Channel Tinker" GIMP Plugin:
+  - Remove halo caused by bad alpha (a fringe that is an old
+    background color usually).
+  - Draw a centered square (such as for pixel art).
+
+Commands:
 - findbyappearance: Find images of the same size by appearance!
 - diffimage: Generate a difference image file (similar to the diffimg
   project, but with different flag colors such as for different size)
 - The channeltinker module is an image processing library that can work
   with either GIMP or PIL images, so it can be used for either GIMP
   plugins or standalone applications!
-- "Channel Tinker" GIMP Plugin:
-  - Remove halo caused by bad alpha (a fringe that is an old
-    background color usually).
-  - Draw a centered square (such as for pixel art or other uses).
-- For all commands implemented, see `entry_points` in
+- For a list of commands implemented, see `entry_points` in
   [setup.py](setup.py).
 
 This project now includes and replaces the gimp-plugin-channel-tinker
