@@ -19,8 +19,6 @@ from kivy.uix.boxlayout import BoxLayout
 import os
 # from kivy.graphics.instructions import InstructionGroup
 
-__all__ = ('PixelWidget', )
-
 # from kivy.graphics import Color, Rectangle
 # from kivy.graphics import Line
 from kivy.app import App
@@ -45,7 +43,7 @@ from rotocanvas.kivypixels.pixelwidget import PixelWidget
 from rotocanvas.kivypixels.colorpopup import ColorPopup
 
 
-class KivySpriteTouchApp(App):
+class RotoCanvasApp(App):
 
     def build(self):
         self.pixelWidget = None
@@ -104,4 +102,4 @@ class KivySpriteTouchApp(App):
 
 
 if __name__ == "__main__":
-    KivySpriteTouchApp().run()
+    RotoCanvasApp().run()
