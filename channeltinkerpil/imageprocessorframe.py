@@ -18,16 +18,42 @@ import platform
 import math
 import subprocess
 import shlex
+from pprint import pformat
 
+print("executable: %s" % pformat(sys.executable))
+print("os.path.realpath(executable): %s" % pformat(os.path.realpath(sys.executable)))
+import site
+print("site-packages: %s" % pformat(site.getsitepackages()))
+
+venv_error_fmt = ("Import failed though %s exists, so the virtual"
+                  " environment appears to be broken. Recreate it"
+                  " after installing tkinter. A symlink won't work.")
+tkdephelp = "sudo apt-get install python3-tk"
+dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
 if sys.version_info.major >= 3:
-    import tkinter as tk
-    from tkinter import ttk
+    try:
+        import tkinter as tk
+        from tkinter import ttk
+    except ImportError:
+        for sitepackages in site.getsitepackages():
+            try_sub = os.path.join(sitepackages, "tkinter")
+            if os.path.isdir(try_sub):
+                print(venv_error_fmt % try_sub,
+                      file=sys.stderr)
+            elif os.path.exists(try_sub):
+                print("Error: %s exists but is not a directory"
+                      "" % pformat(try_sub),
+                      file=sys.stderr)
+            else:
+                print("Error: %s is not present" % pformat(try_sub),
+                      file=sys.stderr)
+        raise
 else:  # Python 2
     import Tkinter as tk
     import ttk
+    tkdephelp = "sudo apt-get install python-tk"
     dephelp = "sudo apt-get install python-imaging python-pil.imagetk"
 
-dephelp = "sudo apt-get install python3-pil python3-pil.imagetk"
 
 try:
     import PIL
