@@ -4,18 +4,18 @@ import decimal
 import locale as lc
 import math
 import os
+import sys
 
-try:
+if sys.version_info.major >= 3:
     import tkinter as tk
     from tkinter import ttk
     from tkinter.filedialog import askopenfilename
-    from tkinter.messagebox import showerror
-except ImportError:
-    # python 2
+    # import tkinter.messagebox as messagebox
+else:  # Python 2
     import Tkinter as tk
     import ttk
     from tkFileDialog import askopenfilename
-    from tkMessageBox import showerror
+    # import tkMessageBox as messagebox
 
 
 # List theme names:

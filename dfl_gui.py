@@ -7,15 +7,14 @@ program (the value must be the path to the directory containing
 _internal--_internal will be added automatically when necessary so
 don't include that part).
 """
-try:
+import sys
+import os
+if sys.version_info.major >= 3:
     import tkinter as tk
     from tkinter import ttk
-except ImportError:
-    # python 2
+else:  # Python 2
     import Tkinter as tk
     import ttk
-import os
-import sys
 
 if sys.version_info.major < 3:
     ModuleNotFoundError = ImportError
