@@ -8,8 +8,16 @@
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
+
 			{
-				"name": "Tkinter",
+				"name": "App (Kivy)",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/main.py",
+				"console": "integratedTerminal"
+			},
+			{
+				"name": "Image browser (Tkinter)",
 				"type": "python",
 				"request": "launch",
 				"program": "${workspaceFolder}/run.pyw",
