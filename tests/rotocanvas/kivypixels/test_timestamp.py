@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
-import sys
+# import sys
 from rotocanvas.timestamp import (
     srtTsToDelta,
     deltaToSrtTs,
