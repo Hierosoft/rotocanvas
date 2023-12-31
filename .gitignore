@@ -132,3 +132,5 @@ dmypy.json
 # rotocanvas-specific files
 /Untitled*.rotocanvas
 /tests/data/upscaling-tests/Demo_Reel_2000_clip-RA9-612x468-nearest-50%_jpg/originals/scaled/
+/.vscode/settings.json
+# ^ settings.json is ignored since may have machine-specific setting such as {"python.defaultInterpreterPath": "/home/user/.virtualenvs/kivy/bin/python"} (recommended). See settings.json.example.
