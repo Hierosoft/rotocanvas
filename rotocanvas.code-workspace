@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Tkinter",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/run.pyw",
+				"console": "integratedTerminal"
+			}
+		]
+	}
+}
