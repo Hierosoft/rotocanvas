@@ -8,11 +8,14 @@ from rotocanvas import (
     echo2,
 )
 
+
 def srtTsToDelta(timestampStr):
-    """
-    Sequential arguments:
-    timestampStr -- This is a millisecond-based timestamp such as
-        00:00:21,341 which is the format used in SRT subtitle files.
+    """Convert an SRT-format timestamp to a datetime.timedelta object.
+
+    Args:
+        timestampStr (str): This is a millisecond-based timestamp such
+            as 00:00:21,341 which is the format used in SRT subtitle
+            files.
     """
     if len(timestampStr) < 12:
         raise SyntaxError("timestampStr must be in the SRT format"
@@ -44,9 +47,12 @@ def srtTsToDelta(timestampStr):
 
 
 def deltaToSrtTs(delta):
-    """
-    Convert a timedelta to an SRT string such as 00:00:21,341.
+    """Convert a timedelta to an SRT string such as 00:00:21,341.
+
     See <https://stackoverflow.com/a/539360/4541104>
+
+    Args:
+        delta (datetime.timedelta): Any timedelta.
     """
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -55,12 +61,19 @@ def deltaToSrtTs(delta):
             "".format(int(hours), int(minutes), int(seconds), ms))
 
 def frame_to_ffmpeg_timecode(frame_number, fps):
-    '''
-    Convert a frame number to an FFMPEG timecode (offset by half of a
-    frame delay to ensure the correct frame is obtained--ensure float
-    storage, rounding or FFMPEG oddities, whichever is involved, doesn't
-    cause the issue of getting the wrong frame).
-    '''
+    """Convert a frame number to an FFMPEG timecode
+
+    Offset by half of a frame delay to ensure the correct frame is
+    obtained--ensure float storage, rounding or FFMPEG oddities,
+    whichever is involved, doesn't cause the issue of getting the wrong
+    frame (See my comments at an issue that is possibly related:
+    <github.com/mifi/lossless-cut/issues/126#issuecomment-1159735807>).
+
+    Args:
+        frame_number (int): Frame number.
+        fps (float): Exact frames per second (such as 29.97 if using
+            NTCS drop-frame).
+    """
     # I originally posted this code at
     # <https://github.com/mifi/lossless-cut/issues/126
     # #issuecomment-1159735807>
@@ -90,12 +103,12 @@ class Timestamp:
     """
     This is a video timestamp that rolls on forever and doesn't roll
     over the day. It is much like a timedelta.
+
+    Args:
+        timestampStr (str): See "srtTsToDelta" function documentation.
     """
     def __init__(self, timestampStr):
-        """
-        Sequential arguments:
-        timestampStr -- See "srtTsToDelta".
-        """
+        # For Args see class docstring.
         self.delta = srtTsToDelta(timestampStr)
 
 
@@ -104,6 +117,6 @@ if __name__ == "__main__":
     print("    from timestamp import srtTsToDelta, deltaToSrtTs")
     # print("Or install nose and test via:")
     # print("python -m nose")
-    print ("For tests, see tests/test_timestamp in the rotocanvas"
-           " module or run nose in the parent directory"
-           " (the rotocanvas repo).")
+    print("For tests, see tests/test_timestamp in the rotocanvas"
+          " module or run nose in the parent directory"
+          " (the rotocanvas repo).")

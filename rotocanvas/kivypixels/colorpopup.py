@@ -2,8 +2,8 @@
 import colorsys
 
 try:
-    import kivy
-except ImportError as ex:
+    import kivy  # noqa F401
+except ImportError:
     print("This program requires kivy. Try:")
     print("python -m pip install --user --upgrade pip")
     print("python -m pip install --user --upgrade setuptools wheel")
@@ -11,22 +11,25 @@ except ImportError as ex:
     exit(1)
 
 from kivy.uix.popup import Popup
-from kivy.graphics import Color, Rectangle
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.factory import Factory
 from kivy.graphics import (
-    Canvas,
-    PushMatrix,
-    PopMatrix,
-    Translate,
-    Scale,
+    Color,
+    # Rectangle,
 )
+from kivy.uix.boxlayout import BoxLayout
+# from kivy.uix.floatlayout import FloatLayout
+from kivy.factory import Factory
+# from kivy.graphics import (
+#     Canvas,
+#     PushMatrix,
+#     PopMatrix,
+#     Translate,
+#     Scale,
+# )
 # from kivy.uix.behaviors import ButtonBehavior
 # from kivy.event import EventDispatcher
-from kivy.uix.widget import WidgetBase
+# from kivy.uix.widget import WidgetBase
 from kivy.uix.button import Button
-from kivy.uix.label import Label
+# from kivy.uix.label import Label
 from kivy.properties import ColorProperty
 
 def component_to_id(component):
@@ -139,7 +142,7 @@ class ColorPopup(Popup):
             for x in range(len(row)):
                 h = y*16.0/256.0
                 s = x*16.0/256.0
-                a = 1.0
+                # a = 1.0
                 button = row[x]
                 # print("button.color:{}".format(button.color))
                 button.plainComponents = (
@@ -201,22 +204,22 @@ class ColorPopup(Popup):
         # cell_h = self.free_widget.size[1] / divisor
         # cell_w = self.colors_v_layout.width / divisor
         # cell_h = cell_w
-        left = 0
-        yPx = 0
-        xPx = 0
-        l = 1.0
+        # left = 0
+        # yPx = 0
+        # xPx = 0
+        # l = 1.0
         v = 1.0
         for y in range(0,16):
             this_h_layout = BoxLayout(orientation='horizontal')
             self.colors_v_layout.add_widget(this_h_layout)
             self.colorsHLayouts.append(this_h_layout)
             this_list = list()
-            xPx = left
+            # xPx = left
             for x in range(0,16):
                 # hsla = [x*16.0/256.0, y*16.0/256.0, 0, 1.0]
                 h = y*16.0/256.0
                 s = x*16.0/256.0
-                a = 1.0
+                # a = 1.0
                 # color = [x*16.0/256.0, y*16.0/256.0, 0, 1.0]
                 # color = list(colorsys.hls_to_rgb(h, l, s)) + [1.0]
                 # ^ always white if l is 1!
@@ -230,7 +233,7 @@ class ColorPopup(Popup):
                 # self.free_widget.canvas.add(_color_instruction)
                 # self.free_widget.canvas.add(this_rect)
                 idStr = color_to_id(color)
-                size16 = 1.0 / divisor
+                # size16 = 1.0 / divisor
                 # thisBtn = Factory.Button(
                 thisBtn = RectButton(
                     # background_color=color,
@@ -242,7 +245,7 @@ class ColorPopup(Popup):
                     # border=(0, 0, 0, 0),
                 )
 
-                btnCanvas = thisBtn.canvas
+                # btnCanvas = thisBtn.canvas
                 print("dir(canvas):{}".format(dir(thisBtn.canvas)))
                 print("canvas:{}".format(thisBtn.canvas))
                 print("canvas.children:{}"
@@ -250,8 +253,8 @@ class ColorPopup(Popup):
                 # ^ See widget anatomy in readme.
                 print("canvas.length():{}"
                       "".format(thisBtn.canvas.length()))
-                good_size = None
-                good_pos = None
+                # good_size = None
+                # good_pos = None
                 '''
                 for i in reversed(range(thisBtn.canvas.length())):
                     child = thisBtn.canvas.children[i]
@@ -268,9 +271,9 @@ class ColorPopup(Popup):
                         thisBtn.canvas.remove(child)
                         # thisBtn.canvas.add(Rectangle())
                     elif typeName == "Rectangle":
-                        print("dir(child):{}".format(dir(child)))
-                        print("child.pos:{}".format(child.pos))
-                        print("child.size:{}".format(child.size))
+                        print("dir(child): {}".format(dir(child)))
+                        print("child.pos: {}".format(child.pos))
+                        print("child.size: {}".format(child.size))
                         good_pos = child.pos
                         good_size = child.size
                         # child.source = None

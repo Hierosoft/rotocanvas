@@ -11,7 +11,7 @@ except ImportError as ex:
     print("python -m pip install --user --upgrade kivy")
     raise ex
 
-from kivy.resources import resource_find
+# from kivy.resources import resource_find
 # from pythonpixels import PPColor
 from kivy.core.image import Image as CoreImage
 from kivy.graphics.texture import Texture
@@ -37,6 +37,7 @@ from kivy.core.image import Image as CoreImage
 # #   pass
 
 from rotocanvas import (
+    echo0,
     # ASSETS_DIR,
     BRUSH_IMAGES_DIR,
 )

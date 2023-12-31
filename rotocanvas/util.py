@@ -6,24 +6,26 @@ imageExtensions = ["png", "jpg", "jpe", "jpg", "bmp"]
 
 
 def getEndsWithI(haystack, needles):
-    ret = None
     for needle in needles:
         if haystack.lower().endswith(needle.lower()):
             return haystack[-len(needle):]
+    return None
+
 
 def set_extensions(lowerStrings):
     global imageExtensions
     imageExtensions = lowerStrings
 
-def get_frame_name(prefix, i, minDigits, ext=None):
-    """
-    Get the filename in padded numbered notation.
 
-    Sequential arguments:
-    prefix -- the part before the numbers
-    i -- the frame number
-    minDigits -- the minimum number of zero-padded digits (0 for no pad)
-    ext -- If not None, add a dot and extension to the name.
+def get_frame_name(prefix, i, minDigits, ext=None):
+    """Get the filename in padded numbered notation.
+
+    Args:
+        prefix (str): Text before the numbers.
+        i (int): The frame number.
+        minDigits (int): Minimum number of zero-padded digits (0 for no
+            pad).
+        ext (str): If not None, add a dot and extension to the name.
     """
     noExt = prefix + str(i).zfill(minDigits)
     if (ext is None) and (len(ext) > 0):
@@ -78,7 +80,7 @@ def get_frame_number(framePath, prefix=None, minDigits=None):
 
 
 def divide_frames_in(parent, start, step):
-    i = start
+    # i = start
     # minDigits = 0
     global imageExtensions
     ext = None
@@ -98,6 +100,7 @@ def divide_frames_in(parent, start, step):
     #     numberS = str(i).zfill(padding)
 
     return divide_frames(firstFramePath, start, step)
+
 
 def divide_frames(firstFramePath, start, step):
     """
@@ -119,9 +122,8 @@ def divide_frames(firstFramePath, start, step):
                          "".format(start, first, firstFrameName))
         return None
 
-    frameNoExt = firstFrameName[:len(prefix)+minDigits]
-    offPath = os.path.join(parent,
-                           "start={},step={}".format(start, step))
+    # frameNoExt = firstFrameName[:len(prefix)+minDigits]
+    offPath = os.path.join(parent, "start={},step={}".format(start, step))
     if not os.path.isdir(offPath):
         os.makedirs(offPath)
     i = start

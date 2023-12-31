@@ -8,7 +8,7 @@ class FFMPEGTime:
         self._FParts = None
         self._recalculate()
 
-    def setFPS(fps):
+    def setFPS(self, fps):
         self.fps = fps
         self._recalculate()
 

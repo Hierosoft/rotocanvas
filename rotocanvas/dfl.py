@@ -2,8 +2,10 @@
 """
 Command DeepFaceLab (DFL) using a step by step GUI.
 
-This module needs to be radically rewritten because batch files are no
-longer necessary in the latest DeepFaceLab.
+DEPRECATED: This module is deprecated since DeepFaceLab has more
+structure as of 2023 so a 3rd-party GUI is probably not necessary.
+This module would need to be radically rewritten because batch files are
+no longer necessary in the latest DeepFaceLab.
 
 The ultimate goal was to avoid the batch files anyway and to stay in
 Python to show GUI error messages to the user instead of crashing, so

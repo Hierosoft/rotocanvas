@@ -92,7 +92,7 @@ class RCSource:
             # _minDigits=_minDigits)
             try:
                 self._first = int(numberS)
-            except ValueError as ex:
+            except ValueError:
                 self._first = None
             print("[rcsource init] _prefix: {}".format(self._prefix))
             print("[rcsource init] _first: {}".format(self._first))
@@ -144,34 +144,38 @@ class RCSource:
                           outFmt="jpg", qscale_v=2, minDigits=None,
                           preserveDim=1, organizeMode=0,
                           onlyFrames=None):
-        """
-        Keyword arguments:
-        onlyFrames -- If not None, extract only individual frames using
-            this list of times (each time is for one frame). Each time
-            must be a timecode string such as  00:02:35 or 00:02:35.345.
-        forceRatio -- If specified, this must be a 2 element
-            tuple or list of numbers that together describe the final
-            ratio.
-        qscale_v -- This "-qscale:v" value for ffmpeg is only for JPEG.
-            JPEG is 2-31 where 31 is worst quality according to
-            llogan on <https://stackoverflow.com/questions/10225403/
-            how-can-i-extract-a-good-quality-jpeg-image-from-a-video-
-            file-with-ffmpeg> edited Sep 24 at 22:20.
-        _minDigits -- This is the image sequence minimum digits (only for
-            image output). This should take the length of the video. For
-            example, a 4hr video has 863136 frames at 59.96fps, so if
-            the video is 4hrs then the _minDigits should be 6.
-            If _minDigits is not None (such as if this is an image
-            sequence, the default is self._minDigits.
-        preserveDim -- Set this to 0 if you want to keep the
-            width the same when enforcing the ratio. To keep the height
-            the same, set it to 1.
-        organizeMode -- If 1, put result files all in the same directory
-            regardless of the AI upscaling model (prefix the filename
-            with the algorithm instead). If 0, place results of
-            each model in separate directories. If 2, place all files
-            of the same frame in the same directory. Pass a
-            RCSource.ORGANIZE_* constant for clarity.
+        """Perform AI super-resolution on all frames.
+        Args:
+            onlyFrames (Optional[list[str]]): If not None, extract only
+                individual frames using this list of times (each time is
+                for one frame). Each time must be a timecode string such
+                as 00:02:35 or 00:02:35.345.
+            forceRatio (Optional[tuple[int]]): If specified, this must
+                be a 2 element tuple or list of numbers that together
+                describe the final ratio.
+            qscale_v (Optional[int]): This "-qscale:v" value for ffmpeg
+                is only for JPEG. JPEG is 2-31 where 31 is worst quality
+                according to llogan on
+                <https://stackoverflow.com/questions/10225403/
+                how-can-i-extract-a-good-quality-jpeg-image-from-a-video-
+                file-with-ffmpeg> edited Sep 24 at 22:20.
+            _minDigits (Optional[int]): This is the image sequence
+                minimum digits (only for image output). This should take
+                the length of the video. For example, a 4hr video has
+                863136 frames at 59.96fps, so if the video is 4hrs then
+                the _minDigits should be 6. If _minDigits is not None
+                (such as if this is an image sequence, the default is
+                self._minDigits.
+            preserveDim (Optional[int]): Set this to 0 if you want to
+                keep the width the same when enforcing the ratio. To
+                keep the height the same, set it to 1.
+            organizeMode (Optional[int]): If 1, put result files all in
+                the same directory regardless of the AI upscaling model
+                (prefix the filename with the algorithm instead). If 0,
+                place results of each model in separate directories. If
+                2, place all files of the same frame in the same
+                directory. Pass a RCSource.ORGANIZE_* constant for
+                clarity.
         """
         if minDigits is None:
             if self._minDigits is not None:
@@ -267,8 +271,9 @@ class RCSource:
                 # ffmpeg -ss $thisTimeCode -i "$vidPath" -vframes 1 "$tmpImPath-$tmpSuffix.png"
 
                 # extract by frame number:
-                # ffmpeg -i in.mp4 -vf select='eq(n\,100)+eq(n\,184)+eq(n\,213)' -vsync 0 frames%d.jpg
-                cmdParts = [thisFFMpeg, "-y", "-i", self.vidPath, "-ss",
+                #   ffmpeg -i in.mp4 -vf select='eq(n\,100)+eq(n\,184)+eq(n\,213)'
+                #     -vsync 0 frames%d.jpg
+                cmdParts = [self.thisFFMpeg, "-y", "-i", self.vidPath, "-ss",
                             timeStr, "-vframes", "1"]
                 oFLower = outFmt.lower()
                 if (oFLower == "jpg") or (oFLower == "jpeg"):

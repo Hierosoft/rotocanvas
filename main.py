@@ -93,16 +93,20 @@ class RotoCanvasApp(MDApp):
         return self.mainWidget
 
     def add_relative_widgets(self, _):
-        '''
-        Add widgets that are positioned based on ratios. This 
-        must be scheduled since the ratio of the widget width to the
-        window's greatest dimension has to be determined, and those
-        dimensions can only be determined after the window is
-        displayed for at least one frame.
+        '''Add widgets that are positioned based on ratios.
+
+        This must be scheduled since the ratio of the widget width to
+        the window's greatest dimension has to be determined, and those
+        dimensions can only be determined after the window is displayed
+        for at least one frame.
+
+        Args:
+            _ (EventArgs): (unused) automatically set by Kivy schedule
+                methods.
         '''
         self.initialized = True
         self.pack_button(self.saveButton, add=False)
-        
+
         self.paletteButton = MDFloatingActionButton(
             text="Palette",
             icon='palette',
@@ -124,10 +128,11 @@ class RotoCanvasApp(MDApp):
         '''
 
     def pack_button(self, button, add=True):
-        '''
-        Keyword arguments:
-        add -- Add to mainWidget.
-        '''
+        """Pack a button with options specific to this program's layout
+        Args:
+            button (Widget): The widget to add.
+            add (Optional[bool]): Add to mainWidget. Defaults to True.
+        """
         if not self.initialized:
             raise RuntimeError(
                 "pack_button can only work after at least 1 frame."

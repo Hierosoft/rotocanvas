@@ -7,15 +7,20 @@ import copy
 verbose_enable = False
 
 def get_dict_deepcopy(old_dict):
-    '''
-    Get a deepcopy if the param is a dict, otherwise degrade silently
-    (return None).
+    '''Get a deepcopy if the param is a dict.
+    The purpose of this is to make an "even deeper" deepcopy. I don't
+    recall why this might be necessary. However, it can also convert
+    a non-dict dict-like object to a dict.
 
     This is from parsing.py in github.com/poikilos/pycodetool, but
     modified for Python 2 compatibility.
+
+    Returns:
+        dict: A copy, or if not dict then return None (degrade
+            silently!)
     '''
     new_dict = None
-    if type(old_dict) is dict:
+    if isinstance(old_dict, dict):
         new_dict = {}
         for this_key in old_dict.keys():
             new_dict[this_key] = copy.deepcopy(old_dict[this_key])
@@ -37,10 +42,8 @@ def get_by_name(object_list, needle):  # formerly find_by_name
             if object_list[i].name == needle:
                 result = object_list[i]
                 break
-        except:
-            #e = sys.exc_info()[0]
-            #print("Could not finish get_by_name:" + str(e))
-            print("Could not finish get_by_name:")
+        except AttributeError as ex:
+            print("Could not finish get_by_name:" + str(ex))
             view_traceback()
     return result
 
@@ -51,10 +54,8 @@ def get_index_by_name(object_list, needle):
             if object_list[i].name == needle:
                 result = i
                 break
-        except:
-            #e = sys.exc_info()[0]
-            #print("Could not finish get_by_name:" + str(e))
-            print("Could not finish get_index_by_name:")
+        except AttributeError as ex:
+            print("Could not finish get_by_name:" + str(ex))
             view_traceback()
     return result
 

@@ -10,17 +10,20 @@ from rotocanvas import (
 )
 
 class Subtitle:
-    """
-    This is an individual timed caption. For a set of subtitles, use
-    the Subtitles class.
+    """Individual timed caption.
+
+    For a sequence, use the *Subtitles* class instead.
+
+    Args:
+        startTsStr (Optional[str]): a start timestamp as a string such as
+            00:00:00,899
+        endTsStr (Optional[str]): an end timestamp as a string such as
+            00:00:09,299
+        data (Optional[str]): one or more lines separated by \n.
+
     """
     def __init__(self, startTsStr=None, endTsStr=None, data=None):
-        """
-        Keyword arguments:
-        startTsStr -- a start timestamp as a string such as 00:00:00,899
-        endTsStr -- an end timestamp as a string such as 00:00:09,299
-        data -- one or more lines separated by \n.
-        """
+        # For Args see class docstring.
         self.index = -1
         self.startTsStr = startTsStr
         self.endTsStr = endTsStr
@@ -31,8 +34,7 @@ class Subtitle:
             self.data = ""
 
     def parse(self):
-        """
-        Parse the strings in self to create timedelta objects.
+        """Interpret strings in self to create timedelta objects.
         """
         if isinstance(self.index, str):
             self.index = int(self.index)
@@ -48,8 +50,7 @@ class Subtitle:
         self.endDelta = srtTsToDelta(self.endTsStr)
 
     def unparse(self):
-        """
-        Convert deltas to startTsStr and endTsStr strings.
+        """Convert deltas to startTsStr and endTsStr strings.
         """
         self.startTsStr = deltaToSrtTs(self.startDelta)
         self.endTsStr = deltaToSrtTs(self.endDelta)
@@ -57,21 +58,25 @@ class Subtitle:
     def dump(self, handle):
         if self.index is None:
             raise ValueError("index is None")
-        if (self.data is None) or (len(self.data) < 1):
+        if not self.data:
             print("WARNING: No data is in subtitle index {}"
                   "".format(self.index))
             return
-        handle.write(sub.startTsStr + " --> " + sub.endTsStr + "\n")
-        handle.write(str(self.data) + "\n")
+        if self.startTsStr is None:
+            raise ValueError("No startTsStr")
+        if self.endTsStr is None:
+            raise ValueError("No startTsStr")
+        handle.write("{} --> {}\n"
+                     "".format(self.startTsStr, self.endTsStr))
+        handle.write("{}\n".format(self.data))
         handle.write("\n")
 
 
 class Subtitles:
-    """
-    This is a set of subtitles such as for a video.
+    """A set of subtitles such as for a video.
 
-    Public members:
-    subs -- This list contains Subtitle objects.
+    Attributes:
+        subs (list[Subtitle]): Subtitle objects.
     """
     def __init__(self, path=None):
         self.subs = None
@@ -163,12 +168,13 @@ class Subtitles:
             raise SyntaxError("{}:{}: missing {}"
                               "".format(path, lineN, contexts[context]))
     def append(self, nextSubs, delay_ms=0):
-        """
-        Sequential arguments:
-        nextSubs -- The subtitles to place starting at the time the last
-            subtitle stops on this object's.
-        delay_ms -- Set how many milliseconds after the last subtitle
-            ends that nextSubs should start.
+        """Concatenate another Subtitles object to this one.
+
+        Args:
+            nextSubs (Subtitles): The subtitles to place starting at the
+                time the last subtitle stops on this object's.
+            delay_ms (int): Set how many milliseconds after the last
+                subtitle ends that nextSubs should start.
         """
         pushDelta = timedelta(milliseconds=delay_ms)
         zeroDelta = self.subs[-1].endDelta + pushDelta
@@ -185,6 +191,12 @@ class Subtitles:
             self.subs.append(offsetSub)
 
     def save(self, path):
+        """Save a SRT-format file.
+
+        Args:
+            path (str): A path to a file to create/overwrite, normally
+                ending in ".srt".
+        """
         self.path = path
         with open(path, 'w') as outs:
             for sub in self.subs:
@@ -196,5 +208,5 @@ class Subtitles:
                 outs.write(sub.data + "\n")
                 outs.write("\n")
 """
-For tests, see or create tests/test_subtitles.py
+For tests, see or create /tests/rotocanvas/test_subtitles.py
 """

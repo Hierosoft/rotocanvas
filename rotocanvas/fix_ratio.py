@@ -9,10 +9,19 @@ except ImportError:
     exit(1)
 
 def resize(inPath, outPath, ratioPart0, ratioPart1, preserveDim):
-    """
-    preserveDim - Set this to 0 if you want to keep the
-        width the same when enforcing the ratio. To keep the height
-        the same, set it to 1.
+    """Resize the image and fit it within a width or height.
+
+    Args:
+        inPath (str): The source image path.
+        outPath (str): Image path to create/overwrite.
+        ratioPart0 (Union[int,float]): Numerator (for width)
+        ratioPart1 (Union[int,float]): Denominator (for height)
+        preserveDim (int): Set this to 0 if you want to keep the
+            width the same when enforcing the ratio. To keep the height
+            the same, set it to 1.
+
+    Raises:
+        ValueError: If dimension isn't x or y (0 or 1).
     """
     # See <https://www.tutorialkart.com/opencv/python/
     # opencv-python-resize-image/>
@@ -25,7 +34,7 @@ def resize(inPath, outPath, ratioPart0, ratioPart1, preserveDim):
     elif str(preserveDim) == "1":
         size[0] = size[1] * (float(ratioPart0) / float(ratioPart1))
     else:
-        raise RuntimeError("preserveDim must be 0 or 1 since there"
+        raise ValueError("preserveDim must be 0 or 1 since there"
                            " are only 2 dimensions in an image.")
     width = round(size[0])
     height = round(size[1])

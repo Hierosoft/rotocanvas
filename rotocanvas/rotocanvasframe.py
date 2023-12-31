@@ -1,20 +1,26 @@
 #!/usr/bin/env python
-from decimal import Decimal
-import decimal
+# from decimal import Decimal
+# import decimal
 import locale as lc
-import math
+# import math
 import os
 import sys
 
 if sys.version_info.major >= 3:
     import tkinter as tk
     from tkinter import ttk
-    from tkinter.filedialog import askopenfilename
+    from tkinter.filedialog import (
+        askopenfilename,
+        asksaveasfilename,
+    )
     # import tkinter.messagebox as messagebox
 else:  # Python 2
     import Tkinter as tk
     import ttk
-    from tkFileDialog import askopenfilename
+    from tkFileDialog import (
+        askopenfilename,
+        asksaveasfilename,
+    )
     # import tkMessageBox as messagebox
 
 

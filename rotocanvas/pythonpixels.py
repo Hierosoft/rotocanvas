@@ -639,7 +639,8 @@ def blit_copy(dst_data, dstStride,
 
 
 class PPImage:
-
+    """A base class to unify processing of image subclasses.
+    """
     BLEND_MAX = _PYGAME_BLEND_MAX
     BLEND_ADD = _PYGAME_BLEND_ADD
 
@@ -863,25 +864,33 @@ class PPImage:
         self.data[d_p_bi + self.rOffset] = int(rgb_bytes[0]*255.0+.5)
 
     def set_at_from_fcolor(self, vec2, brushColor):
-        """set color (including alpha) using color object
-        brushColor: must have .r, .g, .b,
-                    and must have .a unless self.aOffset is None
+        """Set a pixel (including alpha) using a color object.
+        Args:
+            vec2 (tuple[int]): location
+            brushColor (object): A color object which must have .r, .g,
+                .b, and must have .a unless self.aOffset is None.
         """
         set_at_from_fcolor_with_bo(self.data,
             self.stride, self.byteDepth, vec2, brushColor,
             self.bOffset, self.gOffset, self.rOffset, self.aOffset)
 
     def set_at_from_fvec(self, vec2, brushColor):
-        """set color (including alpha) using color object
-        brushColor: must be a list of floats, each 0.0 to 1.0
+        """Set a pixel (including alpha) using a list-like float color.
+        Args:
+            vec2 (tuple[int]): location
+            brushColor (Union[list[float],tuple[float]]) A list-like set
+                of floats, each 0.0 to 1.0
         """
         set_at_from_fvec_with_bo(self.data,
             self.stride, self.byteDepth, vec2, brushColor,
             self.bOffset, self.gOffset, self.rOffset, self.aOffset)
 
     def set_at_from_ivec(self, vec2, brushColor):
-        """set color (including alpha) using color object
-        brushColor: must be a list of integers, each 0 to 255
+        """Set a pixel (including alpha) using a list-like int color.
+        Args:
+            vec2 (tuple[int]): location
+            brushColor (Union[list[int],tuple[int]]) A list-like
+                set of integers, each 0 to 255.
         """
         set_at_from_ivec_with_bo(self.data,
             self.stride, self.byteDepth, vec2, brushColor,
@@ -889,7 +898,7 @@ class PPImage:
 
 
     def get_at(self, coordinates):
-        RGB_bytes = byte_array(4)
+        RGB_bytes = bytearray(4)
         if len(coordinates) >= 2:
             pixelByteIndex = int(coordinates[1]*self.stride + coordinates[0]*self.byteDepth)
             if self.byteDepth >= 3:
@@ -976,12 +985,12 @@ class PPImage:
             d_lbi += self.stride
 
     def blit_copy_with_bo(self, src_data, srcStride,
-            src_byteDepth, src_size, src_bOffset,
-            src_gOffset, src_rOffset, src_aOffset):
-        '''
-        Copy the source image to self. All of the parameters describe
-        the source. The offsets are channel offsets relative to the
-        beginning of a pixel.
+                          src_byteDepth, src_size, src_bOffset,
+                          src_gOffset, src_rOffset, src_aOffset):
+        '''Copy the source image to self.
+
+        All of the parameters describe the source. The offsets are
+        channel offsets relative to the beginning of a pixel.
         '''
         # this is much like LineCopy version, except instead of using
         # python array slicing it uses static_range_copy_with_bo
@@ -1253,8 +1262,8 @@ class PPImage:
         srcX = srcRect.left
         srcStartX = srcX
         srcY = srcRect.top
-        srcRight = srcX + srcRect.width
-        srcBottom = srcY + srcRect.height
+        # srcRight = srcX + srcRect.width
+        # srcBottom = srcY + srcRect.height
         dstX = dstRect.left
         dstStartX = dstX
         dstY = dstRect.top
@@ -1301,21 +1310,21 @@ class PPImage:
 
             if srcBD >= 4:
                 while dstX < dstRight:
+                    srcI = srcY*srcStride + srcX*srcBD
                     aI = src[srcI + srcAO]
                     a = float(aI) / 255.0
                     dstI = dstY*dstStride + dstX*dstBD
-                    srcI = srcY*srcStride + srcX*srcBD
                     ia = 1.0 - a
                     if aI != 0:
                         dst[dstI + dstBO] = int(round(ia*dst[dstI + dstBO] + a*src[srcI + srcBO]))
                         dst[dstI + dstGO] = int(round(ia*dst[dstI + dstGO] + a*src[srcI + srcGO]))
                         dst[dstI + dstRO] = int(round(ia*dst[dstI + dstRO] + a*src[srcI + srcRO]))
-                        if alpha_flags == BLEND_ADD:
+                        if alpha_flags == PPImage.BLEND_ADD:
                             aTotalI = int(dst[dstI+dstAO]) + aI
                             if aTotalI>255:
                                 aTotalI = 255
                             dst[dstI + dstAO] = aI
-                        elif alpha_flags == BLEND_MAX:
+                        elif alpha_flags == PPImage.BLEND_MAX:
                             dAI = dst[dstI + dstAO]
                             if aI > dAI:
                                 dst[dstI + dstAO] = aI

@@ -16,6 +16,21 @@ except ModuleNotFoundError:
 from rcsource import RCSource
 
 class RCProject:
+    """Upscale multiple images as video frames.
+
+    Use a list of models (pb file paths in self.models) along with
+    OpenCV to upscale images at multiple quality levels.
+
+    Args:
+        vidPath (str): The video file path.
+        fpsStr (str): the framerate in string format to avoid floating
+            point accuracy issues (may be fractional such as 30000/1001
+            or 60000/1001 for NTCS "drop frame" 30 or 60 fps
+            respectively)
+        extensions (Optional[list[str]]): Specify image extensions to
+            try (only applies if vidPath is a directory). If None, use
+            the default list (RCProject.extensions).
+    """
     PROFILE = None
     APPDATAS = None
     if platform.system() == "Windows":
@@ -33,21 +48,7 @@ class RCProject:
             VIDEOS = PROFILE
 
     def __init__(self):
-        """
-        Use a list of models (pb file paths in self.models) along with
-        OpenCV to upscale images at multiple quality levels.
-
-        Sequential arguments:
-        vidPath -- the video file
-        fpsStr -- the framerate in string format to avoid floating point
-            accuracy issues (may be fractional such as 30000/10001 or
-            60000/1001)
-
-        Keyword arguments:
-        extensions -- Specify image extensions to try (only applies if
-                      vidPath is a directory). If None, use the default
-                      list (RCProject.extensions).
-        """
+        # For Args see class docstring.
 
         self._startTime = datetime.now()
         self.timestamp_fmt = "%Y-%m-%d %H..%M..%S"
@@ -74,7 +75,7 @@ class RCProject:
         old = self._videos.get(vidPath)
         if old is not None:
             vp = vidPath
-            return "There is already a video loaded as \"\"".format(vp)
+            return 'There is already a video loaded as "{}"'.format(vp)
         self._videos[vidPath] = RCSource(vidPath, fpsStr)
         return None
 

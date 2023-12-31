@@ -2,8 +2,8 @@
 import os
 
 try:
-    import kivy
-except ImportError as ex:
+    import kivy  # noqa F401
+except ImportError:
     print("This program requires kivy. Try:")
     print("python -m pip install --user --upgrade pip")
     print("python -m pip install --user --upgrade setuptools wheel")
@@ -46,6 +46,7 @@ class PixelWidget(Widget):
     paletteWidget = None
 
     def __init__(self, **kwargs):
+        prefix = "[PixelWidget] "
         # super(PixelWidget, self).__init__(**kwargs)
         Widget.__init__(self, **kwargs)
         self.canvas = Canvas()
@@ -83,7 +84,7 @@ class PixelWidget(Widget):
         self.viewImage.aOffset=self.viewImage_aOffset
 
         # self.viewImage.fill_icolor(0, 0, 0, 255)
-        print("size:"+str(self.viewImage.size))
+        print(prefix+"size: {}".format(self.viewImage.size))
         # print("TOTALBYTECOUNT:"+str(self.TOTALBYTECOUNT))
         # print("TOTALPIXELCOUNT:"+str(self.TOTALPIXELCOUNT))
 
@@ -173,6 +174,7 @@ class PixelWidget(Widget):
             self.colorNames.append(k)
 
     def updatePixelViewSize(self):
+        prefix = "[updatePixelViewSize] "
         if ((self.fbo.size[0]!=self.viewImage.size[0]) or
                 (self.fbo.size[1]!=self.viewImage.size[1])):
             newKPImage = KPImage(self.fbo.size)
@@ -185,7 +187,7 @@ class PixelWidget(Widget):
             self.viewImage.aOffset=self.viewImage_aOffset
 
 
-            print("size:" + str(self.viewImage.size))
+            print(prefix+"size: {}".format(self.viewImage.size))
             # print("TOTALBYTECOUNT:" + str(self.TOTALBYTECOUNT))
             # print("TOTALPIXELCOUNT:" + str(self.TOTALPIXELCOUNT))
 
@@ -236,11 +238,12 @@ class PixelWidget(Widget):
         self.viewImage.setBrushColor(selectedColor)
 
     def on_touch_down(self, touch):
+        prefix = "[PixelWidget on_touch_down] "
         super(PixelWidget, self).on_touch_down(touch)
-        #if touch.button == "scrollup":
-        #    self.setBrushColorToNextInPalette(True)
-        #elif touch.button == "scrolldown":
-        #    self.setBrushColorToNextInPalette(False)
+        # if touch.button == "scrollup":
+        #     self.setBrushColorToNextInPalette(True)
+        # elif touch.button == "scrolldown":
+        #     self.setBrushColorToNextInPalette(False)
         # # self.setBrushColorToNextInPalette()
         # color = self.paletteWidget.pickedColor
         # # color3 = color.r/255.0, color.g/255.0, color.b/255.0
@@ -252,7 +255,7 @@ class PixelWidget(Widget):
             self.paletteWidget.open()
             self.paletteWidget.adjust_rects()
         else:
-            print("touch.button:"+str(touch.button))
+            print(prefix+"touch.button: {}".format(touch.button))
             if str(touch.button) == "scrollup":
                 self.setBrushColorToNextInPalette(forward=False)
             elif str(touch.button) == "scrolldown":
