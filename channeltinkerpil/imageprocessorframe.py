@@ -539,6 +539,7 @@ class MainFrame(ttk.Frame):
         Always let showImage handle paths, so that all path fault
         tolerance code is in one place.
         '''
+        err = None
         path = self.getCurrentFullPath()
         status_msg = path
         meta = self.metas[self.metaI]
