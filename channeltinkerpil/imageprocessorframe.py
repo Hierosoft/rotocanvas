@@ -12,6 +12,7 @@ Filenames can optionally be relative to the current working directory or
 the list file.
 '''
 
+# import inspect
 import os
 import sys
 import platform
@@ -145,7 +146,7 @@ class MainFrame(ttk.Frame):
         self.timedMsg = None
         self.prevMsg = None
         self.checkedSuffix = ".checked"
-        self.img = None
+        self.pimages = None
         self.listPath = None
         self.metas = []
         self.nameSV = tk.StringVar()
@@ -155,11 +156,11 @@ class MainFrame(ttk.Frame):
         self.statusSV = tk.StringVar()
         self.markBV = tk.BooleanVar()
 
+        # local dynamically-generated callback function:
         def on_marked_changed(tkVarID, param, event, var=self.markBV,
                               key='checked'):
-            '''
-            Keyword argument defaults force early binding (they
-            come from the outer scope, not the call).
+            '''Keyword argument defaults force early binding
+            (they come from the outer scope, not the call).
             '''
             # See also: anewcommit/anewcommit/gui_tkinter.py
             if self.metaI < 0:
@@ -240,14 +241,50 @@ class MainFrame(ttk.Frame):
         # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
         # exitBtn.grid(column=2, row=row, sticky=tk.W)
         row += 1
-        self.imageLabel = ttk.Label(self)  # , text="..."
-        self.imageLabel.grid(column=0, row=row, columnspan=3)
+        self.image_row = row  # required by setImageCount
+        #   (for grid_forget and re-adding to same place)
+        self.imageLabels = None
+        self.imageErrorVars = []
+        # ^ self.imageErrorVars is expanded in setImageCount using count.
+        self.setImageCount(1)
         for child in self.winfo_children():
             child.grid_configure(padx=6, pady=3)
         self.nextBtn['state'] = tk.DISABLED
         self.prevBtn['state'] = tk.DISABLED
         self.markBtn['state'] = tk.DISABLED
         # self.nameSV.set(money(session.getCurrentMoney(playerIndex)))
+
+    def setImageCount(self, count):
+        """Generate labels for the desired image count.
+
+        Args:
+            count (int): The number of image columns to show.
+        """
+        # if sys.version_info.major >= 3:
+        #     caller_name = inspect.stack()[1].function
+        # else:
+        #     caller_name = inspect.stack()[1][3]
+        # print("setImageCount({}) via {}".format(count, caller_name))
+        if self.imageLabels:
+            for label in self.imageLabels:
+                label.grid_forget()
+        self.imageLabels = []
+        columnspan = 3 if count == 1 else 1
+        # ^ Span all 3 columns if there is only one image.
+        row = self.image_row
+        for i in range(count):
+            while i >= len(self.imageErrorVars):
+                self.imageErrorVars.append(tk.StringVar())
+            column = i if count != 1 else 0
+            # ^ Use column 0 if there is only one image.
+            label = ttk.Label(self, textvariable=self.imageErrorVars[i])
+            # , text="..."
+            label.grid(
+                column=column,
+                row=row,
+                columnspan=columnspan,
+            )
+            self.imageLabels.append(label)
 
     def setStatus(self, msg):
         self.statusSV.set(msg)
@@ -467,40 +504,102 @@ class MainFrame(ttk.Frame):
         self.showCurrentImage()
         self.updateButtonStates()
 
-    def showImage(self, path):
-        '''Show an image on the panel.
+    def _showImages(self):
+        '''Show each image in self.pimages (or blank col for each None).
+
+        This should be called only by loadImage, unless you set each
+        self.imageErrorVars item correctly ("" if image, otherwise error
+        message and the corresponding self.pimages item should be None
+        in that and only that case)
+        '''
+        if len(self.pimages) != len(self.imageLabels):
+            self.setImageCount(len(self.pimages))
+        for index, pimage in enumerate(self.pimages):
+            if pimage is None:
+                self.imageLabels[index].configure(image='')
+                # ^ Clear is '' not None in tk.
+                continue
+            self.imageLabels[index].configure(image=self.pimages[index])
+
+    def loadImage(self, path):
+        '''Show image(s) on the panel.
+
+        Args:
+            path (Union[str,list[str],tuple[str]]): Show an image or
+                list of images. If not str, it is assumed to be an
+                iterable.
         '''
         # See Apostolos' Apr 14 '18 at 16:20 answer edited Oct 26 '18 at
         # 8:40 on <https://stackoverflow.com/a/49833564>
-        echo1('showImage "{}"'.format(path))
-        try:
-            echo1('- working directory: "{}"'.format(os.getcwd()))
-            if not os.path.isfile(path):
-                raise FileNotFoundError(path)
-            self.img = ImageTk.PhotoImage(Image.open(path))
-            # ^ Keep as attribute so it doesn't go out of scope
-            #   (which would destroy the image).
-            self.statusSV.set("")
-            self.imageLabel.configure(image=self.img)
-            self.markBtn['state'] = tk.NORMAL
-            echo1('- loaded.')
-        except PIL.UnidentifiedImageError:
-            self.imageLabel.configure(image='')
-            err = "Error: unreadable image"
-            self.statusSV.set(err)
-            return False, err
-        except Exception as ex:
-            err = 'Unhandled {}: "{}"'.format(type(ex).__name__, ex)
-            self.statusSV.set(err)
-            return False, err
-        self.nameSV.set(os.path.split(path)[1])
-        self.pathSV.set(path)
-        # self.imageLabel = tk.Label(window, image=self.img).pack()
-        return True, None
+        prefix = "loadImage"
+        paths = [path] if isinstance(path, str) else path
+        del path
+        # count = len(paths)
+        # if len(paths) != len(self.imageLabels):
+        #     self.setImageCount(len(paths))
+        index = -1
+        self.pimages = []
+        err = None
+        for path in paths:
+            _, name = os.path.split(path)
+            index += 1
+            echo1('loadImage "{}"'.format(path))
+            try:
+                echo1('- working directory: "{}"'.format(os.getcwd()))
+                if not os.path.isfile(path):
+                    raise FileNotFoundError(path)
+                self.pimages.append(
+                    ImageTk.PhotoImage(Image.open(path))
+                )
+                self.imageErrorVars[index].set("")
+                # self.imageLabels[index].configure(image=self.pimages[index])
+                # ^ Keep as attribute so it doesn't go out of scope
+                #   (which would destroy the image).
+                self.statusSV.set("")
+                self.markBtn['state'] = tk.NORMAL
+                echo1('- loaded.')
+            except PIL.UnidentifiedImageError:
+                # self.imageLabels[index].configure(image='')
+                self.imageErrorVars[index].set("unreadable")
+                err = "Error: unreadable image"
+                self.statusSV.set(err)
+                # return False, err
+            except Exception as ex:
+                err = 'Unhandled {}: "{}"'.format(type(ex).__name__, ex)
+                self.imageErrorVars[index].set("failed")
+                self.statusSV.set(err)
+                # return False, err
+
+            while index >= len(self.pimages):
+                self.pimages.append(None)
+                echo0(prefix+"Increased len(self.pimages) to {} since index is {}"
+                      "".format(len(self.pimages), index))
+            if len(paths) > 1:
+                if index == 1:
+                    # In case paths are (base, head, diff) or (base,
+                    #   head) (by way of rotocanvas diffimage
+                    #   convention, head should 2nd which is [1]), show
+                    #   head (a WIP version of file) in case that
+                    #   differs.
+                    self.nameSV.set(os.path.split(path)[1])
+                    self.pathSV.set(path)
+                # else do not show base or diff path
+                #   (normally diff is generated and not an actual file)
+            else:
+                self.nameSV.set(os.path.split(path)[1])
+                self.pathSV.set(path)
+            # self.imageLabels[index] = tk.Label(window, image=self.pimages[0]).pack()
+        self._showImages()
+        return err is None, err
+
+    def hideImages(self):
+        if self.imageLabels:
+            for label in self.imageLabels:
+                label.configure(image=None)
 
     def previewFolder(self, path):
         self.statusSV.set("(folder)")
-        self.imageLabel.configure(image=None)
+        self.hideImages()
         self.markBtn['state'] = tk.NORMAL
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
@@ -554,10 +653,10 @@ class MainFrame(ttk.Frame):
 
     def showCurrentImage(self):
         '''Show whatever image is the current one in the loaded/generated list
-        using showImage, or if the item is a subdirectory, call
+        using loadImage, or if the item is a subdirectory, call
         previewFolder.
 
-        Always let showImage handle paths, so that all path fault
+        Always let loadImage handle paths, so that all path fault
         tolerance code is in one place.
         '''
         err = None
@@ -572,13 +671,13 @@ class MainFrame(ttk.Frame):
                 self.previewFolder(path)
                 status_msg = 'loaded folder "{}"'.format(path)
             else:
-                ok, err = self.showImage(path)
+                ok, err = self.loadImage(path)
                 status_msg = path
         else:
-            ok, err = self.showImage(path)
+            ok, err = self.loadImage(path)
             self.nameSV.set("")
             self.pathSV.set("")
-            self.imageLabel.configure(image='')
+            self.hideImages()
             self.markBV.set(False)
         echo2("meta['checked']={}".format(meta.get('checked')))
 
