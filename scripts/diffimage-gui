@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+import re
+import sys
+import os
+import platform
+
+if platform.system() == "Windows":
+    HOME = os.environ['USERPROFILE']
+else:
+    HOME = os.environ['HOME']
+
+# TRY_REPO = os.path.join(HOME, "git", "rotocanvas")
+# if os.path.isfile(os.path.join(TRY_REPO, "channeltinkerpil", "__init__.py")):
+#     sys.path.insert(0, TRY_REPO)
+SCRIPTS_DIR = os.path.dirname(os.path.realpath(__file__))
+REPO_DIR = os.path.dirname(SCRIPTS_DIR)
+if os.path.isfile(os.path.join(REPO_DIR, "rotocanvas", "__init__.py")):
+    sys.path.insert(0, REPO_DIR)
+
+
+from channeltinkerpil.diffimagetk import main
+
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
