@@ -81,7 +81,18 @@ from decimal import Decimal
 import decimal
 import locale as lc
 
-from rotocanvas import (
+MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
+REPO_DIR = os.path.dirname(MODULE_DIR)
+if os.path.isdir(os.path.join(os.path.dirname(REPO_DIR), "rotocanvas")):
+    # parent of rotocanvas is rotocanvas not sitepackages,
+    # so allow using the nearby module even if not installed.
+    sys.path.insert(0, REPO_DIR)
+
+REPOS_DIR = os.path.dirname(REPO_DIR)
+OTHER_REPO_DIR = os.path.join(REPOS_DIR, "EnlivenMinetest")
+
+
+from rotocanvas import (  # noqa E402
     echo0,
     echo1,
     echo2,
@@ -689,11 +700,20 @@ def main():
                 code = 1
         elif listPath is None:
             listPath = arg
-            mainframe.setList(arg)
+
         elif mainDirPath is None:
             mainDirPath = arg
             mainframe.setPath(arg)
         prevArg = arg
+    dev_list_path = os.path.join(REPO_DIR, "check-patches-lmk-2024-02-29.txt")
+    if not listPath:
+        if os.path.isfile(dev_list_path):
+            listPath = dev_list_path
+            mainDirPath = OTHER_REPO_DIR
+    if listPath:
+        mainframe.setList(listPath)
+    if mainDirPath:
+        mainframe.setList(mainDirPath)
     print("listPath={}".format(listPath))
     print("mainDirPath={}".format(mainDirPath))
     root.after(1, mainframe.onFormLoaded)  # (milliseconds, function)
