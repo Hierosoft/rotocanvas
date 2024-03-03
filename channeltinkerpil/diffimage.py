@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 '''
 Compare two image files.
+Part of rotocanvas.
 
 Similar projects:
-- diffimg
+- [diffimg](https://github.com/sandsmark/diffimg): Displays difference
+  as a color mask using Qt.
 '''
 import sys
 import os
@@ -26,14 +28,12 @@ def diff_image_files_and_gen(base_path, head_path, diff_name=None):
     return results
 
 
-def main():
+def main_cli():
     if len(sys.argv) != 3:
         error("You must specify two files.")
         exit(1)
     results = diff_image_files_and_gen(sys.argv[1], sys.argv[2])
     print(results)
 
-
 if __name__ == "__main__":
-    main()
-
+    main_cli()
