@@ -153,8 +153,9 @@ class MainFrame(ttk.Frame):
         self.listSV = tk.StringVar()
         self.statusSV = tk.StringVar()
         self.markBV = tk.BooleanVar()
+
         def on_marked_changed(tkVarID, param, event, var=self.markBV,
-                key='checked'):
+                              key='checked'):
             '''
             Keyword argument defaults force early binding (they
             come from the outer scope, not the call).
@@ -165,6 +166,7 @@ class MainFrame(ttk.Frame):
                       "".format(self.metaI, key))
             meta = self.metas[self.metaI]
             meta[key] = var.get()
+
         if sys.version_info.major >= 3:
             self.markBV.trace_add('write', on_marked_changed)
         else:
@@ -247,11 +249,13 @@ class MainFrame(ttk.Frame):
         # self.nameSV.set(money(session.getCurrentMoney(playerIndex)))
 
     def timedMessage(self, msg, delay=2000):
-        '''
-        Show a message temporarily, then revert to the previous message
+        '''Show a message temporarily,
+        then revert to the previous message
         unless the message changed.
-        Keyword arguments:
-        delay -- Disappear after this many milliseconds.
+
+        Args:
+            delay (Optional[int]): Disappear after this many
+                milliseconds.
         '''
         self.prevMsg = self.statusSV.get()
         self.timedMsg = msg
@@ -259,17 +263,16 @@ class MainFrame(ttk.Frame):
         self.parent.after(delay, self.revertTimedMessage)
 
     def revertTimedMessage(self):
-        '''
-        Only revert the message if the message is known. If the timed
-        message was interrupted, leave the new message as is.
+        '''Only revert the message if the message is known.
+        If the timed message was interrupted, leave the new message as
+        is.
         '''
         if self.statusSV.get() == self.timedMsg:
             self.statusSV.set(self.prevMsg)
 
     def saveChecked(self):
-        '''
-        Save self.listPath with self.checkedSuffix added to the
-        filename.
+        '''Save self.listPath with self.checkedSuffix
+        added to the filename.
         '''
         if self.listPath is None:
             self.statusSV.set("Error: There is no filename")
@@ -329,8 +332,7 @@ class MainFrame(ttk.Frame):
     """
 
     def getFullPath(self, relative_path):
-        '''
-        Get the absolute path based on the location of the list,
+        '''Get the absolute path based on the location of the list,
         otherwise return relative_path.
         '''
         # formerly getAbs
@@ -462,16 +464,18 @@ class MainFrame(ttk.Frame):
         self.updateButtonStates()
 
     def showImage(self, path):
+        '''Show an image on the panel.
         '''
-        See Apostolos' Apr 14 '18 at 16:20 answer edited Oct 26 '18 at
-        8:40 on <https://stackoverflow.com/a/49833564>
-        '''
+        # See Apostolos' Apr 14 '18 at 16:20 answer edited Oct 26 '18 at
+        # 8:40 on <https://stackoverflow.com/a/49833564>
         echo1('showImage "{}"'.format(path))
         try:
             echo1('- working directory: "{}"'.format(os.getcwd()))
             if not os.path.isfile(path):
                 raise FileNotFoundError(path)
             self.img = ImageTk.PhotoImage(Image.open(path))
+            # ^ Keep as attribute so it doesn't go out of scope
+            #   (which would destroy the image).
             self.statusSV.set("")
             self.imgLabel.configure(image=self.img)
             self.markBtn['state'] = tk.NORMAL
@@ -501,6 +505,8 @@ class MainFrame(ttk.Frame):
         return self.listSV.get().strip()
 
     def openInDefaultApplication(self):
+        """Open the selected file in the default application.
+        """
         # See https://stackoverflow.com/a/435669
         path = self.getCurrentFullPath()
         # import subprocess, os, platform
@@ -542,9 +548,8 @@ class MainFrame(ttk.Frame):
         return path
 
     def showCurrentImage(self):
-        '''
-        Show whatever image is the current one in the loaded/generated
-        list using showImage, or if the item is a subdirectory, call
+        '''Show whatever image is the current one in the loaded/generated list
+        using showImage, or if the item is a subdirectory, call
         previewFolder.
 
         Always let showImage handle paths, so that all path fault
