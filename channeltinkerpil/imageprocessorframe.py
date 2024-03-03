@@ -15,14 +15,15 @@ the list file.
 import os
 import sys
 import platform
-import math
+# import math
 import subprocess
 import shlex
 from pprint import pformat
 
 print("executable: %s" % pformat(sys.executable))
-print("os.path.realpath(executable): %s" % pformat(os.path.realpath(sys.executable)))
-import site
+print("os.path.realpath(executable): %s"
+      % pformat(os.path.realpath(sys.executable)))
+import site  # noqa E402
 print("site-packages: %s" % pformat(site.getsitepackages()))
 
 venv_error_fmt = ("Import failed though %s exists, so the virtual"
@@ -77,9 +78,9 @@ except ImportError as ex:
     print()
     sys.exit(1)
 
-from decimal import Decimal
-import decimal
-import locale as lc
+# from decimal import Decimal
+# import decimal
+# import locale as lc
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.dirname(MODULE_DIR)
@@ -203,10 +204,10 @@ class MainFrame(ttk.Frame):
         # self.rowconfigure(tuple(range(10)), weight=1)
         # ^ rowconfigure with weight makes buttons stay spaced evenly
         row = 0
-        wide_width = 30
+        # wide_width = 30
         statusLbl = ttk.Label(self, textvariable=self.statusSV)
         statusLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
-        self.statusSV.set("Specify a main directory. Specify a file list.")
+        self.setStatus("Specify a main directory. Specify a file list.")
         row += 1
         mainLbl = ttk.Label(self, text="Main Directory:")
         mainLbl.grid(column=0, row=row, sticky=tk.E)
@@ -247,6 +248,9 @@ class MainFrame(ttk.Frame):
         self.prevBtn['state'] = tk.DISABLED
         self.markBtn['state'] = tk.DISABLED
         # self.nameSV.set(money(session.getCurrentMoney(playerIndex)))
+
+    def setStatus(self, msg):
+        self.statusSV.set(msg)
 
     def timedMessage(self, msg, delay=2000):
         '''Show a message temporarily,
@@ -343,7 +347,7 @@ class MainFrame(ttk.Frame):
         list_dir = os.path.dirname(list_path)
         try_path = os.path.join(list_dir, relative_path)
         if os.path.exists(try_path):
-            path = try_path
+            path = os.path.realpath(try_path)  # remove ./ or other
         return path
 
     def loadList(self, path):
@@ -540,9 +544,10 @@ class MainFrame(ttk.Frame):
             echo1('* no name: using bare line as path: "{}"'.format(path))
             path = meta.get('line')
             status_msg = meta.get('line')
+        # self.setStatus(status_msg)
         try_path = self.getFullPath(path)  # formerly getAbs
-        ok = True
-        err = None
+        # ok = True
+        # err = None
         if os.path.exists(try_path):
             path = try_path
         return path
@@ -708,17 +713,24 @@ def main():
 
         elif mainDirPath is None:
             mainDirPath = arg
-            mainframe.setPath(arg)
         prevArg = arg
-    dev_list_path = os.path.join(REPO_DIR, "check-patches-lmk-2024-02-29.txt")
+    dev_list_paths = [
+        "/opt/minebest/assemble/bucket_game/image_list.txt",
+        # ^ test existing features and new list panel.
+        os.path.join(OTHER_REPO_DIR, "check-patches-lmk-2024-02-29.txt"),
+        # ^ add diffimage feature and use to verify patches were applied
+        #   (output of EnlivenMinetest/utilities/check-patches-lmk)
+    ]
     if not listPath:
-        if os.path.isfile(dev_list_path):
-            listPath = dev_list_path
-            mainDirPath = OTHER_REPO_DIR
+        for dev_list_path in dev_list_paths:
+            if os.path.isfile(dev_list_path):
+                listPath = dev_list_path
+                mainDirPath = os.path.dirname(listPath)
+                break
     if listPath:
         mainframe.setList(listPath)
     if mainDirPath:
-        mainframe.setList(mainDirPath)
+        mainframe.setPath(mainDirPath)
     print("listPath={}".format(listPath))
     print("mainDirPath={}".format(mainDirPath))
     root.after(1, mainframe.onFormLoaded)  # (milliseconds, function)
