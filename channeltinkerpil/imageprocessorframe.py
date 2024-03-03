@@ -240,8 +240,8 @@ class MainFrame(ttk.Frame):
         # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
         # exitBtn.grid(column=2, row=row, sticky=tk.W)
         row += 1
-        self.imgLabel = ttk.Label(self)  # , text="..."
-        self.imgLabel.grid(column=0, row=row, columnspan=3)
+        self.imageLabel = ttk.Label(self)  # , text="..."
+        self.imageLabel.grid(column=0, row=row, columnspan=3)
         for child in self.winfo_children():
             child.grid_configure(padx=6, pady=3)
         self.nextBtn['state'] = tk.DISABLED
@@ -481,11 +481,11 @@ class MainFrame(ttk.Frame):
             # ^ Keep as attribute so it doesn't go out of scope
             #   (which would destroy the image).
             self.statusSV.set("")
-            self.imgLabel.configure(image=self.img)
+            self.imageLabel.configure(image=self.img)
             self.markBtn['state'] = tk.NORMAL
             echo1('- loaded.')
         except PIL.UnidentifiedImageError:
-            self.imgLabel.configure(image='')
+            self.imageLabel.configure(image='')
             err = "Error: unreadable image"
             self.statusSV.set(err)
             return False, err
@@ -495,12 +495,12 @@ class MainFrame(ttk.Frame):
             return False, err
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
-        # self.imgLabel = tk.Label(window, image=self.img).pack()
+        # self.imageLabel = tk.Label(window, image=self.img).pack()
         return True, None
 
     def previewFolder(self, path):
         self.statusSV.set("(folder)")
-        self.imgLabel.configure(image=None)
+        self.imageLabel.configure(image=None)
         self.markBtn['state'] = tk.NORMAL
         self.nameSV.set(os.path.split(path)[1])
         self.pathSV.set(path)
@@ -578,7 +578,7 @@ class MainFrame(ttk.Frame):
             ok, err = self.showImage(path)
             self.nameSV.set("")
             self.pathSV.set("")
-            self.imgLabel.configure(image='')
+            self.imageLabel.configure(image='')
             self.markBV.set(False)
         echo2("meta['checked']={}".format(meta.get('checked')))
 
