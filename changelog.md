@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+
+## [git] - 2024-03-17
+### Fixed
+- Add missing `__init__.py` to tests (imports now work in nose-py3 and pytest now).
+
+
 ## [git] - 2023-04-08
 ### Added
 - Add a Kivy-based GUI.
