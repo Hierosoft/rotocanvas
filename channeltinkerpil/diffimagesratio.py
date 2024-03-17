@@ -171,6 +171,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                 print(indent+"- [ ] +new file:  {}".format(headSubPath))
     return results
 
+
 def main():
     base_path = None
     head_path = None
@@ -245,4 +246,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
