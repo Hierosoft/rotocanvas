@@ -34,7 +34,10 @@ class MainForm(tk.Frame):
             head=None,
         )
         self.root = parent
-        self.container = self
+        container = self
+        # container = tk.Frame(self.root)
+        # container.pack()
+        self.container = container
 
     def set_base_path(self, path):
         self.paths['base'] = path
@@ -94,6 +97,8 @@ class MainForm(tk.Frame):
         if self.paths is None:
             raise NotImplementedError("self.paths is None.")
         for key, _ in self.paths.items():
+            if not _:
+                continue
             print(prefix+"loading {}".format(key))
             this_result = self._load_item(key)
             if this_result:
@@ -113,7 +118,10 @@ class MainForm(tk.Frame):
                     label.grid(row=row, column=1)
                     row += 1
             return
-        results = gen_diff_image(self.images['base'], self.images['head'])
+        if ('base' in self.images) and ('head' in self.images):
+            results = gen_diff_image(self.images['base'], self.images['head'])
+        else:
+            return
         images = OrderedDict()
         images['base'] = self.images['base']  # results['base_image']
         images['head'] = self.images['head']  # results['head_image']
@@ -159,20 +167,19 @@ class MainForm(tk.Frame):
 
 def main():
     root = tk.Tk()
+    screen_w = root.winfo_screenwidth()
+    screen_h = root.winfo_screenheight()
+    root.minsize(screen_w//10, screen_h//10)
+    root.title("RotoCanvas DiffImage")
     mainform = MainForm(root)
     if len(sys.argv) != 3:
         mainform.error = "You must specify two files."
         print(mainform.error)
     else:
-        print("setting base")
         mainform.set_base_path(sys.argv[1])
-        print("setting head")
         mainform.set_head_path(sys.argv[2])
-    print("* building GUI")
     mainform.pack()
-    print("* loading {}".format(mainform.paths))
     mainform.load()
-    print("* starting GUI")
     root.mainloop()
 
 
