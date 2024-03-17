@@ -23,6 +23,7 @@ class DiffImageFrame(tk.Frame):
     """A frame that can load 3 images.
     - There is *not* a main menu: That should be *external* so
       DiffImageFrame can be embedded into another Frame.
+      - Same for showing mainform.error.
 
     Args:
         tk (Tk): master a.k.a. root, otherwise a panel where the
@@ -41,10 +42,10 @@ class DiffImageFrame(tk.Frame):
             base=None,
             head=None,
         )
+        self.error_labels = {}
         self.root = parent
         container = self
         # container = tk.Frame(self.root)
-        # container.pack()
         self.container = container
 
     def set_base_path(self, path):
@@ -117,23 +118,25 @@ class DiffImageFrame(tk.Frame):
         row = 0
         column = 0
         if self.result:
-            for name, meta in self.result.items():
+            for key, meta in self.result.items():
                 error = meta.get('error')
                 if error:
-                    label = tk.Label(master=self.container, text=name+":")
+                    label = tk.Label(master=self.container, text=key+":")
                     label.grid(row=row, column=0)
+                    self.error_labels['{}.title'] = label
                     label = tk.Label(master=self.container, text=error)
                     label.grid(row=row, column=1)
+                    self.error_labels['{}'] = label
                     row += 1
-            return
-        if ('base' in self.images) and ('head' in self.images):
-            results = gen_diff_image(self.images['base'], self.images['head'])
-        else:
+                    print("{} error: {}".format(key, error))
             return
         images = OrderedDict()
-        images['base'] = self.images['base']  # results['base_image']
-        images['head'] = self.images['head']  # results['head_image']
-        images['diff'] = results['diff_image']
+        results = None
+        for key, image in self.images.items():
+            images[key] = self.images[key]  # results['base_image']
+        if ('base' in self.images) and ('head' in self.images):
+            results = gen_diff_image(self.images['base'], self.images['head'])
+            images['diff'] = results['diff_image']
 
         column = -1
         for key in images.keys():
@@ -164,13 +167,18 @@ class DiffImageFrame(tk.Frame):
             # label.image = self.pimages[context]
             label.pack()
         row += 1
-        same_msg = "unknown"
-        if results.get('same') is True:
-            same_msg = "same"
-        elif results.get('same') is False:
-            same_msg = "differs"
-        label = tk.Label(master=self.container, text=same_msg)
-        label.grid(row=row, column=2)
+        same_msg = None
+        if results:
+            same_msg = "unknown"
+            if results.get('same') is True:
+                same_msg = "same"
+            elif results.get('same') is False:
+                same_msg = "differs"
+        # else no diff was performed (such as if only 1 image loaded)
+        if same_msg:
+            label = tk.Label(master=self.container, text=same_msg)
+            label.grid(row=row, column=2)
+            self.error_labels['diff'] = label
 
 
 def main():
@@ -180,12 +188,13 @@ def main():
     root.minsize(screen_w//10, screen_h//10)
     root.title("RotoCanvas DiffImage")
     mainform = DiffImageFrame(root)
-    if len(sys.argv) != 3:
-        mainform.error = "You must specify two files."
-        print(mainform.error)
-    else:
+    if len(sys.argv) > 1:
         mainform.set_base_path(sys.argv[1])
+    if len(sys.argv) > 2:
         mainform.set_head_path(sys.argv[2])
+    if len(sys.argv) != 3:
+        mainform.error = "You must specify two files to perform a diff."
+        print(mainform.error)
     mainform.pack()
     mainform.load()
     root.mainloop()
