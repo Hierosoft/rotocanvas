@@ -814,11 +814,11 @@ def main():
             mainDirPath = arg
         prevArg = arg
     dev_list_paths = [
-        "/opt/minebest/assemble/bucket_game/image_list.txt",
-        # ^ test existing features and new list panel.
         os.path.join(OTHER_REPO_DIR, "check-patches-lmk-2024-02-29.txt"),
         # ^ add diffimage feature and use to verify patches were applied
         #   (output of EnlivenMinetest/utilities/check-patches-lmk)
+        "/opt/minebest/assemble/bucket_game/image_list.txt",
+        # ^ test existing features and new list panel.
     ]
     if not listPath:
         for dev_list_path in dev_list_paths:
