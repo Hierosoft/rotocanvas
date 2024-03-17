@@ -398,11 +398,15 @@ class MainFrame(ttk.Frame):
         self.metas = []
         self.metaI = 0
         found = 0
+        index = -1
         with open(path, 'r') as ins:
             for rawL in ins:
+                index += 1  # Starts at -1, so +1 for 0
                 isFound = False
                 raw2 = rawL.rstrip()
                 line = raw2.strip()
+                if not line:
+                    continue
                 indent = ""
                 if len(line) < len(raw2):
                     indent = raw2[len(raw2)-len(line):]
