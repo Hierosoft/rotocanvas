@@ -19,7 +19,15 @@ from channeltinkerpil import (
 # from channeltinker import diff_images
 
 
-class MainForm(tk.Frame):
+class DiffImageFrame(tk.Frame):
+    """A frame that can load 3 images.
+    - There is *not* a main menu: That should be *external* so
+      DiffImageFrame can be embedded into another Frame.
+
+    Args:
+        tk (Tk): master a.k.a. root, otherwise a panel where the
+            tk.Frame can be embedded.
+    """
     def __init__(self, parent, *args, **kwargs):
         # if len(args) > 0:
         #     print("MainApp ignored args")
@@ -91,7 +99,7 @@ class MainForm(tk.Frame):
             }
 
     def load(self):
-        prefix = "[MainForm load] "
+        prefix = "[DiffImageFrame load] "
         result = OrderedDict()
         self.pimages = OrderedDict()
         if self.paths is None:
@@ -171,7 +179,7 @@ def main():
     screen_h = root.winfo_screenheight()
     root.minsize(screen_w//10, screen_h//10)
     root.title("RotoCanvas DiffImage")
-    mainform = MainForm(root)
+    mainform = DiffImageFrame(root)
     if len(sys.argv) != 3:
         mainform.error = "You must specify two files."
         print(mainform.error)
