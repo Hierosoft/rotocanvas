@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ## [git] - 2024-03-17
+### Changed
+- Switch from nose to pytest (nose is deprecated. nose-py3 works but is a small fork).
+
+
+## [git] - 2024-03-17
 ### Fixed
 - Add missing `__init__.py` to tests (imports now work in nose-py3 and pytest now).
 

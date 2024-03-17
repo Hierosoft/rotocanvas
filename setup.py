@@ -55,7 +55,7 @@ setuptools.setup(
     #     versionedModule['urllib'],
     # ^ "ERROR: Could not find a version that satisfies the requirement urllib (from nopackage) (from versions: none)
     # ERROR: No matching distribution found for urllib"
-    test_suite='nose.collector',
-    tests_require=['nose', 'nose-cover3'],
-    zip_safe=False, # It can't run zipped due to needing data files.
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+    zip_safe=False,  # It can't run zipped due to needing data files.
  )
