@@ -6,6 +6,7 @@ import copy
 
 verbose_enable = False
 
+
 def get_dict_deepcopy(old_dict):
     '''Get a deepcopy if the param is a dict.
     The purpose of this is to make an "even deeper" deepcopy. I don't
@@ -37,7 +38,7 @@ def view_traceback():
 
 def get_by_name(object_list, needle):  # formerly find_by_name
     result = None
-    for i in range(0,len(object_list)):
+    for i in range(0, len(object_list)):
         try:
             if object_list[i].name == needle:
                 result = object_list[i]
@@ -47,9 +48,10 @@ def get_by_name(object_list, needle):  # formerly find_by_name
             view_traceback()
     return result
 
+
 def get_index_by_name(object_list, needle):
     result = -1
-    for i in range(0,len(object_list)):
+    for i in range(0, len(object_list)):
         try:
             if object_list[i].name == needle:
                 result = i
@@ -58,4 +60,3 @@ def get_index_by_name(object_list, needle):
             print("Could not finish get_by_name:" + str(ex))
             view_traceback()
     return result
-
