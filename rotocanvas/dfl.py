@@ -804,7 +804,7 @@ class DLMWorkspace:
 
     def load(self):
         self.items = []
-        path  = os.path.join(self.path, DLM.WS_META_NAME)
+        path = os.path.join(self.path, DLM.WS_META_NAME)
         if not os.path.isfile(path):
             return False
         self.logPath = os.path.join(self.path, DLMWorkspace.LOG_NAME)
@@ -1853,4 +1853,3 @@ class DLM:
         if not path[-4:].lower() in dotExts:
             return False
         return True
-
