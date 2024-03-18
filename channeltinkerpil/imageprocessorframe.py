@@ -99,6 +99,7 @@ from rotocanvas import (  # noqa E402
     echo1,
     echo2,
     set_verbosity,
+    no_enclosures,
 )
 
 HOME = None
@@ -154,6 +155,7 @@ class MainFrame(ttk.Frame):
         self.mainSV = tk.StringVar()
         self.listSV = tk.StringVar()
         self.statusSV = tk.StringVar()
+        self.commentSV = tk.StringVar()
         self.markBV = tk.BooleanVar()
 
         # local dynamically-generated callback function:
@@ -186,6 +188,10 @@ class MainFrame(ttk.Frame):
         self.fileMenu = tk.Menu(self.menuBar, tearoff=0)
         self.fileMenu.add_command(label="Save Filename List (Checked)",
                                   command=self.saveChecked)
+        self.fileMenu.add_command(
+            label="Save Filename List (Checked & comments)",
+            command=self.saveCheckedAndComments,
+        )
         self.fileMenu.add_command(label="Open in Default Application",
                                   command=self.openInDefaultApplication)
         self.fileMenu.add_command(label="Open in Editor",
@@ -206,6 +212,10 @@ class MainFrame(ttk.Frame):
         # ^ rowconfigure with weight makes buttons stay spaced evenly
         row = 0
         # wide_width = 30
+        commentLbl = ttk.Label(self, textvariable=self.commentSV)
+        commentLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
+        self.commentSV.set("No image was loaded.")
+        row += 1
         statusLbl = ttk.Label(self, textvariable=self.statusSV)
         statusLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
         self.setStatus("Specify a main directory. Specify a file list.")
@@ -289,6 +299,12 @@ class MainFrame(ttk.Frame):
     def setStatus(self, msg):
         self.statusSV.set(msg)
 
+    def setComment(self, msg):
+        if msg:
+            self.commentSV.set(msg)
+        else:
+            self.commentSV.set("")
+
     def timedMessage(self, msg, delay=2000):
         '''Show a message temporarily,
         then revert to the previous message
@@ -311,27 +327,44 @@ class MainFrame(ttk.Frame):
         if self.statusSV.get() == self.timedMsg:
             self.statusSV.set(self.prevMsg)
 
+    def saveCheckedAndComments(self):
+        self._saveChecked(and_comments=True)
+
     def saveChecked(self):
+        self._saveChecked(and_comments=False)
+
+    def checkedPath(self):
+        if self.listPath is None:
+            echo0(prefix+"no filename")
+            self.statusSV.set("Error: There is no filename")
+            return
+        parts = os.path.splitext(self.listPath)
+        return parts[0] + self.checkedSuffix + parts[1]
+
+    def _saveChecked(self, and_comments=False):
         '''Save self.listPath with self.checkedSuffix
         added to the filename.
         '''
-        if self.listPath is None:
+        prefix = "[saveChecked] "
+        destPath = self.checkedPath()
+        if not destPath:
+            echo0(prefix+"no filename")
             self.statusSV.set("Error: There is no filename")
             return
         if len(self.metas) < 1:
+            echo0(prefix+"no list loaded filename")
             self.statusSV.set("Error: There is no list loaded.")
             return
-        parts = os.path.splitext(self.listPath)
-        destPath = parts[0] + self.checkedSuffix + parts[1]
         destName = os.path.split(destPath)[1]
+        echo0(prefix+'destPath="{}"'.format(destPath))
         self.timedMessage("Saved {}".format(destName))
         with open(destPath, 'w') as outs:
             for meta in self.metas:
                 keep = meta.get('checked')
-                name = meta.get('name')
-                if name is None:
-                    # Keep comments etc. (any line that isn't a file).
-                    keep = True
+                if not meta.get('name') and not meta.get('paths'):
+                    if and_comments:
+                        # Keep comments etc. (any line that isn't a file).
+                        keep = True
                 if not keep:
                     continue
                 outs.write("{}\n".format(meta['line']))
@@ -388,6 +421,9 @@ class MainFrame(ttk.Frame):
         return path
 
     def loadList(self, path):
+        prefix = "[loadList] "
+        # ^ not same as line's prefix. This is the prefix for console output
+        #   (simulating reflection).
         self.listPath = path
         if len(self.mainSV.get().strip()) == "":
             self.setPath(os.path.dirname())
@@ -398,40 +434,70 @@ class MainFrame(ttk.Frame):
         self.metas = []
         self.metaI = 0
         found = 0
-        index = -1
+        line_n = 0
         with open(path, 'r') as ins:
             for rawL in ins:
-                index += 1  # Starts at -1, so +1 for 0
+                line_n += 1  # Counting numbers start at 1.
                 isFound = False
-                raw2 = rawL.rstrip()
-                line = raw2.strip()
+                line_key = rawL.rstrip()
+                line = line_key.strip()
                 if not line:
                     continue
                 indent = ""
-                if len(line) < len(raw2):
-                    indent = raw2[len(raw2)-len(line):]
+                if len(line) < len(line_key):
+                    indent = line_key[len(line_key)-len(line):]
                 parts = line.split(" ")
                 cols = 1
-                name = line[-1]
+                paths = []
+                command = None
+                meta = {}
+                args = shlex.split(line)
+                if line.lower().startswith("set "):
+                    # process custom meta notation
+                    signI = line.find("=")
+                    if signI > -1:
+                        key = line[4:signI]  # 4 is after "set "
+                        meta[key] = line[signI+1:].strip()
+                        meta[key] = no_enclosures(meta[key])
+                        echo0(prefix+"set {}={}"
+                              "".format(key, meta[key]))
+                for argi, arg in enumerate(args):
+                    if arg.startswith("#"):
+                        meta['comment'] = " ".join(args[argi:])
+                        # TODO: Detect & insert original spacing.
+                        break
+                    arg_path = self.getFullPath(arg)
+                    if os.path.isfile(arg_path):
+                        paths.append(arg_path)
+                        if len(args) > 0 and not command:
+                            command = args[0]
                 while cols <= len(parts):
                     lastParts = parts[-cols:]
                     tryName = " ".join(lastParts)
                     # print("tryName: \"{}\"".format(tryName))
                     tryPath = self.getFullPath(tryName)
                     if os.path.isfile(tryPath):
-                        self.metas.append({
+                        meta.update({
                             'name': tryName,
-                            'line': rawL.rstrip(),
-                            'prefix': indent + " ".join(parts[:-cols])
+                            'path': tryPath,
+                            'line': self.lineKey(rawL),
+                            'prefix': indent + " ".join(parts[:-cols]),
+                            'line_n': line_n,
                         })
                         found += 1
                         isFound = True
                         break
                     cols += 1
+                if paths:
+                    meta['paths'] = paths
+                    meta['command'] = command
                 if not isFound:
-                    self.metas.append({
+                    meta.update({
                         'line': rawL.rstrip(),
+                        'line_n': line_n,
                     })
+                if meta:
+                    self.metas.append(meta)
         # print("metas: {}".format(self.metas))
 
     def onFormLoaded(self):
@@ -452,11 +518,41 @@ class MainFrame(ttk.Frame):
                 echo0("* loading the list failed: {}".format(ex))
                 echo0("  - generating a list instead...")
                 self.generateList(path)  # auto-detects a file
-        if len(self.metas) > 0:
+        if self.metas:
+            self.loadCheckList()
             self.showCurrentImage()
             self.prevBtn['state'] = tk.DISABLED
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
+        else:
+            echo0("self.metas={}".format(self.metas))
+
+    def lineKey(self, rawL):
+        return rawL.rstrip()
+
+    def loadCheckList(self):
+        """Load a checklist using the checkedPath() naming convention
+        if that yields an existing file path.
+        """
+        checkedPath = self.checkedPath()
+        if not checkedPath:
+            return
+        if not os.path.isfile(checkedPath):
+            return
+        got_keys = set()
+        with open(checkedPath, 'r') as stream:
+            for rawL in stream:
+                line_key = self.lineKey(rawL)
+                if not line_key:
+                    # A blank line isn't trackable.
+                    continue
+                if line_key in got_keys:
+                    echo0("Warning: '{}' is already set.".format(line_key))
+                got_keys.add(line_key)
+                metaI = self.findLine(line_key)
+                if metaI < 0:
+                    continue
+                self.metas[metaI]['checked'] = True
 
     def generateList(self, path, indent=""):
         found = 0
@@ -494,10 +590,27 @@ class MainFrame(ttk.Frame):
         if found > 0:
             self.removeIssue(MainFrame.ISSUE_DIR)
 
+    def findLine(self, line_key):
+        if not line_key:
+            return -1
+        if not self.metas:
+            echo0("gotoPath failed since there is no image list loaded.")
+            return
+        for i, meta in enumerate(self.metas):
+            if meta.get('line') == line_key:
+                return i
+        return -1
+
     def gotoPath(self, path):
-        for i in range(len(self.metas)):
+        if not self.metas:
+            self.setStatus("gotoPath failed since there is no image list.")
+            return
+        for i, meta in enumerate(self.metas):
             meta = self.metas[i]
             if meta.get('name') == path:
+                self.metaI = i
+                break
+            elif meta.get('path') == path:
                 self.metaI = i
                 break
 
@@ -528,6 +641,10 @@ class MainFrame(ttk.Frame):
     def loadImage(self, path):
         '''Show image(s) on the panel.
 
+        The caller is responsible for utilizing self.metaI and UI
+        elements such as checkbox, to keep those features at a higher
+        level than image loading and viewing.
+
         Args:
             path (Union[str,list[str],tuple[str]]): Show an image or
                 list of images. If not str, it is assumed to be an
@@ -535,7 +652,7 @@ class MainFrame(ttk.Frame):
         '''
         # See Apostolos' Apr 14 '18 at 16:20 answer edited Oct 26 '18 at
         # 8:40 on <https://stackoverflow.com/a/49833564>
-        prefix = "loadImage"
+        prefix = "[loadImage] "
         paths = [path] if isinstance(path, str) else path
         del path
         # count = len(paths)
@@ -544,10 +661,11 @@ class MainFrame(ttk.Frame):
         index = -1
         self.pimages = []
         err = None
+        self.setImageCount(len(paths))
         for path in paths:
             _, name = os.path.split(path)
             index += 1
-            echo1('loadImage "{}"'.format(path))
+            echo1(prefix+'path={}'.format(path))
             try:
                 echo1('- working directory: "{}"'.format(os.getcwd()))
                 if not os.path.isfile(path):
@@ -564,6 +682,7 @@ class MainFrame(ttk.Frame):
                 echo1('- loaded.')
             except PIL.UnidentifiedImageError:
                 # self.imageLabels[index].configure(image='')
+                echo0(prefix+"index={}".format(index))
                 self.imageErrorVars[index].set("unreadable")
                 err = "Error: unreadable image"
                 self.statusSV.set(err)
@@ -576,7 +695,8 @@ class MainFrame(ttk.Frame):
 
             while index >= len(self.pimages):
                 self.pimages.append(None)
-                echo0(prefix+"Increased len(self.pimages) to {} since index is {}"
+                echo0(prefix+"Increased len(self.pimages) to"
+                      " {} since index is {}"
                       "".format(len(self.pimages), index))
             if len(paths) > 1:
                 if index == 1:
@@ -592,7 +712,8 @@ class MainFrame(ttk.Frame):
             else:
                 self.nameSV.set(os.path.split(path)[1])
                 self.pathSV.set(path)
-            # self.imageLabels[index] = tk.Label(window, image=self.pimages[0]).pack()
+            # self.imageLabels[index] = \
+            #     tk.Label(window, image=self.pimages[0]).pack()
         self._showImages()
         return err is None, err
 
@@ -616,13 +737,32 @@ class MainFrame(ttk.Frame):
         """
         # See https://stackoverflow.com/a/435669
         path = self.getCurrentFullPath()
-        # import subprocess, os, platform
-        if platform.system() == 'Darwin':       # macOS
-            subprocess.call(('open', path))
-        elif platform.system() == 'Windows':    # Windows
-            os.startfile(path)
-        else:                                   # GNU/Linux-like
-            subprocess.call(('xdg-open', path))
+
+        meta = self.metas[self.metaI]
+        command = meta.get('command')
+
+        if isinstance(path, str):
+            # args = path
+            # import subprocess, os, platform
+            if platform.system() == 'Darwin':       # macOS
+                subprocess.call(('open', path))
+            elif platform.system() == 'Windows':    # Windows
+                os.startfile(path)
+            else:                                   # GNU/Linux-like
+                subprocess.call(('xdg-open', path))
+        elif isinstance(path, list):
+            cmd_parts = []
+            # echo0("meta={}".format(meta))
+            if command:
+                cmd_parts = [command]
+            if meta.get('files'):
+                echo0("* appending files={}".format(meta.get('files')))
+                cmd_parts += meta.get('files')
+            elif path:
+                echo0("* appending path={}".format(path))
+                cmd_parts += path  # Since is list in this case.
+            echo0(prefix+"Running: {}".format(cmd_parts))
+            subprocess.call(tuple(cmd_parts))
 
     def openWith(self, exe=None):
         if exe is None:
@@ -632,27 +772,48 @@ class MainFrame(ttk.Frame):
             try_gimp = os.path.join(HOME_BIN, "gimp-flatpak.sh")
             if os.path.isfile(try_gimp):
                 exe = try_gimp
-        cmd_parts = (exe, path)
+        if isinstance(path, str):
+            cmd_parts = (exe, path)
+        elif isinstance(path, list):
+            # The line must have multiple lists.
+            cmd_parts = tuple([exe]+path)
+        else:
+            raise ValueError("str or list was expected for path, but got {} {}"
+                             "".format(type(path).__name__, path))
         echo0("Running: " + shlex.join(cmd_parts))
         subprocess.call(cmd_parts)
 
     def getCurrentFullPath(self):
+        """Get the full path(s) from the current list item's metadata.
+
+        Returns:
+            Union(str,list[str]): filename(s)
+        """
         meta = self.metas[self.metaI]
         echo2("self.metaI={}".format(self.metaI))
+        paths = meta.get('paths')
+        if paths:
+            return paths
         name = meta.get('name')
+        path = meta.get('path')
+
+        # path should already be gotten during list generation/loading, but:
         status_msg = name
-        path = name
+        # path = name
         echo1("getCurrentFullPath...")
-        if name is None:
-            echo1('* no name: using bare line as path: "{}"'.format(path))
-            path = meta.get('line')
-            status_msg = meta.get('line')
-        # self.setStatus(status_msg)
-        try_path = self.getFullPath(path)  # formerly getAbs
-        # ok = True
-        # err = None
-        if os.path.exists(try_path):
-            path = try_path
+        if path is None:
+            if name is None:
+                echo1('* no name nor path: using bare line as path: "{}"'
+                      ''.format(path))
+                path = meta.get('line')
+                status_msg = meta.get('line')
+            # self.setStatus(status_msg)
+
+            try_path = self.getFullPath(path)  # formerly getAbs
+            # ok = True
+            # err = None
+            if os.path.exists(try_path):
+                path = try_path
         return path
 
     def showCurrentImage(self):
@@ -663,10 +824,16 @@ class MainFrame(ttk.Frame):
         Always let loadImage handle paths, so that all path fault
         tolerance code is in one place.
         '''
+        prefix = "[showCurrentImage] "
         err = None
         path = self.getCurrentFullPath()
-        status_msg = path
+        status_msg = \
+            " ".join(path) if isinstance(path, (list, tuple)) else path
         meta = self.metas[self.metaI]
+        echo0(prefix+"status_msg={}".format(status_msg))
+        comment = meta.get('comment')
+        self.setComment(comment)  # Does clear if None.
+
         name = meta.get('name')
         if name is not None:
             echo1('* name="{}"'.format(name))
@@ -675,15 +842,19 @@ class MainFrame(ttk.Frame):
                 self.previewFolder(path)
                 status_msg = 'loaded folder "{}"'.format(path)
             else:
-                ok, err = self.loadImage(path)
+                ok, err = self.loadImage(path)  # load list/str
                 status_msg = path
         else:
-            ok, err = self.loadImage(path)
+            ok, err = self.loadImage(path)  # load list/str
             self.nameSV.set("")
             self.pathSV.set("")
             self.hideImages()
-            self.markBV.set(False)
-        echo2("meta['checked']={}".format(meta.get('checked')))
+            # echo0("There is no name. meta={}".format(meta))
+            checked = meta.get('checked')
+            if checked is None:
+                checked = False
+            self.markBV.set(checked)
+        echo0("meta['checked']={}".format(meta.get('checked')))
 
         if meta.get('checked') is True:
             self.markBV.set(True)
