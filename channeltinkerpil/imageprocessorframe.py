@@ -12,13 +12,17 @@ Filenames can optionally be relative to the current working directory or
 the list file.
 '''
 
+import copy
 # import inspect
+import json
 import os
 import sys
 import platform
 # import math
 import subprocess
 import shlex
+import traceback
+
 from pprint import pformat
 
 print("executable: %s" % pformat(sys.executable))
@@ -119,6 +123,7 @@ checkDotTypes = [
     ".bmp",
 ]
 
+
 goodFlagRel = os.path.join("share", "pixmaps", "imageprocessorx.png")
 
 myPath = os.path.split(os.path.abspath(__file__))[0]
@@ -136,6 +141,11 @@ pixmaps = os.path.join(share, "pixmaps")
 
 
 class MainFrame(ttk.Frame):
+    """The image browser GUI.
+
+    Args:
+        parent (Union[Tk,Widget]): Container.
+    """
     ISSUE_DIR = 'Specify a main directory (not detected).'
     ISSUE_LIST = 'Specify a list or image file.'
 
@@ -146,10 +156,13 @@ class MainFrame(ttk.Frame):
         self.parent = parent  # tk root
         self.timedMsg = None
         self.prevMsg = None
-        self.checkedSuffix = ".checked"
+        self.checkedSuffix = ".active.txt"  # formerly ".checked"
+        self.metaSuffix = ".imagepx.json"
         self.pimages = None
         self.listPath = None
         self.metas = []
+        self.default_meta = {'active_keys': []}
+        self.meta = None
         self.nameSV = tk.StringVar()
         self.pathSV = tk.StringVar()
         self.mainSV = tk.StringVar()
@@ -160,16 +173,33 @@ class MainFrame(ttk.Frame):
 
         # local dynamically-generated callback function:
         def on_marked_changed(tkVarID, param, event, var=self.markBV,
-                              key='checked'):
+                              field_name='checked'):
             '''Keyword argument defaults force early binding
             (they come from the outer scope, not the call).
             '''
             # See also: anewcommit/anewcommit/gui_tkinter.py
             if self.metaI < 0:
                 echo0("Error: self.metaI={} (can't set '{}')"
-                      "".format(self.metaI, key))
+                      "".format(self.metaI, field_name))
             meta = self.metas[self.metaI]
-            meta[key] = var.get()
+            key = meta['line']
+            # meta[field_name] = var.get()
+            checked = var.get()
+            # The entire line is saved since self.metas
+            #   may be dynamically generated from a
+            #   directory path.
+            if self.meta is None:
+                # not loaded yet, so don't use *nor* save values!
+                return
+            if checked:
+                # Add it to the active list.
+                if key not in self.meta['active_keys']:
+                    self.meta['active_keys'].append(key)
+            else:
+                # Remove it from the active list.
+                if key in self.meta['active_keys']:
+                    self.meta['active_keys'].remove(key)
+            self.saveMeta()
 
         if sys.version_info.major >= 3:
             self.markBV.trace_add('write', on_marked_changed)
@@ -189,6 +219,10 @@ class MainFrame(ttk.Frame):
         )
         self.menuBar = tk.Menu(parent)
         self.fileMenu = tk.Menu(self.menuBar, tearoff=0)
+        # self.fileMenu.add_command(
+        #     label="Save",
+        #     command=self.saveMeta,
+        # )  # Commented since a conventional database UI saves on change
         self.fileMenu.add_command(label="Save Filename List (Checked)",
                                   command=self.saveChecked)
         self.fileMenu.add_command(
@@ -344,14 +378,60 @@ class MainFrame(ttk.Frame):
             echo0(prefix+"no filename")
             self.statusSV.set("Error: There is no filename")
             return
-        parts = os.path.splitext(self.listPath)
-        return parts[0] + self.checkedSuffix + parts[1]
+        # parts = os.path.splitext(self.listPath)
+        # return parts[0] + self.checkedSuffix + parts[1]
+        return self.listPath + self.checkedSuffix
+
+    def metaPath(self):
+        if self.listPath is None:
+            echo0(prefix+"no filename")
+            self.statusSV.set("Error: There is no filename")
+            return
+        return self.listPath + self.metaSuffix
+
+    def saveMeta(self):
+        '''Save self.listPath with self.checkedSuffix
+        added to the filename.
+
+        Args:
+            and_comments (bool, optional): Set True to also save
+                unchecked entries. Defaults to False.
+        '''
+        if self.meta is None:
+            raise NotImplementedError(
+                "imagepx.json (or defaults) must be loaded first"
+            )
+        prefix = "[saveMeta] "
+        destPath = self.metaPath()
+        if not destPath:
+            echo0(prefix+"no filename")
+            self.statusSV.set("Error: There is no filename")
+            return
+        if len(self.metas) < 1:
+            echo0(prefix+"no list loaded filename")
+            self.statusSV.set("Error: There is no list loaded.")
+            return
+        destName = os.path.split(destPath)[1]
+        echo0(prefix+'destPath="{}"'.format(destPath))
+        self.timedMessage('Saved "{}"'.format(destName))
+        # active_keys = []
+        with open(destPath, 'w') as outs:
+            # for meta in self.metas:
+            #     if not meta.get('checked'):
+            #         continue
+            #     active_keys.append(meta['line'])
+            # self.meta['active_keys'] = active_keys
+            json.dump(self.meta, outs)
 
     def _saveChecked(self, and_comments=False):
         '''Save self.listPath with self.checkedSuffix
         added to the filename.
+
+        Args:
+            and_comments (bool, optional): Set True to also save
+                unchecked entries. Defaults to False.
         '''
-        prefix = "[saveChecked] "
+        prefix = "[_saveChecked] "
         destPath = self.checkedPath()
         if not destPath:
             echo0(prefix+"no filename")
@@ -432,6 +512,12 @@ class MainFrame(ttk.Frame):
         return path
 
     def loadList(self, path):
+        """Load the list only (each line acts as a key)
+
+        Args:
+            path (str): File containing paths etc. Each line may have
+                multiple paths if starts with "meld ".
+        """
         prefix = "[loadList] "
         # ^ not same as line's prefix. This is the prefix for console output
         #   (simulating reflection).
@@ -534,6 +620,37 @@ class MainFrame(ttk.Frame):
         # print("metas: {}".format(self.metas))
 
     def onFormLoaded(self):
+        try:
+            self._onFormLoaded()
+        except Exception as ex:
+            tbex = traceback.TracebackException.from_exception(ex)
+            print("{} tbex={}".format(type(tbex).__name__, tbex))
+            # print("dir(tbex)={}".format(dir(tbex)))
+            # ^ _format_syntax_error', '_load_lines', '_str',
+            #   'exc_type', 'format', 'format_exception_only',
+            #   'from_exception', 'stack'
+            # stack = traceback.extract_stack()[-1:]
+            stack = tbex.stack
+            frame = stack[-1]  # FrameSummary of actual exception
+            print("dir(frame)={}".format(dir(frame)))
+            # ^ '_line', 'filename', 'line', 'lineno', 'locals', 'name'
+            # for i, item in enumerate(stack):
+            #     echo0("{}={}".format(i, item))
+            # + traceback.extract_tb(ex.__traceback__)
+            # filename = sys.exc_info()[2].tb_frame.f_code.co_filename
+            # lineno = sys.exc_info()[2].tb_lineno  # just _onFormLoaded call
+            # name = sys.exc_info()[2].tb_frame.f_code.co_name
+            # type_name = type(ex).__name__
+            type_name = sys.exc_info()[0].__name__
+            # message = sys.exc_info()[1].message
+            # ^ or see traceback._some_str()
+            self.setStatus(
+                "{}:{}: '{}' {}: {}"
+                "".format(frame.filename, frame.lineno, frame.line, type_name, ex)
+            )
+
+    def _onFormLoaded(self):
+        prefix = "[_onFormLoaded] "
         path = self.getListPath()
         if (len(path) < 1):
             self.generateList(os.getcwd())
@@ -552,16 +669,39 @@ class MainFrame(ttk.Frame):
                 echo0("  - generating a list instead...")
                 self.generateList(path)  # auto-detects a file
         if self.metas:
-            self.loadCheckList()
+            # self.loadCheckList()
+            self.loadMeta()
             self.showCurrentImage()
             self.prevBtn['state'] = tk.DISABLED
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
         else:
-            echo0("self.metas={}".format(self.metas))
+            echo0(prefix+"meta not loaded since self.metas={}"
+                  "".format(self.metas))
 
     def lineKey(self, rawL):
         return rawL.rstrip()
+
+    def loadMeta(self):
+        """Load metadata using the metaPath() naming convention
+        if that yields an existing file path.
+        """
+        prefix = "[loadMeta] "
+        checkedPath = self.metaPath()
+        if not checkedPath:
+            self.meta = copy.deepcopy(self.default_meta)
+            return False
+        if not os.path.isfile(checkedPath):
+            self.meta = copy.deepcopy(self.default_meta)
+            return False
+        echo0(prefix+'loading "{}"'.format(checkedPath))
+        with open(checkedPath, 'r') as stream:
+            self.meta = json.load(stream)
+        for key, value in self.default_meta.items():
+            if key not in self.meta:
+                self.meta[key] = copy.deepcopy(value)
+        echo0(prefix+'self.meta="{}"'.format(self.meta))
+        return True
 
     def loadCheckList(self):
         """Load a checklist using the checkedPath() naming convention
@@ -569,9 +709,9 @@ class MainFrame(ttk.Frame):
         """
         checkedPath = self.checkedPath()
         if not checkedPath:
-            return
+            return False
         if not os.path.isfile(checkedPath):
-            return
+            return False
         got_keys = set()
         with open(checkedPath, 'r') as stream:
             for rawL in stream:
@@ -586,6 +726,7 @@ class MainFrame(ttk.Frame):
                 if metaI < 0:
                     continue
                 self.metas[metaI]['checked'] = True
+        return True
 
     def generateList(self, path, indent=""):
         found = 0
@@ -861,7 +1002,7 @@ class MainFrame(ttk.Frame):
         meta = self.metas[self.metaI]
         echo0(prefix+"status_msg={}".format(status_msg))
         if not status_msg:
-            echo0("meta={}".format(meta))
+            echo0(prefix+"meta={}".format(meta))
         comment = meta.get('comment')
         self.setComment(comment)  # Does clear if None.
 
@@ -886,13 +1027,14 @@ class MainFrame(ttk.Frame):
                 status_msg = shlex.join(paths)
             self.hideImages()
             # echo0("There is no name. meta={}".format(meta))
-            checked = meta.get('checked')
-            if checked is None:
-                checked = False
+            # checked = meta.get('checked')
+            # if checked is None:
+            #     checked = False
+            checked = meta['line'] in self.meta['active_keys']
             self.markBV.set(checked)
         # echo0("meta['checked']={}".format(meta.get('checked')))
 
-        if meta.get('checked') is True:
+        if meta['line'] in self.meta['active_keys']:
             self.markBV.set(True)
         else:
             self.markBV.set(False)
@@ -976,6 +1118,9 @@ class MainFrame(ttk.Frame):
 
 
 def main():
+    echo0()
+    echo0("==================================")
+    echo0()
     global session
     session = {}
 
