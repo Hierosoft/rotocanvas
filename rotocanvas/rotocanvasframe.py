@@ -28,6 +28,7 @@ else:  # Python 2
 
 from rotocanvas.rcproject import RCProject
 
+
 class ProjectFrame(ttk.Frame):
     def __init__(self, parent):
         self.localeResult = lc.setlocale(lc.LC_ALL, "")
@@ -50,7 +51,6 @@ class ProjectFrame(ttk.Frame):
         self.fileMenu.add_command(label="Save As", command=self.saveAs)
         self.fileMenu.add_command(label="Exit",
                                   command=self.parent.destroy)
-
 
         self.prepMenu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Prepare", menu=self.prepMenu)
@@ -157,8 +157,8 @@ class ProjectFrame(ttk.Frame):
     def saveAs(self):
         path = asksaveasfilename(
             initialdir=RCProject.VIDEOS,
-            title = "Select file",
-            filetypes = (
+            title="Select file",
+            filetypes=(
                 ("RotoCanvas project files", "*.rotocanvas"),
                 ("all files", "*.*"),
             ),
@@ -178,8 +178,8 @@ class ProjectFrame(ttk.Frame):
             startIn = tryIn
         path = askopenfilename(
             initialdir=startIn,
-            title = "Select file",
-            filetypes = (
+            title="Select file",
+            filetypes=(
                 ("image files", ["*.jpg", "*.png"]),
                 ("jpeg files", "*.jpg"),
                 ("png files", "*.png"),
