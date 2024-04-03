@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [git] - 2024-03-18
+### Changed
+Always use a list for path(s) to simplify logic:
+  - Rename to `getCurrentFullPath` to `getCurrentPaths` and always return a list.
+  - Always make 'paths' a list.
+  - Eliminate 'name'.
+  - Eliminate 'path'.
+
+
 ## [git] - 2024-03-17
 ### Changed
 - Switch from nose to pytest (nose is deprecated. nose-py3 works but is a small fork).
