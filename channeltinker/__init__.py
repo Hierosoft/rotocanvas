@@ -827,10 +827,10 @@ def extend(cti, minimum=1, maximum=254,
                                    " for better color than"
                                    " {}...".format(pixel))
                             error(msg)
-                            if cpti is not None:
+                            if ctpi is not None:
                                 ctpi.show_message(msg)
-                                cpti.set_status(msg)
-                                cpti.progress_update(0.0)
+                                ctpi.set_status(msg)
+                                ctpi.progress_update(0.0)
                             # ok = False
                     else:
                         n_pix = cti.getpixel(opaque_pos)
