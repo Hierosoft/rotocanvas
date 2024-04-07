@@ -1,0 +1,4 @@
+
+Created by NyankoSensei, VanessaE, Poikilos (CC0 formerly WTFPL):
+  farming_orange.png
+  - hmm, the upstream one can be opened by PIL, but Poikilo's (saved by GIMP) cannot. What's up with that?
