@@ -2,7 +2,6 @@
 import os
 import sys
 import json
-import platform
 from datetime import datetime
 
 try:
@@ -14,6 +13,8 @@ except ModuleNotFoundError:
     from rcsettings import settings
 
 from rcsource import RCSource
+from rotocanvas import sysdirs
+
 
 class RCProject:
     """Upscale multiple images as video frames.
@@ -31,21 +32,14 @@ class RCProject:
             try (only applies if vidPath is a directory). If None, use
             the default list (RCProject.extensions).
     """
-    PROFILE = None
-    APPDATAS = None
-    if platform.system() == "Windows":
-        PROFILE = os.environ.get("USERPROFILE")
-        APPDATAS = os.path.join(PROFILE, "AppData", "Local")
-    else:
-        PROFILE = os.environ.get("HOME")
-        APPDATAS = os.path.join(PROFILE, ".config")
     RC_APPDATA = None
-    if APPDATAS is not None:
-        RC_APPDATA = os.path.join(APPDATAS, "rotocanvas")
-    VIDEOS = os.path.join(PROFILE, "Videos")
+    if sysdirs.get('APPDATA') is not None:
+        RC_APPDATA = os.path.join(sysdirs.get('APPDATA'), "rotocanvas")
+    # FIXME: ^ formerly used LOCALAPPDATA
+    VIDEOS = os.path.join(sysdirs['HOME'], "Videos")
     if not os.path.isdir(VIDEOS):
-        if os.path.isdir(PROFILE):
-            VIDEOS = PROFILE
+        if os.path.isdir(sysdirs['HOME']):
+            VIDEOS = sysdirs['HOME']
 
     def __init__(self):
         # For Args see class docstring.
@@ -57,7 +51,6 @@ class RCProject:
         self._dir = RCProject.VIDEOS
         self._meta = {}
         self._videos = {}
-
 
     def addVideo(self, vidPath, fpsStr):
         """
@@ -78,7 +71,6 @@ class RCProject:
             return 'There is already a video loaded as "{}"'.format(vp)
         self._videos[vidPath] = RCSource(vidPath, fpsStr)
         return None
-
 
     def stop(self):
         return "Not Yet Implemented"
@@ -109,4 +101,3 @@ class RCProject:
         """ called via: del object.name """
         raise RuntimeError("You can't delete path.")
         # del self._name
-

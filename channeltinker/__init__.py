@@ -504,7 +504,7 @@ def diff_images(base, head, diff_size, diff=None,
     # Convert indexed images so getpixel doesn't return an index
     # (diff_color expects a tuple).
     results = {}
-    results["same"] = None
+    results['same'] = None
     results['base'] = {}
     results['base']['size'] = base.size
     results['base']['ratio'] = float(base.size[0]) / float(base.size[1])
@@ -606,12 +606,12 @@ def diff_images(base, head, diff_size, diff=None,
                     color = tuple(color)
 
             if color != nochange_color:
-                results["same"] = False
+                results['same'] = False
                 if diff is not None:
                     diff.putpixel(pos, color)
             else:
-                if results["same"] is None:
-                    results["same"] = True
+                if results['same'] is None:
+                    results['same'] = True
     if total_count <= 0:
         results['error'] = "WARNING: There were no pixels."
     else:

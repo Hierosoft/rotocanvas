@@ -21,7 +21,7 @@ def gen_diff_image(base, head, diff=None, diff_path=None):
 
     Returns:
         dict: Various differences between the images if any:
-            {"same": False,
+            {'same': False,
             "base": {
                 "size": [16, 128],
                 "ratio": 0.125 },

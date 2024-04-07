@@ -104,15 +104,10 @@ from rotocanvas import (  # noqa E402
     echo2,
     set_verbosity,
     no_enclosures,
+    sysdirs,
 )
 
-HOME = None
-if platform.system == "Windows":
-    HOME = os.environ['USERPROFILE']
-else:
-    HOME = os.environ['HOME']
-
-HOME_BIN = os.path.join(HOME, ".local", "bin")
+HOME_BIN = os.path.join(sysdirs['HOME'], ".local", "bin")
 
 session = {}
 playerIndex = 0
