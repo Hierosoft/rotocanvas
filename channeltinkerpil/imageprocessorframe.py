@@ -646,7 +646,8 @@ class MainFrame(ttk.Frame):
             # ^ or see traceback._some_str()
             self.setStatus(
                 "{}:{}: '{}' {}: {}"
-                "".format(frame.filename, frame.lineno, frame.line, type_name, ex)
+                "".format(frame.filename, frame.lineno,
+                          frame.line, type_name, ex)
             )
 
     def _onFormLoaded(self):

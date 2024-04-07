@@ -23,6 +23,7 @@ def safePathParam(path):
             return "'" + path + "'"
     return path
 
+
 platformCmds = {
     'cp': 'cp',
     'mv': 'mv',
@@ -35,6 +36,7 @@ if platform.system() == "Windows":
         'rm': 'del',
     }
     # TODO: Redefine safePathParam if necessary.
+
 
 class ChannelTinkerProgressInterface:
 
@@ -54,7 +56,6 @@ class ChannelTinkerProgressInterface:
                                   " implementation must implement"
                                   " set_status.")
 
-
     def show_message(self, msg):
         """
         Show a dialog box, or other delay with message
@@ -65,12 +66,11 @@ class ChannelTinkerProgressInterface:
                                   " show_message.")
 
 
-
 # (The @property decorator is always available in Python 3, since every
 # class descends from Object but must be explicit for compatibility
 # with Python 2).
 class ChannelTinkerInterface(object):
-    """
+    """Abstract superclass for non-PIL images.
     If you do not provide a PIL image to various functions in this
     library, you can implement ChannelTinkerInterface and provide an
     object based on your own implementation instead.
@@ -90,6 +90,7 @@ class ChannelTinkerInterface(object):
         raise NotImplementedError("The ChannelTinkerInterface"
                                   " implementation must implement"
                                   " getpixel.")
+
     def putpixel(self, pos, color):
         raise NotImplementedError("The ChannelTinkerInterface"
                                   " implementation must implement"
@@ -106,8 +107,6 @@ class ChannelTinkerInterface(object):
                                   " getbands.")
 
 
-
-
 _error_func = None
 
 
@@ -115,38 +114,42 @@ def _error(msg):
     sys.stderr.write("{}\n".format(msg))
     sys.stderr.flush()
 
+
 _error_func = _error
 
+
 def error(msg):
-    """
-    Send msg + newline to stderr (or send msg without anything extra
-    to a callback you previously specified via set_error_func).
+    """Send msg + newline to stderr
+    (or send msg without anything extra to a callback you previously
+    specified via set_error_func).
     """
     _error_func(msg)
+
 
 def debug(msg):
     if verbose:
         error(msg)
 
+
 def set_error_func(callback):
-    """
-    Set the error callback. If at any time an error occurs anywhere in
-    the module, the module will either send a string to callback or
-    raise an exception.
+    """Set the error callback
+    If at any time an error occurs anywhere in the module, the module
+    will either send a string to callback or raise an exception.
     """
     global _error_func
     _error_func = callback
 
 
 def convert_depth(color, channel_count, c_max=1.0):
-    """
-    Keyword arguments:
-    c_max -- If color is a float or list of floats to this image,
-        this is the value that is 100%. Otherwise, this argument is
-        ignored.
+    """Convert any color to a 0-255 color.
+    Args:
+        c_max (Union[float,int]): If color is a float or list of floats
+            to this image, this is the value that is 100%. Otherwise,
+            this argument is ignored.
 
     Returns:
-    Always get a tuple with numbers between 0 and 255.
+        tuple(int): Color where each value is between 0 and 255
+            (regardless of input x_max).
     """
     listlike = None
     # Perform duck typing:
@@ -226,7 +229,7 @@ def square_gen(pos, rad):
     ss_R = 3
     d = ss_R
     while True:
-        yield (x,y)
+        yield (x, y)
         # Do not use `elif` below:
         # Each case MUST fall through to next case, or a square with 0
         # radius will be larger than 1 pixel, and possibly other
@@ -272,7 +275,7 @@ def get_drive_name(path):
     drive_name = None
     mount_parents = ["/mnt", "/run/media/" + profile_name(), "/media",
                      "/amnt", "/auto",  # typical custom fstab parents
-                     "/Volumes"] # macOS
+                     "/Volumes"]  # macOS
     for parent in mount_parents:
         if path.startswith(parent):
             slash = "/"
@@ -289,6 +292,7 @@ def get_drive_name(path):
 
 
 def generate_diff_name(base_path, head_path, file_name=None):
+    """Generate a filename for saving a diff visualization."""
     if file_name is None:
         if os.path.isfile(base_path):
             file_name = os.path.split(base_path)[-1]
@@ -352,9 +356,9 @@ def generate_diff_name(base_path, head_path, file_name=None):
 def diff_color(base_color, head_color, enable_convert=False,
                c_max=255, base_indices=None, head_indices=None,
                enable_real_diff=True, max_count=3):
-    """
-    Compare two colors. In most cases, when the color start with
-    [r, g, b], the defaults are fine.
+    """Compare two colors.
+    In most cases, when the color start with [r, g, b], the defaults are
+    fine.
 
     If you want to compare all 3 colors, and the
     color does not start with [r, g, b], then you should set
@@ -365,31 +369,38 @@ def diff_color(base_color, head_color, enable_convert=False,
     Returns a difference value from -1.0 to 1.0, where 0.0 is the same
     (negative if base is brighter)
 
-    Keyword arguments:
-    enable_convert -- If True, convert color if length differs (even if
-        base_indices and head_indices are set).
-    c_max -- The color format's 100% value for a channel (only used
-        if color conversion occurs).
-    base_indices -- If not None, it is a list of channel indices
-        to compare (only these channels will be checked). If None,
-        sequential indices are used.
-    head_indices -- If not None, it is a list of channel indices
-        to compare (only these channels will be checked). If None,
-        sequential indices are used.
-    max_count -- Only ever count this many channels, unless base_indices
-        and head_indices are both set to a higher value, in which case,
-        max_count does not do anything.
+    Args:
+        base_color (tuple[Union[int,float]]): Original color.
+        head_color (tuple[Union[int,float]]): Color to compare to
+            base_color.
+        enable_convert (bool, optional): If True, convert color if
+            length differs (even if base_indices and head_indices are
+            set).
+        c_max (Union[float,int], optional): The color format's 100%
+            value for a channel (only used if color conversion occurs).
+        base_indices (tuple[int], optional): If not None, it is a list
+            of channel indices to compare (only these channels will be
+            checked). If None, sequential indices are used.
+        head_indices (tuple[int], optional): If not None, it is a list
+            of channel indices to compare (only these channels will be
+            checked). If None, sequential indices are used.
+        max_count (int, optional) Only ever count this many channels,
+            unless base_indices and head_indices are both set to a
+            higher value, in which case, max_count does not do anything.
+        enable_real_diff (bool, optional): If True, 0.0 will only occur
+            if all checked channels are exactly the same. If False,
+            return 0.0 may occur if colors have the same brightness but
+            a different color.
 
-    Returns either the difference from -1.0 to 1.0
-    enable_real_diff -- If True, 0.0 will only occur if all checked
-        channels are exactly the same. If False, return 0.0 may occur
-        if colors have the same brightness but a different color.
+
+    Returns:
+        float: the difference from -1.0 to 1.0
 
     Raises:
-    IndexError if different length and not enable_convert or
-        any value from base_indices or head_indices is out of range.
-    ValueError if  base_indices and head_indices are both set but the
-        length differs.
+        IndexError if different length and not enable_convert or
+            any value from base_indices or head_indices is out of range.
+        ValueError if  base_indices and head_indices are both set but the
+            length differs.
     """
     try:
         if len(base_color) != len(head_color):
@@ -443,53 +454,50 @@ def diff_color(base_color, head_color, enable_convert=False,
 
 
 def diff_images(base, head, diff_size, diff=None,
-                nochange_color=(0,0,0,255),
+                nochange_color=(0, 0, 0, 255),
                 enable_variance=True, c_max=255, max_count=4,
-                base_indices=(0,1,2,3), head_indices=(0,1,2,3),
+                base_indices=(0, 1, 2, 3), head_indices=(0, 1, 2, 3),
                 clear_in_stats=False):
-    """
-    Compare two images, and return a dict with information.
+    """Compare two images, and return a dict with information.
 
     If diff is not None, it must also be an image, and it will be
     changed. Only parts will be changed where base and head differ.
     Grayscale will always be used the amount of difference.
 
     The base and head images are converted to true color using the PIL
-    convert function (always 32-bit so that channel counts match) of
-    the image object. If convert isn't called, the getpixel function
-    gets a palette index for indexed images. The channel count must
-    match for getpixel as well.
+    convert function (always 32-bit so that channel counts match) of the
+    image object. If convert isn't called, the getpixel function gets a
+    palette index for indexed images. The channel count must match for
+    getpixel as well.
 
-    Sequential arguments:
-    base -- This is the first image for the difference operation.
-        Provide either a PIL image or an implementation of
-        ChannelTinkerInterface.
-    head -- This is the second image for the difference operation.
-        Provide either a PIL image or an implementation of
-        ChannelTinkerInterface.
-    diff_size -- For the purpose of not assuming assuming how to get the
-        image size, you must provide the canvas size. You must set it
-        to (max(base.width, head.width), max(base.height, head.height))
-        The diff_size is used for the area to search for differences,
-        so it is necessary even if diff is None and no diff will be
-        generated.
-
-    Keyword arguments:
-    nochange_color -- If not using RGBA, set this to a tuple of the
-        length of a color. Assume this is the background color
-        (This is never drawn, but if set, then it will not be used for
-        anything else unless this is gray).
-    enable_variance -- set the actual absolute color difference
-    c_max -- Pixels in the image can go up to this value.
-    max_count -- only compare this number of channels.
-    base_indices -- only compare these channels from head (length must
-                    match either that of head_indices, or if that is
-                    None, then match the head channel count.
-    head_indices -- only compare these channels from head (length must
-                    match either that of base_indices, or if that is
-                    None, then match the base channel count.
-    clear_in_stats -- Whether to use transparent pixels when calculating
-        statistics such as diff_mean.
+    Args:
+        base (Union(Image,ChannelTinkerInterface)): This is the first
+            image for the difference operation.
+        head (Union(Image,ChannelTinkerInterface)): This is the second
+            image for the difference operation.
+        diff_size (tuple[int]): For the purpose of not assuming assuming
+            how to get the image size, you must provide the canvas size.
+            You must set it to (max(base.width, head.width),
+            max(base.height, head.height)) The diff_size is used for the
+            area to search for differences, so it is necessary even if
+            diff is None and no diff will be generated.
+        nochange_color (tuple, optional): If not using RGBA, set this to
+            a tuple of the length of a color. Assume this is the
+            background color (This is never drawn, but if set, then it
+            will not be used for anything else unless this is gray).
+        enable_variance (float, optional): set the actual absolute color
+            difference
+        c_max (Union(float, int), optional): Pixels in the image can go
+            up to this value.
+        max_count (int), optional: only compare this number of channels.
+        base_indices (list[int], optional): only compare these channels
+            from head (length must match either that of head_indices, or
+            if that is None, then match the head channel count.
+        head_indices (list[int], optional): only compare these channels
+            from head (length must match either that of base_indices, or
+            if that is None, then match the base channel count.
+        clear_in_stats (bool, optional): Whether to use transparent
+            pixels when calculating statistics such as diff_mean.
     """
     base = base.convert(mode='RGBA')
     head = head.convert(mode='RGBA')
@@ -575,17 +583,17 @@ def diff_images(base, head, diff_size, diff=None,
                     base_a = base_color[3]
                     head_a = head_color[3]
                 if clear_in_stats:
-                    if (base_a > 0) and (head_a>0):
+                    if (base_a > 0) and (head_a > 0):
                         total_diff += math.fabs(d)
                         total_count += 1
                     else:
                         total_diff += 1.0
                         total_count += 1
                 else:
-                    if (base_a > 0) and (head_a>0):
+                    if (base_a > 0) and (head_a > 0):
                         total_diff += math.fabs(d)
                         total_count += 1
-                    elif (base_a > 0) or (head_a>0):
+                    elif (base_a > 0) or (head_a > 0):
                         total_diff += 1.0
                         total_count += 1
                     # Else don't even count it toward total or weight.
@@ -616,15 +624,13 @@ msg_prefix = "[channel_tinker] "
 
 def find_opaque_pos(cti, center, good_minimum=255, max_rad=None,
                     w=None, h=None):
-    """
-    Sequential arguments:
-    cti -- Provide a PIL image or any implementation of
-        ChannelTinkerInterface.
-    center -- This location, or the closest location to it meeting
-        criteria, is the search target.
-    Keyword arguments:
-    good_minimum -- (0 to 255) If the pixel's alpha is this or higher,
-    get it (the closest in location to center).
+    """Find the position of an opaque pixel within the image.
+    Args:
+        cti (Union(Image,ChannelTinkerInterface)): Original image.
+        center (tuple(float)) This location, or the closest location to
+            it meeting criteria, is the search target.
+        good_minimum (int, optional) (0 to 255) If the pixel's alpha is
+            this or higher, get it (the closest in location to center).
     """
     circular = False
     # ^ True fails for some reason (try it in
@@ -691,10 +697,9 @@ def find_opaque_pos(cti, center, good_minimum=255, max_rad=None,
 
 def draw_square_from_center(cti, center, rad, color=None, filled=False,
                             circular=False):
-    """
-    Sequential arguments:
-    cti -- You must either provide a PIL image or implement
-        ChannelTinkerInterface.
+    """Draw a square centered within the image.
+    Args:
+        cti (Union(Image,ChannelTinkerInterface)): Original image.
     """
     # Get any available pixel, to get p_len:
     p_len = len(cti.getbands())
@@ -753,10 +758,11 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
 
 
 def draw_circle_from_center(cti, center, rad, color=None, filled=False):
-    """
-    Sequential arguments:
-    cti -- You must either provide a PIL image or implement
-        ChannelTinkerInterface.
+    """Draw a centered circle
+    (Simplifies calling draw_square_from_center with circular=True)
+
+    Args:
+        cti (Union(Image,ChannelTinkerInterface)): Original image.
     """
     return draw_square_from_center(cti, center, rad, color=color,
                                    filled=filled, circular=True)
@@ -765,19 +771,23 @@ def draw_circle_from_center(cti, center, rad, color=None, filled=False):
 def extend(cti, minimum=1, maximum=254,
            make_opaque=False, good_minimum=255, enable_threshold=False,
            threshold=128, ctpi=None):
-    """
-    Sequential arguments:
-    cti -- You must either provide a PIL image or implement
-        ChannelTinkerInterface.
+    """Fix missing or incorrect bleed color on an image with alpha.
+    Extrapolate the color of semi-transparent pixels by changing each to
+    a nearby opaque one's color (outpainting ~2px doesn't require a
+    generative "AI" model...hurumph).
 
-    Keyword arguments:
-    minimum -- (0 to 255) Only edit pixels with at least this for alpha.
-    maximum -- (0 to 254) Only edit pixels with at most this for alpha.
-    make_opaque -- Make the pixel within the range opaque. This is
-        normally for preparing to convert images to indexed color, such as
-        Minetest wield_image.
-    ctpi -- To update a progress bar or similar progress feature,
-        provide an implementation of ChannelTinkerProgressInterface.
+    Args:
+        cti (Union(Image,ChannelTinkerInterface)): Original image.
+        minimum (int, optional): (0 to 255) Only edit pixels with at
+            least this for alpha.
+        maximum (int, optional): (0 to 254) Only edit pixels with at
+            most this for alpha.
+        make_opaque (bool, optional): Make the pixel within the range
+            opaque. This is normally for preparing to convert images to
+            indexed color, such as Minetest wield_image.
+        ctpi (ChannelTinkerProgressInterface, optional): To update a
+            progress bar or similar progress feature, provide an
+            implementation of ChannelTinkerProgressInterface.
     """
     if maximum < 0:
         maximum = 0
