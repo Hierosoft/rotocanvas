@@ -52,19 +52,19 @@ def get_ext_lower(path):
     return fileExtension.lower()
 
 
-def load_image(self,fileName):
+def load_image(self, fileName):
     result = None
     data = None
     participle = "(before initializing)"
     # if os.path.exists(fileName):
-        # result = KPImage(1,1,4)
-        # result.load(fileName)
-        # return result
+    #     result = KPImage(1,1,4)
+    #     result.load(fileName)
+    #     return result
 
     try:
         if os.path.exists(fileName):
             try:
-                #kivy 1.8.0 way:
+                # kivy 1.8.0 way:
                 participle = "loading Kivy 1.8 image from file"
                 newSurface = pygame.image.load(fileName)
                 participle = "accessing Kivy 1.8 image attributes"
@@ -126,7 +126,7 @@ class KPImage(PPImage):
         self.brushTexture = None
 
     def setBrushColor(self, color):
-        #print("setting brush color to " + str(color))
+        # print("setting brush color to " + str(color))
         self._brush_color = color
         if self.brushImage is not None:
             self.brushImage.blit_copy(self.brushOriginalImage)
@@ -183,7 +183,7 @@ class KPImage(PPImage):
         try:
             if os.path.exists(fileName):
                 try:
-                    #kivy 1.8.0 way:
+                    # kivy 1.8.0 way:
                     participle = "loading Kivy 1.8 image from file"
                     newSurface = pygame.image.load(fileName)
                     participle = "accessing Kivy 1.8 image attributes"
@@ -193,9 +193,9 @@ class KPImage(PPImage):
                                                  False)
                     participle = "after loading image"
                     newBD = newSurface.get_bytesize()
-                        # int(newSurface.get_bitsize() / 8)
+                    #     int(newSurface.get_bitsize() / 8)
                     newStride = newSurface.get_pitch()
-                        # newSurface.get_width() * newBD
+                    #     newSurface.get_width() * newBD
                     # source color locations:
                     eB = 0
                     eG = 1
@@ -205,7 +205,6 @@ class KPImage(PPImage):
                                            newBD,
                                            newSurface.get_size(),
                                            eB, eG, eR, eA)
-
                 except:
                     # kivy 1.9.0 way:
                     # participle = ("loading Kivy 1.9 unparsed file as"
@@ -233,9 +232,9 @@ class KPImage(PPImage):
             else:
                 print("ERROR in KivyPixels.static_createFromImageFile:"
                       " file \"{}\"does not exist".format(fileName))
-        #except Exception as e:
-        #    print("Could not finish {} in load: {}"
-        #    "".format(participle, e))
+        # except Exception as e:
+        #     print("Could not finish {} in load: {}"
+        #           "".format(participle, e))
         except:
             print("Could not finish {} in static_createFromImageFile:"
                   "".format(participle))
@@ -259,35 +258,34 @@ class KPImage(PPImage):
 
         # self.updateVariableImageSize()
         # self.assumed_fbo_stride = (int(self.fbo.size[0]) *
-                                   # self.assumed_fbo_byteDepth)
+        #                            self.assumed_fbo_byteDepth)
         # self.pixelBuffer.blit_copy_with_bo(self.fbo.pixels,
-                                           # self.assumed_fbo_stride,
-                                           # self.assumed_fbo_byteDepth,
-                                           # self.fbo.size,
-                                           # eB, eG, eR, eA)
+        #                                    self.assumed_fbo_stride,
+        #                                    self.assumed_fbo_byteDepth,
+        #                                    self.fbo.size,
+        #                                    eB, eG, eR, eA)
         try:
             if (self.enableDebug):
                 print("self.size:"+str(self.size))
                 print("len(self.data):"+str(len(self.data)))
                 # print("self.getMaxChannelValueNotIncludingAlpha():" +
-                      # str(self.getMaxChannelValueNotIncludingAlpha()))
+                #       str(self.getMaxChannelValueNotIncludingAlpha()))
                 # print("self.getMaxAlphaValue():" +
-                      # str(self.getMaxAlphaValue()))
+                #       str(self.getMaxAlphaValue()))
 
             if (self.enableDebug):
                 debugX = 3
                 debugY = self.size[1] - 3
-                if (debugX>=self.size[0]):
-                    debugX=self.size[0]-1
-                if (debugY>=self.size[1]):
-                    debugY=self.size[1]-1
+                if debugX >= self.size[0]:
+                    debugX = self.size[0]-1
+                if debugY >= self.size[1]:
+                    debugY = self.size[1]-1
                 debugIndex = debugY*self.stride + debugX*self.byteDepth
                 print("debug pixel at (" + str(debugX) + ","
                       + str(debugY) + "): "
-                      + bufferToTupleStyleString(data, debugIndex,
+                      + bufferToTupleStyleString(self.data, debugIndex,
                                                  self.byteDepth))
             if pygame_enable:  # Kivy 1.8 and earlier:
-
                 translatedImage = KPImage(self.size,
                                           byteDepth=self.byteDepth)
                 # Kivy 1.8.0 channel offsets are:
@@ -390,40 +388,41 @@ class KPImage(PPImage):
 
     def save(self, texture_flipped=True):
         '''
-        Keyword arguments:
-        texture_flipped -- See saveAs.
+        Args:
+            texture_flipped (bool, optional) See saveAs.
         '''
-        return self.saveAs(self.lastUsedFileName, texture_flipped=texture_flipped)
+        return self.saveAs(self.lastUsedFileName,
+                           texture_flipped=texture_flipped)
 
     def brushAt(self, centerX, centerY):
         # normalSize = self.brushImage.get_norm_image_size()
         # self.brushImage.size[0] = self.brushImage.size[0]
-            # # int(normalSize[0])
+        #     # int(normalSize[0])
         # self.brushImage.size[1] = self.brushImage.size[1]
-            # # int(normalSize[1])
+        #     # int(normalSize[1])
 
         # self.set_at(touch.x, touch.y, self._brush_color)
-            # # dont' uncomment, since size of this is only set at
-            # # Save now (not on_size)
+        #     # dont' uncomment, since size of this is only set at
+        #     # Save now (not on_size)
 
         # self.assumed_fbo_stride = (int(self.fbo.size[0]) *
-                                   # self.assumed_fbo_byteDepth)
+        #                            self.assumed_fbo_byteDepth)
         # self.array_set_at_GRBA(self.fbo.pixels, assumed_fbo_stride,
-                               # assumed_fbo_byteDepth, touch.x,
-                               # touch.y, _brush_color)
+        #                        assumed_fbo_byteDepth, touch.x,
+        #                        touch.y, _brush_color)
         # self.fbo.add(self._brush_color)
         # brushPoint = Point(points=(atX, atY))
         # self.fbo.add(brushPoint)
         # brushLine = Line(
-            # points=[centerX, centerY, centerX+1, centerY], width=1)
+        #     points=[centerX, centerY, centerX+1, centerY], width=1)
         # self.fbo.add(brushLine)
 
-        #destX = centerX - self.brushImage.center_x
-        #destY = centerY - self.brushImage.center_y
+        # destX = centerX - self.brushImage.center_x
+        # destY = centerY - self.brushImage.center_y
 
         destX = int(centerX) - int(self.brushImage.size[0]/2)
         destY = int(centerY) - int(self.brushImage.size[1]/2)
-        #destLineStartX = destX
+        # destLineStartX = destX
 
         # internal offsets:
         iB = self.bOffset
@@ -432,8 +431,8 @@ class KPImage(PPImage):
         iA = self.aOffset
 
         # brushBuffer_byteDepth = 4
-        # brushBuffer_stride = int(self.brushImage.size[0]) *
-                             # brushBuffer_byteDepth
+        # brushBuffer_stride = int(self.brushImage.size[0])
+        #                      * brushBuffer_byteDepth
         src = self.brushImage.data  # self.brushPixels
         # d_bi:
         di = destY * self.stride + destX * self.byteDepth
@@ -452,11 +451,11 @@ class KPImage(PPImage):
         srcLSI = 0
         debugPixelWriteCount = 0
         try:
-            for sourceY in range(0,int(self.brushImage.size[1])):
-                #destX = destLineStartX
+            for sourceY in range(0, int(self.brushImage.size[1])):
+                # destX = destLineStartX
                 di = dstLSI
                 si = srcLSI  # s_bi
-                for sourceX in range(0,int(self.brushImage.size[0])):
+                for sourceX in range(0, int(self.brushImage.size[0])):
                     sab = src[si+iA]  # src_a_i
                     # src_a:
                     a = sab/255.0
@@ -465,13 +464,13 @@ class KPImage(PPImage):
                     dab = self.data[di+iA]
                     da = dab/255.0
 
-                    # si = sourceY * brushBuffer_stride +
-                        # sourceX * brushBuffer_byteDepth
+                    # si = (sourceY * brushBuffer_stride
+                    #       + sourceX * brushBuffer_byteDepth)
                     if (sab != 0):
                         # calculate resulting alpha:
                         # a_total_i = dab
                         # if sab > dab:
-                            # a_total_i = sab
+                        #     a_total_i = sab
                         a_total_i = int(dab) + sab
                         if a_total_i>255:
                             a_total_i = 255
@@ -492,14 +491,14 @@ class KPImage(PPImage):
                         ia = 1.0 - a
 
                         # self.data[di+iB] = int(round(
-                            # ia*float(self.data[di+iB]) +
-                            # a*float(src[si+iB])))
+                        #     ia*float(self.data[di+iB]) +
+                        #     a*float(src[si+iB])))
                         # self.data[di+iG] = int(round(
-                            # ia*float(self.data[di+iG]) +
-                            # a*float(src[si+iG])))
+                        #     ia*float(self.data[di+iG]) +
+                        #     a*float(src[si+iG])))
                         # self.data[di+iR] = int(round(
-                            # ia*float(self.data[di+iR]) +
-                            # a*float(src[si+iR])))
+                        #     ia*float(self.data[di+iR]) +
+                        #     a*float(src[si+iR])))
                         # self.data[di+aOffset] = a_total_i
 
                         res = [int(ia*float(self.data[di+iB])
@@ -531,7 +530,6 @@ class KPImage(PPImage):
         if self.enableDebug:
             print("debugPixelWriteCount:"+str(debugPixelWriteCount))
 
-
     def drawKivyImage(self, thisKivyImage):
         maxAlpha = 0
         sourcePixelCount = 0
@@ -558,13 +556,13 @@ class KPImage(PPImage):
             for y in range(self.size[1]):
                 participle = "(no pixel yet)"
                 dI = dest_line_byte_index
-                if (y<thisKivyImage.size[1]):
+                if y < thisKivyImage.size[1]:
                     for x in range(self.size[0]):
-                        if (x<thisKivyImage.size[0]):
+                        if x < thisKivyImage.size[0]:
                             participle = "reading pixel"
-                            color = thisKivyImage.read_pixel(x,y)
+                            color = thisKivyImage.read_pixel(x, y)
                             participle = "copying channels"
-                            #+.5 for rounding:
+                            # +.5 for rounding:
                             thisA = int(255.0*color[eA]+.5)
                             self.data[dI + iB] = int(255.0*color[eB]+.5)
                             self.data[dI + iG] = int(255.0*color[eG]+.5)
@@ -572,7 +570,7 @@ class KPImage(PPImage):
                             self.data[dI + iA] = thisA
                             participle = "after reading channels"
                             sourcePixelCount += 1
-                            if (thisA>maxAlpha):
+                            if thisA > maxAlpha:
                                 maxAlpha = thisA
                         else:
                             self.data[dI + iB] = 0
@@ -606,7 +604,7 @@ class KPImage(PPImage):
 
     def tintByColorInstruction(self, colorInstruction):
         color = colorInstruction
-        self.tintByColor( (color.b, color.g, color.r, color.a) )
+        self.tintByColor((color.b, color.g, color.r, color.a))
 
     def tintByColor(self, colorVec4OrVec3):
         color = colorVec4OrVec3
@@ -630,7 +628,7 @@ class KPImage(PPImage):
         di = 0  # pixelByteIndex
         try:
             if (iA is not None):
-                for pixelIndex in range(0,self.size[0]*self.size[1]):
+                for pixelIndex in range(0, self.size[0]*self.size[1]):
                     self.data[di+iB] = int(round(
                         float(self.data[di+iB])
                         * color[eB]))
@@ -644,8 +642,8 @@ class KPImage(PPImage):
                         float(self.data[di+iA])
                         * color[eA]))
                     di += self.byteDepth
-            elif (self.byteDepth==3):
-                for pixelIndex in range(0,self.size[0]*self.size[1]):
+            elif self.byteDepth == 3:
+                for _px_i in range(0, self.size[0]*self.size[1]):
                     self.data[di+iB] = int(round(
                         float(self.data[di+iB])
                         * color[eB]))
@@ -680,20 +678,20 @@ class KPImage(PPImage):
                             float(self.data[di+iA]) * color.a
                         ))
                         di += self.byteDepth
-                elif (self.byteDepth==3):
+                elif self.byteDepth == 3:
                     for pixelIndex in range(0, totalCount):
                         self.data[di+iB] = int(
                             float(self.data[di+iB])
                             * color.b + .5
-                        )  #+ .5 for rounding
+                        )  # + .5 for rounding
                         self.data[di+iG] = int(
                             float(self.data[di+iG])
                             * color.g + .5
-                        )  #+ .5 for rounding
+                        )  # + .5 for rounding
                         self.data[di+iR] = int(
                             float(self.data[di+iR])
                             * color.r + .5
-                        )  #+ .5 for rounding
+                        )  # + .5 for rounding
                         di += self.byteDepth
                 else:
                     print("Not yet implemented KVImage tintByColor"
@@ -708,4 +706,3 @@ class KPImage(PPImage):
 
 if __name__ == "__main__":
     print("kivypixels should be imported by your program not run.")
-
