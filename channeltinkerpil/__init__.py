@@ -86,22 +86,24 @@ def diff_images_by_path(base_path, head_path, diff_path=None):
     result = None
     try:
         base = Image.open(base_path)
-    except PIL.UnidentifiedImageError:
+    except PIL.UnidentifiedImageError as ex:
         result = {
             'base': {
-                'error': "UnidentifiedImageError"
+                'error_type': type(ex),
+                'error': str(ex),
             },
             'head': {
             },  # It must be a dict to prevent a key error.
         }
     try:
         head = Image.open(head_path)
-    except PIL.UnidentifiedImageError:
+    except PIL.UnidentifiedImageError as ex:
         result2 = {
             'base': {
             },  # It must be a dict to prevent a key error.
             'head': {
-                'error': "UnidentifiedImageError"
+                'error_type': type(ex),
+                'error': str(ex),
             }
         }
         if result is None:

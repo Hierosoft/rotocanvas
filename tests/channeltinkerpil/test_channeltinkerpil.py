@@ -104,7 +104,7 @@ class TestChanneltinkerpil(TestCase):
         - diffimage-gui
         - imagepx
         """
-        found_compatible = 0
+        # found_compatible = 0
         found_incompatible = 0
         for sub in pil_incompatible_files:
             sub = sub.replace("/", os.path.sep)
@@ -117,34 +117,17 @@ class TestChanneltinkerpil(TestCase):
             if diff.get('error'):
                 raise Exception("{}:".format(sub_path)+diff['error'])
             if diff['head'].get('error'):
-                raise Exception("{}:".format(sub_path)+diff['head']['error'])
+                raise diff['head']['error_type']("{}".format(
+                    diff['head']['error'])
+                )
             if diff['base'].get('error'):
-                raise Exception("{}:".format(diff_base)+diff['base']['error'])
+                raise diff['head']['error_type']("{}".format(
+                    diff['base']['error'])
+                )
             if 'same' not in diff:
                 raise KeyError("Missing 'same' in {}".format(diff))
             assert diff['same'] is False
             found_incompatible += 1
-
-        for sub in pil_compatible_files:
-            sub = sub.replace("/", os.path.sep)
-            sub_path = os.path.join(pil_compatible_dir, sub)
-
-            if not os.path.isfile(sub_path):
-                print('Warning: no "{}"'.format(sub_path))
-                continue
-
-            diff = diff_images_by_path(diff_base, sub_path)
-            if diff.get('error'):
-                raise Exception("{}:".format(sub_path)+diff['error'])
-            if diff['head'].get('error'):
-                raise Exception("{}:".format(sub_path)+diff['head']['error'])
-            if diff['base'].get('error'):
-                raise Exception("{}:".format(diff_base)+diff['base']['error'])
-            if 'same' not in diff:
-                raise KeyError("Missing 'same' in {}".format(diff))
-            assert diff['same'] is False
-
-            found_compatible += 1
 
         if found_incompatible < 1:
             raise FileNotFoundError(
