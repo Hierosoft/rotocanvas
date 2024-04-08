@@ -2,9 +2,10 @@
 import sys
 import os
 
-if os.path.exists("../pyrotocanvas/__init__.py"):
+if os.path.exists("../rotocanvas/__init__.py"):
     sys.path.append(os.path.realpath(".."))
-from pyrotocanvas import divide_frames_in
+from rotocanvas.util import divide_frames_in
+
 
 def main(args):
     if len(args) < 2:

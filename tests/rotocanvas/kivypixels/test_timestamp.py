@@ -13,6 +13,7 @@ from rotocanvas import (
     set_verbosity,
 )
 
+
 class TestTimestampConversionSRT(unittest.TestCase):
     def testGetsSameString(self):
         # sys.stderr.write("..testing timestamp.py..")

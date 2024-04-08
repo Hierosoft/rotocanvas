@@ -2,7 +2,7 @@
 from __future__ import division
 from datetime import datetime, timedelta
 
-from rotocanvas import (
+from rotocanvas import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -60,6 +60,7 @@ def deltaToSrtTs(delta):
     return ("{:02}:{:02}:{:02},{:03}"
             "".format(int(hours), int(minutes), int(seconds), ms))
 
+
 def frame_to_ffmpeg_timecode(frame_number, fps):
     """Convert a frame number to an FFMPEG timecode
 
@@ -92,10 +93,12 @@ def frame_to_ffmpeg_timecode(frame_number, fps):
     frame_remainder -= float(second) * fps
     sec_per_frame = 1.0 / fps
     echo2("frame_remainder={}".format(frame_remainder))
-    millisecond_f = frame_remainder * (1000.0 / fps) + 1000.0 * sec_per_frame / 2.0
+    millisecond_f = (frame_remainder * (1000.0 / fps)
+                     + 1000.0 * sec_per_frame / 2.0)
     echo2("millisecond_f={}".format(millisecond_f))
     millisecond = int(millisecond_f)
-    # ^ add sec_per_frame / 2.0 to get to the "middle" of the frame--so as not to undershoot!
+    # ^ add sec_per_frame / 2.0 to get to the "middle" of the frame
+    #   --so as not to undershoot!
     return "{}:{}:{}:{:0=3d}".format(hour, minute, second, millisecond)
 
 

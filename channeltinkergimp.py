@@ -12,7 +12,7 @@ import time
 from gimpfu import *  # by convention, import *
 from channeltinker import (
     convert_depth,
-    error,
+    echo1,
     idist,
     find_opaque_pos,
     ChannelTinkerInterface,
@@ -21,6 +21,7 @@ from channeltinker import (
     extend,
     draw_square_from_center,
 )
+
 
 class GimpCTPI(ChannelTinkerProgressInterface):
     def progress_update(self, factor):
@@ -31,6 +32,7 @@ class GimpCTPI(ChannelTinkerProgressInterface):
 
     def show_message(self, msg):
         pdb.gimp_message(msg)
+
 
 class GimpCTI(ChannelTinkerInterface):
 
@@ -121,6 +123,7 @@ def ct_draw_centered_circle(image, drawable, radius, color, filled):
     pdb.gimp_displays_flush()
     image.enable_undo()
 
+
 def ct_draw_centered_square(image, drawable, radius, color, filled):
     image.disable_undo()
     w = pdb.gimp_image_width(image)
@@ -181,6 +184,7 @@ def ct_remove_layer_halo(image, drawable, minimum, maximum, good_minimum,
     # pdb.gimp_drawable_update(...)
     image.enable_undo()
 
+
 max_tip = "Maximum to discard (254 unless less damaged)"
 goot_min_tip = "get nearby >= this (usually max discard+1)."
 m_o_tip = "Make the fixed parts opaque."
@@ -205,30 +209,29 @@ register(
         (PF_TOGGLE, "enable_threshold", a_t_tip, False),
         (PF_SPINNER, "threshold", t_tip, 128, (0, 255, 1))
     ],
-    [], # results
+    [],  # results
     ct_remove_layer_halo,
     menu="<Image>/Colors/Channel Tinker"
 )
 
 # register(
-    # "python_fu_ct_centered_circle",
-    # "Draw Centered Circle",
-    # "Draw centered circle",
-    # "Jake Gustafson", "Jake Gustafson", "2020",
-    # "Draw Centered Circle",  # caption
-    # "RGB*",  # RGB* would mean with or without alpha.
-    # [
-        # (PF_IMAGE, "image", "Current image", None),
-        # (PF_DRAWABLE, "drawable", "Input layer", None),
-        # (PF_INT,    "radius", "Radius", 15),
-        # (PF_COLOR,  "color", "Color", (0, 0, 0)),
-        # (PF_TOGGLE, "filled", "Filled", False),
-    # ],
-    # [], # results
-    # ct_draw_centered_circle,
-    # menu="<Image>/Colors/Channel Tinker"
+#     "python_fu_ct_centered_circle",
+#     "Draw Centered Circle",
+#     "Draw centered circle",
+#     "Jake Gustafson", "Jake Gustafson", "2020",
+#     "Draw Centered Circle",  # caption
+#     "RGB*",  # RGB* would mean with or without alpha.
+#     [
+#         (PF_IMAGE, "image", "Current image", None),
+#         (PF_DRAWABLE, "drawable", "Input layer", None),
+#         (PF_INT,    "radius", "Radius", 15),
+#         (PF_COLOR,  "color", "Color", (0, 0, 0)),
+#         (PF_TOGGLE, "filled", "Filled", False),
+#     ],
+#     [], # results
+#     ct_draw_centered_circle,
+#     menu="<Image>/Colors/Channel Tinker"
 # )
-
 
 register(
     "python_fu_ct_centered_square",

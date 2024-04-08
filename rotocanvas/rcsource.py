@@ -266,12 +266,12 @@ class RCSource:
                 # exit(1)
                 # See llogan's answer edited Dec 20 '14 at 2:08
                 # answered Dec 19 '14 at 19:55
-                # on https://stackoverflow.com/questions/27568254/how-to-extract-1-screenshot-for-a-video-with-ffmpeg-at-a-given-time
-                # ffmpeg -ss $thisTimeCode -i "$vidPath" -vframes 1 -q:v 2 "$tmpImPath-$tmpSuffix.jpg"
-                # ffmpeg -ss $thisTimeCode -i "$vidPath" -vframes 1 "$tmpImPath-$tmpSuffix.png"
+                # on https://stackoverflow.com/questions/27568254/how-to-extract-1-screenshot-for-a-video-with-ffmpeg-at-a-given-time  # noqa: E501
+                # ffmpeg -ss $thisTimeCode -i "$vidPath" -vframes 1 -q:v 2 "$tmpImPath-$tmpSuffix.jpg"  # noqa: E501
+                # ffmpeg -ss $thisTimeCode -i "$vidPath" -vframes 1 "$tmpImPath-$tmpSuffix.png"  # noqa: E501
 
                 # extract by frame number:
-                #   ffmpeg -i in.mp4 -vf select='eq(n\,100)+eq(n\,184)+eq(n\,213)'
+                #   ffmpeg -i in.mp4 -vf select='eq(n\,100)+eq(n\,184)+eq(n\,213)'  # noqa: E501
                 #     -vsync 0 frames%d.jpg
                 cmdParts = [self.thisFFMpeg, "-y", "-i", self.vidPath, "-ss",
                             timeStr, "-vframes", "1"]
@@ -368,7 +368,7 @@ class RCSource:
                 cv2.imwrite(outPath, upscaled)
 
                 if forceRatio is not None:
-                    print ("  * downscaling to fix aspect ratio...")
+                    print("  * downscaling to fix aspect ratio...")
                     aiTmpDir = os.path.join(mOutDir, "ai_tmp")
                     if not os.path.isdir(aiTmpDir):
                         os.makedirs(aiTmpDir)
@@ -386,5 +386,3 @@ class RCSource:
                     )))
                     subprocess.check_output(regularCmdParts)
                     print('  * wrote "{}"'.format(mOutPath))
-
-

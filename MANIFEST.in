@@ -1,6 +1,6 @@
 include tests/*.py
 include share/pixmaps/*
-include pyrotocanvas/*.py
+include rotocanvas/*.py
 include channeltinker/*.py
 include channeltinkerpil/*.py
 include channeltinkerpil/tests/*.py

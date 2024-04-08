@@ -17,11 +17,11 @@ cd ~/minetest/games
 import sys
 import os
 # from PIL import ImageDraw
-import json
+# import json
 
 from channeltinkerpil import diff_images_by_path
 from channeltinker import (
-    error,
+    echo1,
     platformCmds,
     safePathParam,
 )
@@ -35,8 +35,8 @@ checkDotTypes = [
 
 
 def usage():
-    error(__doc__.format(cmd=os.path.basename(sys.argv[0])))
-    error("")
+    echo1(__doc__.format(cmd=os.path.basename(sys.argv[0])))
+    echo1("")
 
 
 def firstDifferentSubdirs(path1, path2):
@@ -128,15 +128,20 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                 if imgResults['head'].get('error') is not None:
                     print(indent+"- [ ] unreadable: {}".format(headSubPath))
                 elif imgResults['base'].get('error') is not None:
-                    print(indent+"- [ ] unreadable in previous version: {}".format(headSubPath))
+                    print(indent+"- [ ] unreadable in previous version: {}"
+                          .format(headSubPath))
                 elif imgResults['head']['ratio'] > imgResults['base']['ratio']:
-                    if (max_source_ratio is not None) and (imgResults['base']['ratio'] > max_source_ratio):
+                    if ((max_source_ratio is not None)
+                            and (imgResults['base']['ratio']
+                                 > max_source_ratio)):
                         continue
                     print(indent+"- [ ] wider:      {}"
                           "".format(headSubPath))
                     changed = True
                 elif imgResults['head']['ratio'] < imgResults['base']['ratio']:
-                    if (max_source_ratio is not None) and (imgResults['base']['ratio'] > max_source_ratio):
+                    if ((max_source_ratio is not None)
+                            and (imgResults['base']['ratio']
+                                 > max_source_ratio)):
                         continue
                     print(indent+"- [ ] narrower:   {}".format(headSubPath))
                     changed = True
@@ -146,7 +151,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                         baseI = baseSubPath.find(modsFlagMinus1)
                         headI = headSubPath.find(modsFlagMinus1)
                         if (baseI < 0) or (headI < 0):
-                            error('Error: there is no /mods/ in the'
+                            echo1('Error: there is no /mods/ in the'
                                   ' path (base="{}", head="{}")'
                                   ''.format(baseSubPath, headSubPath))
                             continue
@@ -158,7 +163,8 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                         prepatchCmd += " " + baseRelSafe
                         diffNames = firstDifferentSubdirs(baseSubPath,
                                                           headSubPath)
-                        prepatchName = "{}-vs-{}".format(diffNames[0], diffNames[1])
+                        prepatchName = "{}-vs-{}".format(diffNames[0],
+                                                         diffNames[1])
                         prepatchCmd += " " + prepatchName
                         results['prepatch_commands'].append(prepatchCmd)
                         patchCmd = platformCmds['cp']
@@ -194,7 +200,7 @@ def main():
                 options[argName] = True
             else:
                 usage()
-                error("Error: Unknown option: {}".format(arg))
+                echo1("Error: Unknown option: {}".format(arg))
                 exit(1)
         elif option_name is not None:
             old = options.get(option_name)
@@ -209,23 +215,23 @@ def main():
             head_path = arg
         else:
             usage()
-            error("Error: There was an extra sequential argument."
+            echo1("Error: There was an extra sequential argument."
                   " There should only be source and destination and"
                   " options but you also said \"{}\".".format(arg))
             exit(1)
         prev_arg = arg
     # head_root = head_path
     if head_path is None:
-        error("You must specify two directories.")
+        echo1("You must specify two directories.")
         exit(1)
         # Checking base_path isn't necessary since it is set first.
     base_path = os.path.realpath(base_path)
     head_path = os.path.realpath(head_path)
-    error("* checking only: {}".format(checkDotTypes))
+    echo1("* checking only: {}".format(checkDotTypes))
     if len(options['excludes']) > 0:
-        error("* excluding directory names: {}".format(options['excludes']))
+        echo1("* excluding directory names: {}".format(options['excludes']))
     else:
-        error("* excluding no directory names")
+        echo1("* excluding no directory names")
     results = showDiffRatioForImages(
         base_path,
         head_path,

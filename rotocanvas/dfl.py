@@ -171,6 +171,7 @@ file in {} in the numbered order.
 
 digits = "0123456789"
 
+
 def __nonBlockReadline(output):
     # fcntl is NOT AVAILABLE ON WINDOWS
     # so use enqueue_output instead
@@ -192,8 +193,6 @@ def __nonBlockReadline(output):
 
 # DLMItem_members = ['path', 'orig', 'face', 'role', 'form', 'mask',
 #                    'hide', 'temp', 'drop']
-
-
 
 
 class DLMItem:
@@ -315,7 +314,6 @@ class DLMItem:
         return item
 
 
-
 class DLMWorkspace:
     LOG_NAME = "rotocanvas-dlm.log"
 
@@ -373,11 +371,10 @@ class DLMWorkspace:
 
         return None
 
-
     def push(self, item, fileOp):
         """
-        Sequential arguments:
-        fileOp -- 'move' or 'copy' the actual file (item.path)
+        Args:
+            fileOp (str): 'move' or 'copy' the actual file (item.path)
         """
         ok = False
         error = None
@@ -562,7 +559,6 @@ class DLMWorkspace:
                 results.append(item)
         return results
 
-
     def getItemAttribute(self, role, name):
         """
         This will only work if the workspace is the lab's workspace
@@ -713,7 +709,7 @@ class DLMWorkspace:
         item = None
         error = None
         try:
-            item, error = generateItem(self, role, form, container)
+            item, error = self.generateItem(self, role, form, container)
         except ValueError:
             # if the file isn't there, ignore the problem and
             # return None.
@@ -863,7 +859,7 @@ class DLMWorkspace:
         return True
 
     def save(self):
-        path  = os.path.join(self.path, DLM.WS_META_NAME)
+        path = os.path.join(self.path, DLM.WS_META_NAME)
         meta = {}
         meta['items'] = []
         for item in self.items:
@@ -872,8 +868,8 @@ class DLMWorkspace:
             json.dump(meta, outs, indent=2)
         return True
 
-class DLM:
 
+class DLM:
     """
     This is a DLM manager.
     """
@@ -889,7 +885,7 @@ class DLM:
     }
     FORM_ORIGINAL = 'original'  # isdir implies "extract images" step
     FORM_ALIGNED = 'aligned'
-    FORM_MERGED = 'merged' # isfile implies "merge to ..." step
+    FORM_MERGED = 'merged'  # isfile implies "merge to ..." step
     # ^ DLM.getForms must list FORM_*
     FORMS_HELP = {
         'original': "not modified by DLM",
@@ -904,17 +900,17 @@ class DLM:
     FORMS_ORDER = [
         # The OP_ codes between the forms are the ones available for
         # the preceding form (At least one produces the next form)
-        {'form':FORM_ORIGINAL, 'role':ROLE_SRC,
-         'container':C_FILE},
+        {'form': FORM_ORIGINAL, 'role': ROLE_SRC,
+         'container': C_FILE},
         # OP_EXTRACT_IMAGES_SRC
-        {'form':FORM_ORIGINAL, 'role':ROLE_DST,
-         'container':C_FILE},
+        {'form': FORM_ORIGINAL, 'role': ROLE_DST,
+         'container': C_FILE},
         # OP_EXTRACT_IMAGES_DST
-        {'form':FORM_ORIGINAL, 'role':ROLE_SRC,
-         'container':C_DIR},
+        {'form': FORM_ORIGINAL, 'role': ROLE_SRC,
+         'container': C_DIR},
         # OP_EXTRACT_FACESET_SRC, OP_EXTRACT_FACESET_SRC_M
-        {'form':FORM_ORIGINAL, 'role':ROLE_DST,
-         'container':C_DIR},
+        {'form': FORM_ORIGINAL, 'role': ROLE_DST,
+         'container': C_DIR},
         # OP_DENOISE_DST, OP_EXTRACT_DST_FACESET,
         # OP_EXTRACT_DST_FACESET_M, OP_EXTRACT_DST_FACESET_MF
         # ^ Put OP_DENOISE_DST
@@ -922,14 +918,14 @@ class DLM:
         #   here to avoid confusion (It isn't relevant until now).
         # ^ This form was already available, but progressing to the next
         # form now makes sense, and these ops are next in DLM.
-        {'form':FORM_ALIGNED, 'role':ROLE_SRC,
-         'container':C_DIR},
+        {'form': FORM_ALIGNED, 'role': ROLE_SRC,
+         'container': C_DIR},
         # OP_SORT_SRC, OP_DELETE_BAD_SRC
         # ^  put 5 AFTER all extraction to avoid confusion
         #   since this stuff is optional but recommended and can be done
         #   any time before TRAIN.
-        {'form':FORM_ALIGNED, 'role':ROLE_DST,
-         'container':C_DIR},
+        {'form': FORM_ALIGNED, 'role': ROLE_DST,
+         'container': C_DIR},
         # After ROLE_SRC and ROLE_DST are both in aligned form, you
         # can train any time, but the sorting and deleting are
         # normally done. You can also merge at any time, but you train
@@ -937,12 +933,12 @@ class DLM:
         # anything if there is no model trained at all.
         # OP_SORT_DST, OP_DELETE_BAD_DST, OP_TRAIN_QUICK96,
         # OP_TRAIN_SAEHD, OP_MERGE_QUICK96, OP_MERGE_SAEHD
-        {'form':FORM_MERGED, 'role':ROLE_DST,
-         'container':C_DIR},
+        {'form': FORM_MERGED, 'role': ROLE_DST,
+         'container': C_DIR},
         # OP_FINALIZE_MP4, OP_FINALIZE_MP4_L, OP_FINALIZE_MOV_L,
         # OP_FINALIZE_AVI,
-        {'form':FORM_MERGED, 'role':ROLE_DST,
-         'container':C_FILE},
+        {'form': FORM_MERGED, 'role': ROLE_DST,
+         'container': C_FILE},
     ]
     OP_EXTRACT_IMAGES_SRC = 'Extract src images'
     OP_EXTRACT_IMAGES_DST = 'Extract dst images'
@@ -1250,7 +1246,7 @@ class DLM:
         except ValueError as ex:
             print(ex)
             self._errors.append("{}".format(ex))
-        self.loadLabDefaults() # sets self.meta
+        self.loadLabDefaults()  # sets self.meta
 
     def popErrors(self):
         errors = self._errors
@@ -1311,7 +1307,7 @@ class DLM:
     @staticmethod
     def getDtPathString(dateSep="-", dtSep="_", timeSep=".."):
         return DLM.getDtString(dateSep=dateSep, dtSep=dtSep,
-                              timeSep=timeSep)
+                               timeSep=timeSep)
 
     @staticmethod
     def getDtString(dateSep="-", dtSep=" ", timeSep=":"):
@@ -1431,7 +1427,7 @@ class DLM:
             self._morePaths + [os.environ["PATH"]]
         )
         self._chars = ""
-        self.ws = DLMWorkspace(self, env["WORKSPACE"]) # yes, send self
+        self.ws = DLMWorkspace(self, env["WORKSPACE"])  # yes, send self
         self.ws.populate()
         if self.myAppData is not None:
             self.userMetaPath = os.path.join(self.myAppData,
@@ -1453,10 +1449,9 @@ class DLM:
         self.loadLabDefaults()
         if os.path.isfile(self._dflDir):
             tmp = json.load(self._dflDir)
-            for k,v in tmp.items():
+            for k, v in tmp.items():
                 if len(k.strip()) > 0:
                     self.meta[k] = v
-
 
     def train(self, model, baseModel="SAEHD", gpu="0"):
         """
@@ -1502,7 +1497,6 @@ class DLM:
                  "--model", baseModel]
         self.run_command(parts, shell=True)
 
-
     def monitor_output(self, out, isStdErr):
         """
         Monitor and handle the output of a stream.
@@ -1516,7 +1510,6 @@ class DLM:
             if len(rawOut) < 1:
                 break
 
-
         """
         for line in iter(out.readline, b''):
             # self._q.put(line)
@@ -1527,7 +1520,6 @@ class DLM:
               "".format(isStdErr))
         out.close()
 
-
     def is_prompt(self, line):
         if line in self.prompts:
             return True
@@ -1535,7 +1527,6 @@ class DLM:
             if line.endswith(end):
                 return True
         return False
-
 
     def handle_byte(self, rawOut, isStdError):
         thisC = rawOut.decode(errors='ignore')
@@ -1551,7 +1542,6 @@ class DLM:
             pass
             # print("[dfl.py] waiting for more (have \"{}\")"
             # "".format(self._chars))
-
 
     def handle_bytes(self, rawOut, isStdError):
         line = rawOut.strip().decode(errors='ignore')
@@ -1570,7 +1560,6 @@ class DLM:
             self._p.stdin.write(thisB)
         self._p.stdin.flush()
         # print("[dfl.py] entered: {}".format(sendS))
-
 
     def handle_line(self, line, isStdError):
         if len(line) < 1:
@@ -1761,11 +1750,11 @@ class DLM:
         self._t1 = None
         self._t0 = Thread(target=self.monitor_output,
                           args=(self._p.stdout, False))
-        self._t0.daemon = True # thread dies with the program
+        self._t0.daemon = True  # thread dies with the program
         self._t0.start()
         self._t1 = Thread(target=self.monitor_output,
                           args=(self._p.stderr, True))
-        self._t1.daemon = True # thread dies with the program
+        self._t1.daemon = True  # thread dies with the program
         self._t1.start()
 
         while True:
@@ -1773,7 +1762,7 @@ class DLM:
             self._code = self._p.poll()
             if self._code is not None:
                 print("[dfl.py] The process completed with exit code {}"
-                      "".format(code))
+                      "".format(self._code))
                 break
             if self._cmdDone:
                 print("[dfl.py] terminating watch threads...")
@@ -1808,7 +1797,6 @@ class DLM:
         self._runCmd = None
         return self._code
 
-
     def getenv(self):
         ret = os.environ.copy()
         for k, v in self.env.items():
@@ -1827,7 +1815,6 @@ class DLM:
             else:
                 ret[k] = str(v)
         return ret
-
 
     def setenv(self):
         # Usually, use subprocess.Popen(path, env=self.env) instead

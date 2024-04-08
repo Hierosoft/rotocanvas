@@ -30,7 +30,9 @@ setuptools.setup(
         'Operating System :: POSIX :: Linux',
         'Topic :: System :: Installation/Setup',
     ],
-    keywords='python batch image processing video editing manipulation gimp plugins imgdiff imagediff compare images channeltinker channeltinkerpil channeltinkergimp',
+    keywords=('python batch image processing video editing manipulation gimp'
+              ' plugins imgdiff imagediff compare images channeltinker'
+              ' channeltinkerpil channeltinkergimp'),
     url="https://github.com/poikilos/rotocanvas",
     author="Jake Gustafson",
     author_email='7557867+poikilos@users.noreply.github.com',
@@ -53,7 +55,8 @@ setuptools.setup(
         'Pillow',
     ],
     #     versionedModule['urllib'],
-    # ^ "ERROR: Could not find a version that satisfies the requirement urllib (from nopackage) (from versions: none)
+    # ^ "ERROR: Could not find a version that satisfies the requirement urllib
+    #   (from nopackage) (from versions: none)
     # ERROR: No matching distribution found for urllib"
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

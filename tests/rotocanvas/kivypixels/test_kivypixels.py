@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import unittest
-import sys
+# import sys
 
 from rotocanvas.kivypixels import KPImage  # , load_image
 
@@ -40,6 +40,7 @@ class KivyPixelsTest(unittest.TestCase):
             src_img.aOffset
         )
         print("All tests passed.")
+
 
 if __name__ == "__main__":
     print("Error: You must run this from the repo directory via:")

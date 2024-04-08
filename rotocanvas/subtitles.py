@@ -9,6 +9,7 @@ from rotocanvas import (
     echo2,
 )
 
+
 class Subtitle:
     """Individual timed caption.
 
@@ -167,6 +168,7 @@ class Subtitles:
         if context != INDEX:
             raise SyntaxError("{}:{}: missing {}"
                               "".format(path, lineN, contexts[context]))
+
     def append(self, nextSubs, delay_ms=0):
         """Concatenate another Subtitles object to this one.
 
@@ -207,6 +209,5 @@ class Subtitles:
                     print("WARNING: \\r in {}".format(sub.data))
                 outs.write(sub.data + "\n")
                 outs.write("\n")
-"""
-For tests, see or create /tests/rotocanvas/test_subtitles.py
-"""
+
+# For tests, see or create /tests/rotocanvas/test_subtitles.py

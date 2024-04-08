@@ -5,8 +5,11 @@ from channeltinker import diff_images
 from PIL import Image
 import PIL
 from channeltinker import (
-    error,
-    debug,
+    # echo0,
+    echo1,
+    # echo2,
+    # echo3,
+    echo4,
 )
 
 
@@ -43,8 +46,8 @@ def gen_diff_image(base, head, diff=None, diff_path=None):
     w = max(base.size[0], head.size[0])
     h = max(base.size[1], head.size[1])
     diff_size = w, h
-    debug("* base size: {}".format(base.size))
-    debug("* head size: {}".format(head.size))
+    echo4("* base size: {}".format(base.size))
+    echo4("* head size: {}".format(head.size))
     diff = None
     # draw = None
     nochange_color = (0, 0, 0, 255)
@@ -61,8 +64,8 @@ def gen_diff_image(base, head, diff=None, diff_path=None):
     #         )
     # error("* generated diff image in memory")
     # draw = ImageDraw.Draw(diff)
-    error("* diff size: {}".format(diff.size))
-    debug("Checking {} zone...".format(diff_size))
+    echo1("* diff size: {}".format(diff.size))
+    echo4("Checking {} zone...".format(diff_size))
     result = diff_images(base, head, diff_size, diff=diff,
                          nochange_color=nochange_color)
     result['diff'] = {}
@@ -70,7 +73,7 @@ def gen_diff_image(base, head, diff=None, diff_path=None):
         diff_path = os.path.abspath(diff_path)
         diff.save(diff_path)
         result['diff']['path'] = diff_path
-        error("* saved \"{}\"".format(diff_path))
+        echo1("* saved \"{}\"".format(diff_path))
     else:
         result['base_image'] = base
         result['head_image'] = head

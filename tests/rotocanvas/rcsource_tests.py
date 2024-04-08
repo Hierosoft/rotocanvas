@@ -5,7 +5,7 @@ import platform
 # formerly needed param: "/home/owner/Videos/Demo_Reel/media/
 # Demo_Reel_2000_clip-Rebel_Assault_IX-318x468_2.05x_1280x960_alq-
 # 1.0.1_jpg/"
-# pyrotocanvas is from https://github.com/poikilos/pyrotocanvas
+# rotocanvas is from https://github.com/Poikilos/rotocanvas
 # Below attempts to find it in %USERPROFILE%/git, %USERPROFILE%/GitHub
 # (or same with $HOME if not Windows):
 
@@ -18,12 +18,12 @@ else:
 
 print("profile: {}".format(profile))
 
-if os.path.exists("../pyrotocanvas"):
-    sys.path.append("..")
+if os.path.exists("../rotocanvas/__init__.py"):
+    sys.path.append(os.path.realpath(".."))
 else:
     for reposName in reposNames:
         reposDir = os.path.join(profile, reposName)
-        tryModules = os.path.join(reposDir, "pyrotocanvas")
+        tryModules = os.path.join(reposDir, "rotocanvas")
         if os.path.exists(tryModules):
             sys.path.append(tryModules)
             # ^ yes, the repo dir, because the module is under the
@@ -33,10 +33,10 @@ else:
             print("Using modules dir: {}".format(reposDir))
             break
 
-from pyrotocanvas.ffmpegtime import FFMPEGTime
-# from pyrotocanvas.rcproject import RCProject
-from pyrotocanvas.rcsource import RCSource
-# from pyrotocanvas.rcsettings import settings
+from rotocanvas.ffmpegtime import FFMPEGTime
+from rotocanvas.rcproject import RCProject
+from rotocanvas.rcsource import RCSource
+# from rotocanvas.rcsettings import settings
 
 ra9Times = ["00:00:14", "00:00:41", "00:00:55", "00:02:20",
             "00:00:58.5", "00:02:35"]
@@ -70,7 +70,7 @@ elif job == 3:
     )
     video = RCSource(os.path.realpath(inPath), "60000/1001")
     video.superResolutionAI(
-        onlyFrames = ra9Frames60fps,
+        onlyFrames=ra9Frames60fps,
         outFmt="jpg",
         organizeMode=2,
     )

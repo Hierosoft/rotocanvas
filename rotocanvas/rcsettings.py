@@ -4,8 +4,8 @@ import sys
 
 _opencv_tip = None
 
-class RCSettings:
 
+class RCSettings:
     def __init__(self):
         modulePath = os.path.dirname(os.path.realpath(__file__))
         repoPath = os.path.dirname(modulePath)
@@ -83,13 +83,11 @@ class RCSettings:
         # $PY $CMD --model models/LapSRN_x8.pb --image \
         #   examples/zebra.png
 
-
     def addModel(self, path):
         if not os.path.isfile(path):
             raise ValueError("The path for addModel isn't a file or"
                              " doesn't exist: {}".format(path))
         self.scalingModels.append(path)
-
 
     def assertOpenCV(self):
         if not self._enable_opencv:
@@ -102,4 +100,3 @@ settings = RCSettings()
 _opencv_tip = ("You must first install opencv-python available to {}"
                " or in a virtual environment"
                " at {}".format(sys.executable, settings.thisPython))
-

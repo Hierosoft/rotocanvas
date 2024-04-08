@@ -11,7 +11,7 @@ import platform
 name_fmt0 = "{}-{}-vs-{}.png"
 name_fmt1 = "diffimage {}.png"
 name_fmt2 = "diffimage {} vs. {}.png"
-verbose = False
+verbosity = False
 
 
 def safePathParam(path):
@@ -107,37 +107,67 @@ class ChannelTinkerInterface(object):
                                   " getbands.")
 
 
-_error_func = None
+_echo_fn = None
 
 
-def _error(msg):
-    sys.stderr.write("{}\n".format(msg))
-    sys.stderr.flush()
+def _echo(*msg, **kwargs):
+    print(*msg, file=sys.stderr, **kwargs)
 
 
-_error_func = _error
+_echo_fn = _echo
 
 
-def error(msg):
+# Mimic logging module:
+# - debug(), info(), warning(), error() and critical()
+# - default WARNING
+# - CRITICAL=50, ERROR=40, WARNING=30, INFO=20, DEBUG=10
+
+
+def echo0(*msg, **kwargs):
     """Send msg + newline to stderr
     (or send msg without anything extra to a callback you previously
-    specified via set_error_func).
+    specified via set_echo).
+    # Formerly error
     """
-    _error_func(msg)
+    _echo_fn(*msg, **kwargs)
 
 
-def debug(msg):
-    if verbose:
-        error(msg)
+def echo1(*msg, **kwargs):
+    if verbosity < 1:
+        return False
+    _echo_fn(*msg, **kwargs)
+    return True
 
 
-def set_error_func(callback):
-    """Set the error callback
-    If at any time an error occurs anywhere in the module, the module
-    will either send a string to callback or raise an exception.
+def echo2(*msg, **kwargs):
+    if verbosity < 2:
+        return False
+    _echo_fn(*msg, **kwargs)
+    return True
+
+
+def echo3(*msg, **kwargs):
+    if verbosity < 3:
+        return False
+    _echo_fn(*msg, **kwargs)
+    return True
+
+
+def echo4(*msg, **kwargs):
+    if verbosity < 4:
+        return False
+    _echo_fn(*msg, **kwargs)
+    return True
+
+
+def set_echo(callback):
+    """Set the echo callback
+    If at any time an error or other message occurs anywhere in the
+    module, the module will either send (*args, **kwargs) to callback or
+    raise an exception.
     """
-    global _error_func
-    _error_func = callback
+    global _echo_fn
+    _echo_fn = callback
 
 
 def convert_depth(color, channel_count, c_max=1.0):
@@ -319,7 +349,7 @@ def generate_diff_name(base_path, head_path, file_name=None):
             base_l, base_r = os.path.split(base_path)
             head_l, head_r = os.path.split(head_path)
             while True:
-                error("* building name from {} vs {}...".format(
+                echo1("* building name from {} vs {}...".format(
                     (base_l, base_r), (head_l, head_r)
                 ))
                 if (base_l == "") and (head_l == ""):
@@ -571,9 +601,9 @@ def diff_images(base, head, diff_size, diff=None,
                     base_color = base.getpixel(pos)
                     head_color = head.getpixel(pos)
                 except IndexError as ex:
-                    error("base.size: {}".format(base.size))
-                    error("head.size: {}".format(head.size))
-                    error("pos: {}".format(pos))
+                    echo1("base.size: {}".format(base.size))
+                    echo1("head.size: {}".format(head.size))
+                    echo1("pos: {}".format(pos))
                     raise ex
                 d = diff_color(base_color, head_color, c_max=c_max,
                                max_count=max_count)
@@ -826,7 +856,7 @@ def extend(cti, minimum=1, maximum=254,
                             msg = ("Uh oh, got own pos when checking"
                                    " for better color than"
                                    " {}...".format(pixel))
-                            error(msg)
+                            echo1(msg)
                             if ctpi is not None:
                                 ctpi.show_message(msg)
                                 ctpi.set_status(msg)

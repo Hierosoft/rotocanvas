@@ -19,10 +19,10 @@ else:
 
 # from channeltinker import diff_images
 
-from channeltinkerpil import diff_images_by_path
-from channeltinkerpil.diffimage import diff_image_files_and_gen
+from channeltinkerpil import diff_images_by_path  # noqa: E402
+from channeltinkerpil.diffimage import diff_image_files_and_gen  # noqa: E402
 
-from rotocanvas import sysdirs
+from rotocanvas import sysdirs  # noqa: E402
 
 diff_base = os.path.join(
     sysdirs['HOME'],

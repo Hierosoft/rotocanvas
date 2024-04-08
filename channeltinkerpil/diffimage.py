@@ -8,14 +8,14 @@ Similar projects:
   as a color mask using Qt.
 '''
 import sys
-import os
+# import os
 # from PIL import ImageDraw
-import json
+# import json
 
 from channeltinkerpil import diff_images_by_path
 from channeltinker import (
     generate_diff_name,
-    error,
+    echo1,
 )
 
 
@@ -47,7 +47,7 @@ def diff_image_files_and_gen(base_path, head_path, diff_name=None):
 
 def main_cli():
     if len(sys.argv) != 3:
-        error("You must specify two files.")
+        echo1("You must specify two files.")
         exit(1)
     results = diff_image_files_and_gen(sys.argv[1], sys.argv[2])
     print(results)

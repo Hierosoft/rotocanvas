@@ -21,7 +21,7 @@ if sys.version_info.major < 3:
 
 enableDLM = False
 
-#try:
+# try:
 from rotocanvas.dfl import DLMItem
 from rotocanvas.dfl import DLM
 enableDLM = True
@@ -52,6 +52,7 @@ class GridButton(tk.Button):
         self.row = row
         self.column = column
         pass
+
 
 class DFLGUI:
     def __init__(self, master, dflPath):
@@ -108,8 +109,8 @@ class DFLGUI:
 
     def addPath(self, path, role=None):
         """
-        Keyword arguments:
-        role -- You must set role unless the item
+        Args:
+            role (str): You must set role unless the item
         """
         if self.dlm is None:
             return None
@@ -121,7 +122,7 @@ class DFLGUI:
         params["role"] = role
         params["path"] = path
         item = GridButton(self.master, row, column, text=name,
-                         command=lambda: self.open(params))
+                          command=lambda: self.open(params))
         zone = DLM.ZONE_STORAGE
         if item.isInLab():
             zone = DLM.ZONE_LAB
@@ -135,16 +136,13 @@ class DFLGUI:
         print("isInLab to lab: {}".format(item.isInLab()))
         return item
 
-
-
     def getRoles(self):
         if self.dlm is not None:
             return DLM.getRoles()
         return ['src', 'dst']
 
     def open(self, params):
-        """
-        Add the role's items to the lab.
+        """Add the role's items to the lab.
         """
         path = params.get("path")
         role = params.get("role")
@@ -177,9 +175,8 @@ class DFLGUI:
             return DLM.getZones()
         return ['storage', 'lab']
 
-
     def _buttonAt(self, row, column):
-        for k,v in self.meta[self.whichs[column]].items():
+        for k, v in self.meta[self.whichs[column]].items():
             if v.column != column:
                 continue
             if v.row == row:
@@ -188,7 +185,7 @@ class DFLGUI:
     def removeBtn(self, path, zone):
         if zone not in self.getZones():
             raise ValueError("{} is not a zone (should be any of: {}]"
-                             "".format(self.getZones()))
+                             "".format(zone, self.getZones()))
         item = self.meta[zone].get(path)
         if item is not None:
             # print("* removing old button for \"{}\"".format(path))
@@ -211,19 +208,17 @@ class DFLGUI:
             del self.meta[zone][path]
 
     def close(self, path):
-        """
-        Remove the role's items from the lab.
+        """Remove the role's items from the lab.
         """
         print("Closing \"{}\"...".format(path))
         raise NotImplementedError("close is not implemented")
 
     def forceAddBtn(self, path, zone, role):
-        """
-        Add the button without workspace sanity checks.
+        """Add the button without workspace sanity checks.
         """
         if zone not in self.getZones():
             raise ValueError("{} is not a zone (should be any of: {}]"
-                             "".format(self.getZones()))
+                             "".format(zone, self.getZones()))
         column = self.cols[zone]
 
         self.removeBtn(path, zone)
@@ -253,6 +248,7 @@ class DFLGUI:
         item.grid(column=column, row=item.row)
         self.rows[column] += 1
         return item
+
 
 if __name__ == "__main__":
     dflPath = None

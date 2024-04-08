@@ -20,6 +20,7 @@ from rotocanvas.pythonpixels import ibgr_from_hex  # , vec4_from_vec3
 
 __all__ = ('PixelWidget', )
 
+
 class PixelWidget(Widget):
     enableDebug = False
     texture = ObjectProperty(None, allownone=True)
@@ -78,10 +79,10 @@ class PixelWidget(Widget):
         # ^ green comes from blue channel
         self.viewImage_rOffset = 1  # rOffset = 2
         self.viewImage_aOffset = 3  # aOffset = 3
-        self.viewImage.bOffset=self.viewImage_bOffset
-        self.viewImage.gOffset=self.viewImage_gOffset
-        self.viewImage.rOffset=self.viewImage_rOffset
-        self.viewImage.aOffset=self.viewImage_aOffset
+        self.viewImage.bOffset = self.viewImage_bOffset
+        self.viewImage.gOffset = self.viewImage_gOffset
+        self.viewImage.rOffset = self.viewImage_rOffset
+        self.viewImage.aOffset = self.viewImage_aOffset
 
         # self.viewImage.fill_icolor(0, 0, 0, 255)
         print(prefix+"size: {}".format(self.viewImage.size))
@@ -89,7 +90,7 @@ class PixelWidget(Widget):
         # print("TOTALPIXELCOUNT:"+str(self.TOTALPIXELCOUNT))
 
         self.viewImage.setBrushPath("brush2.png")
-        self.viewImage.setBrushColor((1,1,1,1))
+        self.viewImage.setBrushColor((1, 1, 1, 1))
         # self.brushImage = Image(source=self.brushFileName,
         # keep_data=True)
         # self.brushImage = CoreImage(self.brushFileName)
@@ -99,9 +100,10 @@ class PixelWidget(Widget):
         self.palettes = {}
         # CGA palette names:
         self.palettes["CGA"] = ["black", "blue", "green", "cyan",
-                      "red", "magenta", "brown", "light gray",
-                      "gray", "light blue", "light green", "light cyan",
-                      "light red", "light magenta", "yellow", "white"]
+                                "red", "magenta", "brown", "light gray",
+                                "gray", "light blue", "light green",
+                                "light cyan", "light red", "light magenta",
+                                "yellow", "white"]
         # CGA palette:
         self.paletteColors = {}
         self.paletteColors['black'] = ibgr_from_hex('000000')
@@ -111,7 +113,7 @@ class PixelWidget(Widget):
         self.paletteColors['red'] = ibgr_from_hex('AA0000')
         self.paletteColors['magenta'] = ibgr_from_hex('AA00AA')
         self.paletteColors['brown'] = ibgr_from_hex('AA5500')
-            # or sometimes dark yellow AAAA00 such as early RCA monitors
+        # or sometimes dark yellow AAAA00 such as early RCA monitors
         self.paletteColors['light gray'] = ibgr_from_hex('AAAAAA')
         self.paletteColors['gray'] = ibgr_from_hex('555555')
         self.paletteColors['light blue'] = ibgr_from_hex('5555FF')
@@ -123,8 +125,6 @@ class PixelWidget(Widget):
         self.paletteColors['white'] = ibgr_from_hex('FFFFFF')
         self.updateColorNames()
 
-
-
         # self.brushFboWidgetSimple = FboWidgetSimple()
         # self.add_widget(self.brushFboWidgetSimple)
         # self.brushFboWidgetSimple.size = self.brushImage.size
@@ -132,18 +132,17 @@ class PixelWidget(Widget):
         # self.brushPixels = self.brushSurface.tostring()
 
         # brushFboRectangle = Rectangle(
-            # texture=self.brushTexture,
-            # pos=(0,0),
-            # size=self.brushImage.size)
+        #     texture=self.brushTexture,
+        #     pos=(0,0),
+        #     size=self.brushImage.size)
         # self.brushFboWidgetSimple.fbo.add(brushFboRectangle)
 
-
         # self.texture = Texture.create(size=(512, 512),
-                                      # colorfmt='RGBA',
-                                      # bufferfmt='ubyte')
+        #                               colorfmt='RGBA',
+        #                               bufferfmt='ubyte')
         # self.texture.add_reload_observer(self.populate_texture)
         # self.fbo.texture.add_reload_observer(
-            # self.fbo_populate_texture)
+        #     self.fbo_populate_texture)
         # self.populate_texture(self.texture)
         # self.populate_texture(self.fbo.texture)
 
@@ -175,17 +174,16 @@ class PixelWidget(Widget):
 
     def updatePixelViewSize(self):
         prefix = "[updatePixelViewSize] "
-        if ((self.fbo.size[0]!=self.viewImage.size[0]) or
-                (self.fbo.size[1]!=self.viewImage.size[1])):
+        if ((self.fbo.size[0] != self.viewImage.size[0]) or
+                (self.fbo.size[1] != self.viewImage.size[1])):
             newKPImage = KPImage(self.fbo.size)
             newKPImage.blit_copy(self.viewImage)
             newKPImage.copyRuntimeVarsByRefFrom(self.viewImage)
             self.viewImage = newKPImage
-            self.viewImage.bOffset=self.viewImage_bOffset
-            self.viewImage.gOffset=self.viewImage_gOffset
-            self.viewImage.rOffset=self.viewImage_rOffset
-            self.viewImage.aOffset=self.viewImage_aOffset
-
+            self.viewImage.bOffset = self.viewImage_bOffset
+            self.viewImage.gOffset = self.viewImage_gOffset
+            self.viewImage.rOffset = self.viewImage_rOffset
+            self.viewImage.aOffset = self.viewImage_aOffset
 
             print(prefix+"size: {}".format(self.viewImage.size))
             # print("TOTALBYTECOUNT:" + str(self.TOTALBYTECOUNT))
@@ -228,9 +226,9 @@ class PixelWidget(Widget):
                 self.colorI += 1
             else:
                 self.colorI -= 1
-        if (self.colorI>=len(self.colorNames)):
-            self.colorI=0
-        elif (self.colorI<0):
+        if self.colorI >= len(self.colorNames):
+            self.colorI = 0
+        elif self.colorI < 0:
             self.colorI = len(self.colorNames) - 1
         selectedColor = self.paletteColors[self.colorNames[self.colorI]]
         print("Selected color " + str(self.colorI) + ": "
@@ -283,7 +281,7 @@ class PixelWidget(Widget):
         # self.ask_update()  # does nothing
         self.canvas.ask_update()
 
-    def onSaveButtonClick(self,instance):
+    def onSaveButtonClick(self, instance):
         # see C:\Kivy-1.8.0-py3.3-win32\kivy\kivy\tests\test_graphics.py
         # data = self.fbo.pixels
         saveFileName = "Untitled1.png"
@@ -299,9 +297,9 @@ class PixelWidget(Widget):
                     texture_flipped=self.texture_flipped,
                 )
 
-   # def onColorButtonClick(self,instance):
-       # self.paletteWidget.open()
+    # def onColorButtonClick(self,instance):
+    #     self.paletteWidget.open()
 
-#     def onEraserButtonClick(self, instance):
-#         #TODO: finish this
-#         print("eraser")
+    # def onEraserButtonClick(self, instance):
+    #     #TODO: finish this
+    #     print("eraser")

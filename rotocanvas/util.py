@@ -143,9 +143,9 @@ def divide_frames(firstFramePath, start, step):
 def main(args):
     print("# You tried to run the module.")
     print("# Instead, import it as follows:")
-    print("import pyrotocanvas.util")
+    print("import rotocanvas.util")
     print("# or:")
-    print("# from pyrotocanvas.util import *")
+    print("# from rotocanvas.util import *")
 
 
 if __name__ == "__main__":

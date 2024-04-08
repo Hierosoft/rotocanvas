@@ -6,7 +6,9 @@ import os
 # from channeltinkerpil import diff_images
 try:
     from channeltinker import (
-        error,
+        echo1,
+        echo3,
+        echo4,
         diff_images,
     )
 except ModuleNotFoundError as ex:
@@ -20,13 +22,8 @@ except ModuleNotFoundError as ex:
 from PIL import Image
 import PIL
 
-verbose = False
-def debug(msg):
-    if not verbose:
-        return
-    error(msg)
-
 results = []
+
 
 def populateVisuallySimilar(imagePath, dirPath, limit=10,
                             image=None, skipDifferentSize=True,
@@ -38,14 +35,16 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
     first in the list.
 
     Requires the following globals:
-    results -- a blank list that will become a list of dictionaries
-        where each dictionary has 'mean_diff' and 'path'. The list will
-        contain the most similar images.
+    results (list[dict]): a blank list that will become a list of
+        dictionaries where each dictionary has 'mean_diff' and 'path'.
+        The list will contain the most similar images.
 
-    Keyword arguments:
-    limit -- Limit the number of closest matches to include in results.
-    image -- This is used for caching purposes. If it is present, then
-        imagePath will be ignored and image will be used instead.
+    Args:
+        limit (int, optional): Limit the number of closest matches to
+            include in results.
+        image (Union(Image,ChannelTinkerInterface), optional): This is
+            used for caching purposes. If it is present, then imagePath
+            will be ignored and image will be used instead.
     '''
     global results
     if results is None:
@@ -54,9 +53,9 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
     if image is None:
         try:
             image = Image.open(imagePath)
-            error("* loaded \"{}\"".format(imagePath))
+            echo1("* loaded \"{}\"".format(imagePath))
         except PIL.UnidentifiedImageError as ex:
-            error("* Error opening {}.format(imagePath)")
+            echo1("* Error opening {}.format(imagePath)")
             # Do not continue, because the base image is
             # necessary.
             raise ex
@@ -65,7 +64,7 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
     isInBaseDir = False
     if baseDir == dirPath:
         isInBaseDir = True
-        debug("* checking {}"
+        echo4("* checking {}"
               "".format(dirPath))
 
     for sub in os.listdir(dirPath):
@@ -83,18 +82,18 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
         ext = os.path.splitext(sub)[1]
         if ext.lower() not in extensions:
             if subPath == imagePath:
-                error("* Error: skipped ext for self: {}".format(ext))
+                echo1("* Error: skipped ext for self: {}".format(ext))
             elif os.path.dirname(imagePath) == dirPath:
-                debug("* Warning: {}'s ext is not in {}"
+                echo3("* INFO: {}'s ext is not in {}"
                       "".format(sub, extensions))
             continue
         if isInBaseDir:
-            debug("  * checking {}".format(sub))
+            echo4("  * checking {}".format(sub))
         head = None
         try:
             head = Image.open(subPath)
         except PIL.UnidentifiedImageError as ex:
-            error("* Error opening {}: {}".format(imagePath, ex))
+            echo1("* Error opening {}: {}".format(imagePath, ex))
             continue
         w = max(image.size[0], head.size[0])
         h = max(image.size[1], head.size[1])
@@ -111,11 +110,11 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
         diff_size = w, h
         diffMeta = diff_images(image, head, diff_size=diff_size)
         if not checkedAny:
-            debug("* checked image(s) in {}".format(dirPath))
+            echo3("* checked image(s) in {}".format(dirPath))
         checkedAny = True
         err = diffMeta.get('error')
         if err is not None:
-            error("  * {}: {}".format(subPath, err))
+            echo1("  * {}: {}".format(subPath, err))
         mean_diff = diffMeta['mean_diff']
         newResult = {
             'mean_diff': mean_diff,
@@ -123,10 +122,10 @@ def populateVisuallySimilar(imagePath, dirPath, limit=10,
         }
         if subPath == imagePath:
             if mean_diff != 0:
-                error("  * WARNING: mean_diff for self is {}"
+                echo1("  * WARNING: mean_diff for self is {}"
                       " (should be 0)!".format(mean_diff))
             else:
-                error("  * found self (not a genuine match): {}"
+                echo1("  * found self (not a genuine match): {}"
                       "".format(diffMeta))
         # The difference is less than the item at this index in results:
         ltI = -1
@@ -158,18 +157,18 @@ def main():
     # for some reason. The results list ends up being bigger than limit
     # but not having the closest matches :huh?:.
     global results
-    error("* using imagePath: \"{}\"".format(imagePath))
-    error("  * in: \"{}\"".format(os.path.dirname(imagePath)))
+    echo1("* using imagePath: \"{}\"".format(imagePath))
+    echo1("  * in: \"{}\"".format(os.path.dirname(imagePath)))
     populateVisuallySimilar(
         imagePath,
         dirPath,
     )
     if len(results) > 0:
-        error("* The most similar images are shown first:")
+        echo1("* The most similar images are shown first:")
         for result in results:
             print("{}".format(result))
     else:
-        error("* No images were found in the destination, so no"
+        echo1("* No images were found in the destination, so no"
               " comparisons were made.")
 
 

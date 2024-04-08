@@ -32,6 +32,7 @@ from kivy.uix.button import Button
 # from kivy.uix.label import Label
 from kivy.properties import ColorProperty
 
+
 def component_to_id(component):
     return str(component).replace(".", "o")
 
@@ -79,7 +80,7 @@ class RectButton(Button):
         return self.plainColor
         # return self.background_color
 
-'''
+    '''
     def on_press(self):
         pass
         print("CLICKED")
@@ -88,11 +89,12 @@ class RectButton(Button):
         # NOTE: Can't inherit from EventDispatcher since that is
         # incompatible with other bases classes (Kivy refuses)
         print("REGISTER {}".format(fn))
-'''
+    '''
+
 
 class ColorPopup(Popup):
     # ends up as ObservableList, not Color for some reason:
-    pickedColor = Color(1,1,1,1)
+    pickedColor = Color(1, 1, 1, 1)
     # pickedColor = (1.0, 1.0, 1.0, 1.0)
     title = "Color Selector"
     mainBoxLayout = None
@@ -152,7 +154,6 @@ class ColorPopup(Popup):
                 button.background_color = tuple(button.plainComponents)
                 # button.plainColor = button.background_color
 
-
     def __init__(self, callback, **kwargs):
         # super(ColorPopup, self).__init__(**kwargs)
         Popup.__init__(self, **kwargs)
@@ -171,7 +172,7 @@ class ColorPopup(Popup):
         # self.mainBoxLayout.add_widget(self.mainColorPicker)
 
         self.buttonBoxLayout = BoxLayout(orientation='horizontal')
-        self.buttonBoxLayout.size_hint=(1.0,.2)
+        self.buttonBoxLayout.size_hint = (1.0, .2)
         self.mainBoxLayout.add_widget(self.buttonBoxLayout)
 
         self.cancelButton = Factory.Button(text="Close")
@@ -209,13 +210,13 @@ class ColorPopup(Popup):
         # xPx = 0
         # l = 1.0
         v = 1.0
-        for y in range(0,16):
+        for y in range(0, 16):
             this_h_layout = BoxLayout(orientation='horizontal')
             self.colors_v_layout.add_widget(this_h_layout)
             self.colorsHLayouts.append(this_h_layout)
             this_list = list()
             # xPx = left
-            for x in range(0,16):
+            for x in range(0, 16):
                 # hsla = [x*16.0/256.0, y*16.0/256.0, 0, 1.0]
                 h = y*16.0/256.0
                 s = x*16.0/256.0
@@ -313,9 +314,9 @@ class ColorPopup(Popup):
                 # self.free_widget.add_widget(thisBtn)
                 # thisBtn.canvas_before.add(_color_instruction)
                 '''
-                #this_dict = dict()
-                #this_dict["rect"] = this_rect
-                #this_dict["ci"] = _color_instruction
+                # this_dict = dict()
+                # this_dict["rect"] = this_rect
+                # this_dict["ci"] = _color_instruction
                 print("C:"+idStr)
                 # print(" == Color: "+str( (_color_instruction.r, \
                 # # _color_instruction.g, \
@@ -339,7 +340,7 @@ class ColorPopup(Popup):
         # self.bind(on_touch_up=self.onAnyClick)
         # self.bind(on_dismiss=self.onDismiss)
 
-'''
+    '''
     def onOKButtonClick(self, instance):
         #root.dismiss()
         self.pickedColor = self.mainColorPicker.color
@@ -360,4 +361,4 @@ class ColorPopup(Popup):
 
     def onDismiss(self, instance):
         self.isStillPushingColorButton = True
-'''
+    '''

@@ -208,7 +208,7 @@ def main():
     if saveError is None:
         print("Save completed.")
     else:
-        print("[pyrotocanvas run.py main] Save failed: {}"
+        print("[rotocanvas run.py main] Save failed: {}"
               "".format(saveError))
 
 

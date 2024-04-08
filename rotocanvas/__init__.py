@@ -86,8 +86,24 @@ sysdirs.readonly()
 
 # endregion same as hierosoft/__init__.py
 
+verbosity_levels = {
+    0: 50,  # CRITICAL
+    1: 40,  # ERROR
+    2: 30,  # WARNING
+    3: 20,  # INFO
+    4: 10,  # DEBUG
+}
 
-verbosity = 0
+
+class Verbosity:  # NOTE: There is no enum in Python 2 (added in 3.4).
+    CRITICAL = 0  # 50
+    ERROR = 1  # 40
+    WARNING = 2  # 30
+    INFO = 3  # 20
+    DEBUG = 4  # 10
+
+
+verbosity = Verbosity.WARNING  # default of WARNING mimics logging module
 for argI in range(1, len(sys.argv)):
     arg = sys.argv[argI]
     if arg.startswith("--"):
@@ -96,50 +112,97 @@ for argI in range(1, len(sys.argv)):
         elif arg == "--debug":
             verbosity = 2
 
+
 # def is_verbose():
 #     return verbose > 0
 
 
 def set_verbosity(level):
     global verbosity
-    if level not in [True, False, 0, 1, 2]:
+    if level not in verbosity_levels:
         raise ValueError("{} is not a valid verbosity.".format(level))
     verbosity = level
 
 
 def write0(arg):
+    """CRITICAL message"""
     sys.stderr.write(arg)
     sys.stderr.flush()
+    return True
 
 
 def write1(arg):
+    """ERROR message"""
     if verbosity < 1:
-        return
+        return False
     sys.stderr.write(arg)
     sys.stderr.flush()
+    return True
 
 
 def write2(arg):
+    """WARNING message"""
     if verbosity < 2:
-        return
+        return False
     sys.stderr.write(arg)
     sys.stderr.flush()
+    return True
+
+
+def write3(arg):
+    """INFO message"""
+    if verbosity < 3:
+        return False
+    sys.stderr.write(arg)
+    sys.stderr.flush()
+    return True
+
+
+def write4(arg):
+    """DEBUG message"""
+    if verbosity < 4:
+        return False
+    sys.stderr.write(arg)
+    sys.stderr.flush()
+    return True
 
 
 def echo0(*args, **kwargs):
+    """CRITICAL message"""
     print(*args, file=sys.stderr, **kwargs)
+    return True
 
 
 def echo1(*args, **kwargs):
+    """ERROR message"""
     if verbosity < 1:
-        return
+        return False
     print(*args, file=sys.stderr, **kwargs)
+    return True
 
 
 def echo2(*args, **kwargs):
+    """WARNING message"""
     if verbosity < 2:
-        return
+        return False
     print(*args, file=sys.stderr, **kwargs)
+    return True
+
+
+def echo3(*args, **kwargs):
+    """INFO message"""
+    if verbosity < 3:
+        return False
+    print(*args, file=sys.stderr, **kwargs)
+    return True
+
+
+def echo4(*args, **kwargs):
+    """DEBUG message"""
+    if verbosity < 4:
+        return False
+    print(*args, file=sys.stderr, **kwargs)
+    return True
 
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -172,11 +235,11 @@ def no_enclosures(value, pairs=None):
 
 
 def main(args):
-    print("# You tried to run the module.")
-    print("# Instead, import it as follows:")
-    print("import pyrotocanvas")
-    print("# or:")
-    print("# from pyrotocanvas import *")
+    echo0("# You tried to run the module.")
+    echo0("# Instead, import it as follows:")
+    echo0("import rotocanvas")
+    echo0("# not:")
+    echo0("# from rotocanvas import x  # where x is a submodule or symbol")
 
 
 if __name__ == "__main__":
