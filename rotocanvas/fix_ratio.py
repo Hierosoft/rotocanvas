@@ -8,6 +8,7 @@ except ImportError:
                      " using a venv with OpenCV.\n")
     exit(1)
 
+
 def resize(inPath, outPath, ratioPart0, ratioPart1, preserveDim):
     """Resize the image and fit it within a width or height.
 
@@ -35,7 +36,7 @@ def resize(inPath, outPath, ratioPart0, ratioPart1, preserveDim):
         size[0] = size[1] * (float(ratioPart0) / float(ratioPart1))
     else:
         raise ValueError("preserveDim must be 0 or 1 since there"
-                           " are only 2 dimensions in an image.")
+                         " are only 2 dimensions in an image.")
     width = round(size[0])
     height = round(size[1])
     dim = (width, height)

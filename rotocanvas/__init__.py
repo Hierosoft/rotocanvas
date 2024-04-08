@@ -4,6 +4,8 @@ import os
 import platform
 
 # region same as hierosoft/__init__.py
+
+
 class Constants(dict):
     """Read-only Dictionary.
 
