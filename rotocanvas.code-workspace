@@ -11,21 +11,29 @@
 
 			{
 				"name": "App (Kivy)",
-				"type": "python",
+				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder}/main.py",
 				"console": "integratedTerminal"
 			},
 			{
 				"name": "Image browser (Tkinter)",
-				"type": "python",
+				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder}/run.pyw",
 				"console": "integratedTerminal"
 			},
 			{
+				"name": "imagepx (Tkinter)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder}/imagepx",
+				"console": "integratedTerminal",
+				"args": ["tests/data/pil-compatible"]
+			},
+			{
 				"name": "DiffImage (Tkinter)",
-				"type": "python",
+				"type": "debugpy",
 				"request": "launch",
 				"program": "${workspaceFolder}/scripts/diffimage-gui",
 				"console": "integratedTerminal"
