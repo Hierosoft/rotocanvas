@@ -35,32 +35,40 @@ diff_base = os.path.join(
 #     os.path.join(sysdirs['HOME'], "minetest/games/bucket_game"),
 # ]
 
-# pil_incompatible_dir = os.path.join(sysdirs['HOME'], "minetest", "games",
-#                                     "bucket_game")
+_pil_incompatible_dir = os.path.join(sysdirs['HOME'], "minetest", "games",
+                                     "bucket_game")
+
+_pil_incompatible_files = [
+    # 'mods/codercore/bucket/projects/textures000/bucket_lava_crust.png',  # corrupt, ignore  # noqa: E501
+    'mods/codercore/coderskins/textures/coderskins_not_avail.png',
+    'mods/codercore/default/textures/default_ladder_wood.png',
+    'mods/codercore/default/textures/default_lava_crust.png',
+    'mods/codercore/default/textures/default_lava_crust_flowing_animated.png',
+    'mods/codercore/default/textures/default_lava_crust_source_animated.png',
+    'mods/coderfood/farming/textures/farming_orange.png',
+    'mods/codermobs/codermobs/projects/textures000/codermobs_bom_mesh.png',
+    'mods/codermobs/codermobs/projects/textures000/codermobs_chicken_egg.png',
+    'mods/codermobs/codermobs/projects/textures000/codermobs_denny_mesh.png',
+    'mods/codermobs/codermobs/projects/textures000/codermobs_hen_mesh.png',
+    'mods/codermobs/codermobs/projects/textures000/codermobs_mdskeleton_mesh.png',  # noqa E501
+    'mods/codermobs/codermobs/textures/codermobs_denny_mesh.png',
+    'mods/codermobs/codermobs/textures/codermobs_mdskeleton_mesh.png',
+    'mods/codermobs/mobs/projects/textures000/mobs_chicken_egg.png',
+    'mods/codermobs/mobs/projects/textures000/mobs_chicken_egg_overlay.png',
+]
+for sub in _pil_incompatible_files:
+    sub_path = os.path.join(_pil_incompatible_dir, sub)
+    if os.path.isfile(sub_path):
+        print("* found "+sub_path)
 
 pil_incompatible_dir = os.path.join(TEST_DATA_DIR, "pil-incompatible")
 pil_incompatible_files = [
-    # 'mods/codercore/bucket/projects/textures000/bucket_lava_crust.png',  # corrupt, ignore  # noqa: E501
-    # 'mods/codercore/coderskins/textures/coderskins_not_avail.png',
-    # 'mods/codercore/default/textures/default_ladder_wood.png',
-    # 'mods/codercore/default/textures/default_lava_crust.png',
-    # 'mods/codercore/default/textures/default_lava_crust_flowing_animated.png',
-    # 'mods/codercore/default/textures/default_lava_crust_source_animated.png',
-    # 'mods/coderfood/farming/textures/farming_orange.png',
     "coderskins_not_avail.png",
     "farming_orange.png",
-    # 'mods/codermobs/codermobs/projects/textures000/codermobs_bom_mesh.png',
-    # 'mods/codermobs/codermobs/projects/textures000/codermobs_chicken_egg.png',
-    # 'mods/codermobs/codermobs/projects/textures000/codermobs_denny_mesh.png',
-    # 'mods/codermobs/codermobs/projects/textures000/codermobs_hen_mesh.png',
-    # 'mods/codermobs/codermobs/projects/textures000/codermobs_mdskeleton_mesh.png',  # noqa E501
-    # 'mods/codermobs/codermobs/textures/codermobs_denny_mesh.png',
-    # 'mods/codermobs/codermobs/textures/codermobs_mdskeleton_mesh.png',
-    # 'mods/codermobs/mobs/projects/textures000/mobs_chicken_egg.png',
-    # 'mods/codermobs/mobs/projects/textures000/mobs_chicken_egg_overlay.png',
 ]
-pil_compatible_dir = pil_incompatible_dir
-pil_compatible_files = [
+
+_pil_compatible_dir = pil_incompatible_dir
+_pil_compatible_files = [
     'mods/coderbuild/xdecor/projects/textures000/ench_ui.png',
     'mods/codercore/bones/projects/textures000/bones_bottom.png',
     'mods/codercore/bones/projects/textures000/bones_rear.png',
@@ -72,6 +80,7 @@ pil_compatible_files = [
     'mods/codermobs/codermobs/projects/textures000/codermobs_goat_brown.png',
     'mods/codercore/default/textures/default_chest_top.jpg',
 ]
+pil_compatible_dir = os.path.join(TEST_DATA_DIR, "pil-compatible")
 
 
 class TestChanneltinkerpil(TestCase):
@@ -112,19 +121,20 @@ class TestChanneltinkerpil(TestCase):
             if not os.path.isfile(sub_path):
                 print('Warning: no "{}"'.format(sub_path))
                 continue
-
-            diff = diff_images_by_path(diff_base, sub_path)
+            this_base = diff_base
+            try_base = os.path.join(pil_compatible_dir, sub)
+            if os.path.isfile(try_base):
+                this_base = try_base
+                print('detected "{}"'.format(try_base))
+                diff = diff_images_by_path(diff_base, this_base,
+                                           raise_exceptions=True)
+            diff = diff_images_by_path(diff_base, sub_path,
+                                       raise_exceptions=True)
             if diff.get('error'):
                 raise Exception("{}:".format(sub_path)+diff['error'])
-            if diff['head'].get('error'):
-                raise diff['head']['error_type']("{}".format(
-                    diff['head']['error'])
-                )
-            if diff['base'].get('error'):
-                raise diff['head']['error_type']("{}".format(
-                    diff['base']['error'])
-                )
             if 'same' not in diff:
+                # Should only be missing if exception was raised,
+                #   so if this happens, the implementation is wrong.
                 raise KeyError("Missing 'same' in {}".format(diff))
             assert diff['same'] is False
             found_incompatible += 1
