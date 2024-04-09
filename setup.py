@@ -53,6 +53,7 @@ setuptools.setup(
     },
     install_requires=[
         'Pillow',
+        'puremagic',
     ],
     #     versionedModule['urllib'],
     # ^ "ERROR: Could not find a version that satisfies the requirement urllib

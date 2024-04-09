@@ -107,17 +107,12 @@ from rotocanvas import (  # noqa E402
     sysdirs,
 )
 
+from channeltinker.ctbinary import is_image_file  # noqa E402
+
 HOME_BIN = os.path.join(sysdirs['HOME'], ".local", "bin")
 
 session = {}
 playerIndex = 0
-
-checkDotTypes = [
-    ".png",
-    ".jpg",
-    ".bmp",
-]
-
 
 goodFlagRel = os.path.join("share", "pixmaps", "imageprocessorx.png")
 
@@ -145,6 +140,7 @@ class MainFrame(ttk.Frame):
     ISSUE_LIST = 'Specify a list or image file.'
 
     def __init__(self, parent):
+        self.error = None  # enqueued error (such as before onFormLoaded)
         self.generated = False  # use generated metas only, not listPath
         # ^ Use mainSV.get() to get the directory for saving any output
         #   in this case.
@@ -454,6 +450,7 @@ class MainFrame(ttk.Frame):
         echo1('* set path to "{}"'.format(path))
         self.removeIssue(MainFrame.ISSUE_DIR)
         self.mainSV.set(path)
+        # for getPath, see getBasePath or other specific methods
 
     def removeIssue(self, msg):
         """Remove an issue from the GUI.
@@ -644,12 +641,17 @@ class MainFrame(ttk.Frame):
                 "".format(frame.filename, frame.lineno,
                           frame.line, type_name, ex)
             )
+            raise
 
     def _onFormLoaded(self):
         prefix = "[_onFormLoaded] "
         path = self.getListPath()
         if (len(path) < 1):
-            self.generateList(os.getcwd())
+            base_path = self.getBasePath()
+            if not base_path:
+                self.generateList(os.getcwd())
+            else:
+                self.generateList(base_path)
         elif os.path.isdir(path):
             # self.listSV.set("")  # It isn't a listfile but a folder.
             # echo0("* generateList for \"{}\"...".format(path))
@@ -674,6 +676,9 @@ class MainFrame(ttk.Frame):
         else:
             echo0(prefix+"meta not loaded since self.metas={}"
                   "".format(self.metas))
+        if self.error:
+            self.setStatus(self.error)
+            self.error = None
 
     def lineKey(self, rawL):
         return rawL.rstrip()
@@ -1161,7 +1166,6 @@ def main():
                 code = 1
         elif listPath is None:
             listPath = arg
-
         elif mainDirPath is None:
             mainDirPath = arg
         prevArg = arg
@@ -1178,9 +1182,25 @@ def main():
                 listPath = dev_list_path
                 mainDirPath = os.path.dirname(listPath)
                 break
+    imagePath = None
+    if os.path.isdir(listPath):
+        mainDirPath = listPath
+        listPath = None
     if listPath:
-        mainframe.setList(listPath)
+        if is_image_file(listPath):
+            imagePath = listPath
+            listPath = None  # It isn't really a list file, it is an image.
+            mainDirPath = os.path.dirname(imagePath)
+            mainframe.setPath(mainDirPath)
+            for i, meta in enumerate(mainframe.metas):
+                if meta['path'] == imagePath:
+                    mainframe.metaI = i
+                    break
+        else:
+            mainframe.setList(listPath)
     if mainDirPath:
+        if imagePath:
+            mainframe.error = "imagePath dir will be used, but got 2nd arg"
         mainframe.setPath(mainDirPath)
     print("listPath={}".format(listPath))
     print("mainDirPath={}".format(mainDirPath))
