@@ -2,8 +2,9 @@
 import os
 
 from channeltinker import diff_images
-from PIL import Image
 import PIL
+from PIL import Image, ImageFile
+
 from channeltinker import (
     # echo0,
     echo1,
@@ -11,6 +12,8 @@ from channeltinker import (
     # echo3,
     echo4,
 )
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def gen_diff_image(base, head, diff=None, diff_path=None):
@@ -81,15 +84,27 @@ def gen_diff_image(base, head, diff=None, diff_path=None):
     return result
 
 
-def diff_images_by_path(base_path, head_path, diff_path=None):
+def diff_images_by_path(base_path, head_path, diff_path=None,
+                        raise_exceptions=False):
     """Compare two images. See gen_diff_image for further info.
 
     This function only checks sanity then calls gen_diff_image.
+
+    Args:
+        base_path (str): Any image.
+        head_path (str): Any image to compare to base_path.
+        diff_path (str, optional): Where to save a visualization image
+            to highlight differences.
+        raise_exception (bool, optional): Raise exception instead
+            of setting {'base': {"error": error}}
+            or {'head': {"error": error}}
     """
     result = None
     try:
         base = Image.open(base_path)
     except PIL.UnidentifiedImageError as ex:
+        if raise_exceptions:
+            raise
         result = {
             'base': {
                 'error_type': type(ex),
@@ -101,6 +116,8 @@ def diff_images_by_path(base_path, head_path, diff_path=None):
     try:
         head = Image.open(head_path)
     except PIL.UnidentifiedImageError as ex:
+        if raise_exceptions:
+            raise
         result2 = {
             'base': {
             },  # It must be a dict to prevent a key error.
