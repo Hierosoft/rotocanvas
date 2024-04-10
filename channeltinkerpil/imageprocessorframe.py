@@ -118,15 +118,15 @@ goodFlagRel = os.path.join("share", "pixmaps", "imageprocessorx.png")
 
 myPath = os.path.split(os.path.abspath(__file__))[0]
 
-prefix = os.environ.get("PREFIX")
-if prefix is None:
-    prefix = "."
+PREFIX = os.environ.get("PREFIX")
+if PREFIX is None:
+    PREFIX = "."
 if os.path.isfile(os.path.join(myPath, goodFlagRel)):
     # If running without installing, use the directory containing the
     # icon as the prefix.
-    prefix = myPath
+    PREFIX = myPath
 
-share = os.path.join(prefix, "share")
+share = os.path.join(PREFIX, "share")
 pixmaps = os.path.join(share, "pixmaps")
 
 
@@ -154,6 +154,7 @@ class MainFrame(ttk.Frame):
         self.metas = []
         self.default_meta = {'active_keys': []}
         self.meta = None
+
         self.nameSV = tk.StringVar()
         self.pathSV = tk.StringVar()
         self.mainSV = tk.StringVar()
@@ -365,6 +366,7 @@ class MainFrame(ttk.Frame):
         self._saveChecked(and_comments=False)
 
     def checkedPath(self):
+        prefix = "[checkedPath] "
         if self.listPath is None:
             echo0(prefix+"no filename")
             self.statusSV.set("Error: There is no filename")
@@ -374,6 +376,7 @@ class MainFrame(ttk.Frame):
         return self.listPath + self.checkedSuffix
 
     def metaPath(self):
+        prefix = "[metaPath] "
         if self.listPath is None:
             echo0(prefix+"no filename")
             self.statusSV.set("Error: There is no filename")
@@ -475,7 +478,7 @@ class MainFrame(ttk.Frame):
     def getBasePath(self):
         result = "."
         tmp = self.mainSV.get().strip()
-        if len(tmp) > 0:
+        if tmp:
             result = tmp
         return result
 
@@ -606,7 +609,7 @@ class MainFrame(ttk.Frame):
                     meta['paths'] = paths
                     meta['command'] = command
                 # if not isFound:
-                #     metas['name'] = line
+                #     metas['line'] = line
                 if meta.get('paths'):
                     self.metas.append(meta)
         # print("metas: {}".format(self.metas))
@@ -625,7 +628,7 @@ class MainFrame(ttk.Frame):
             stack = tbex.stack
             frame = stack[-1]  # FrameSummary of actual exception
             print("dir(frame)={}".format(dir(frame)))
-            # ^ '_line', 'filename', 'line', 'lineno', 'locals', 'name'
+            # ^ '_line', 'filename', 'line', 'lineno', 'locals'
             # for i, item in enumerate(stack):
             #     echo0("{}={}".format(i, item))
             # + traceback.extract_tb(ex.__traceback__)
@@ -646,8 +649,10 @@ class MainFrame(ttk.Frame):
     def _onFormLoaded(self):
         prefix = "[_onFormLoaded] "
         path = self.getListPath()
-        if (len(path) < 1):
+        if not path:
             base_path = self.getBasePath()
+            echo0(prefix+"There is no listPath. Using base_path={}"
+                  "".format(base_path))
             if not base_path:
                 self.generateList(os.getcwd())
             else:
@@ -666,6 +671,9 @@ class MainFrame(ttk.Frame):
                 echo0("* loading the list failed: {}".format(ex))
                 echo0("  - generating a list instead...")
                 self.generateList(path)  # auto-detects a file
+        imagePath = self.pathSV.get().strip()
+        if imagePath:
+            self.gotoPath(imagePath)
         if self.metas:
             # self.loadCheckList()
             self.loadMeta()
@@ -730,6 +738,7 @@ class MainFrame(ttk.Frame):
         return True
 
     def generateList(self, path, indent=""):
+        prefix = "[generateList] "
         found = 0
         path = os.path.realpath(path)
         isFound = False
@@ -737,6 +746,8 @@ class MainFrame(ttk.Frame):
         self.metaI = 0
         self.generated = True
         if os.path.isdir(path):
+            echo1(prefix+"Got dir {}, generating file list..."
+                  .format(path))
             self.listSV.set("")  # It isn't a listfile but a folder.
             self.setPath(path)
             for sub in os.listdir(path):
@@ -744,7 +755,7 @@ class MainFrame(ttk.Frame):
                 if sub.startswith("."):
                     continue
                 self.metas.append({
-                    'name': subPath,
+                    'paths': [subPath],
                     'line': None,
                     'prefix': indent,
                 })
@@ -754,6 +765,8 @@ class MainFrame(ttk.Frame):
                 # echo1("* set path: \"{}\"".format(path))
                 self.setPath(path)
         elif os.path.isfile(path):
+            echo1(prefix+"Got file {}, generating nearby file list..."
+                  .format(path))
             self.listSV.set("")
             # ^ It isn't a listfile but a folder containing the
             #   specified image file.
@@ -777,9 +790,13 @@ class MainFrame(ttk.Frame):
         return -1
 
     def gotoPath(self, path):
+        prefix = "[gotoPath] "
         index = self.findPath(path)
         if index >= 0:
             self.metaI = index
+            echo1(prefix+'Found at {}: "{}"'.format(index, path))
+        else:
+            echo0(prefix+'There is no "{}"'.format(path))
 
     def findPath(self, path):
         """Find the index of the metadata using the path.
@@ -790,21 +807,35 @@ class MainFrame(ttk.Frame):
                 for self.meta.
 
         Returns:
-            int: An index to the self.metas entry where 'name' or any of
+            int: An index to the self.metas entry where any of
                 'paths' match the given path, or -1 if not found.
         """
         if not self.metas:
             self.setStatus("gotoPath failed since there is no image list.")
             return -1
+
         for i, meta in enumerate(self.metas):
             meta = self.metas[i]
-            if meta.get('name') == path:
-                return i
             if not meta.get('paths'):
                 continue
             for _path in meta.get('paths'):
                 if _path == path:
                     return i
+                # rel_path = _path
+                # if self.getBasePath():
+                #     if rel_path.startswith(self.getBasePath()):
+                #         rel_path = rel_path[len(self.getBasePath())+1:]
+                #         # ^ +1 to skip the leading slash
+                # if rel_path == path:
+                #     return i
+                # ^ useless, just the filename, so use full path:
+                if self.getFullPath(path) == _path:
+                    return i
+                if (os.path.realpath(self.getFullPath(path))
+                        == os.path.realpath(_path)):
+                    return i
+                # echo1('"{}" != "{}" nor "{}"'
+                #       ''.format(_path, path, self.getFullPath(path)))
         return -1
 
     def prevFile(self):
@@ -928,6 +959,7 @@ class MainFrame(ttk.Frame):
     def openInDefaultApplication(self):
         """Open the selected file in the default application.
         """
+        prefix = "[openInDefaultApplication] "
         # See https://stackoverflow.com/a/435669
         path = self.getCurrentPaths()
 
@@ -1176,16 +1208,25 @@ def main():
         "/opt/minebest/assemble/bucket_game/image_list.txt",
         # ^ test existing features and new list panel.
     ]
+    imagePath = None
     if not listPath:
         for dev_list_path in dev_list_paths:
             if os.path.isfile(dev_list_path):
                 listPath = dev_list_path
                 mainDirPath = os.path.dirname(listPath)
+                mainframe.setPath(mainDirPath)
                 break
-    imagePath = None
-    if os.path.isdir(listPath):
-        mainDirPath = listPath
-        listPath = None
+    else:
+        if os.path.isdir(listPath):
+            if mainDirPath:
+                mainframe.error = ("imagePath dir will be used,",
+                                   " skipping 2nd arg")
+            mainDirPath = listPath
+            mainframe.setPath(mainDirPath)
+            listPath = None
+        elif not os.path.exists(listPath):
+            mainframe.error = "{} does not exist.".format(listPath)
+            listPath = None
     if listPath:
         if is_image_file(listPath):
             imagePath = listPath
@@ -1198,20 +1239,20 @@ def main():
                     break
         else:
             mainframe.setList(listPath)
-    if mainDirPath:
-        if imagePath:
-            mainframe.error = "imagePath dir will be used, but got 2nd arg"
-        mainframe.setPath(mainDirPath)
-    print("listPath={}".format(listPath))
-    print("mainDirPath={}".format(mainDirPath))
+    # echo2("listPath={}".format(listPath))
+    # echo2("mainDirPath={}".format(mainDirPath))
+    # echo2("getBasePath()={}".format(mainframe.getBasePath()))
+    # echo2("imagePath={}".format(imagePath))
+    if imagePath:
+        mainframe.pathSV.set(imagePath)
     root.after(1, mainframe.onFormLoaded)  # (milliseconds, function)
     root.mainloop()
     '''
     session.stop()
     if session.save():
-        print("Save completed.")
+        echo2("Save completed.")
     else:
-        print("Save failed.")
+        echo1("Save failed.")
     '''
     return code
 
