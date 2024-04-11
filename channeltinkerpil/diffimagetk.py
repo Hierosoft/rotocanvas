@@ -5,7 +5,7 @@ import sys
 from collections import OrderedDict
 import tkinter as tk
 import PIL
-from PIL import ImageTk, Image
+from PIL import ImageTk, ImageFile, Image
 
 if __name__ == "__main__":
     MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -15,6 +15,13 @@ if __name__ == "__main__":
 from channeltinkerpil import (
     gen_diff_image,
 )
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+# ^ Avoids issue #14 (GIMP images with
+#   "Raw profile type exif"), and image is displayed
+#   (often image isn't really broken,
+#   such as if saved with GIMP)
+
 
 # from channeltinker import diff_images
 

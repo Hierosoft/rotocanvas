@@ -14,6 +14,10 @@ from channeltinker import (
 )
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+# ^ Avoids issue #14 (GIMP images with
+#   "Raw profile type exif"), and image is displayed
+#   (often image isn't really broken,
+#   such as if saved with GIMP)
 
 
 def gen_diff_image(base, head, diff=None, diff_path=None):

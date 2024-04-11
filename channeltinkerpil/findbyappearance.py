@@ -19,8 +19,16 @@ except ModuleNotFoundError as ex:
     sys.stderr.flush()
     sys.exit(1)
 
-from PIL import Image
+from PIL import Image, ImageFile
 import PIL
+
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+# ^ Avoids issue #14 (GIMP images with
+#   "Raw profile type exif"), and image is displayed
+#   (often image isn't really broken,
+#   such as if saved with GIMP)
+
 
 results = []
 

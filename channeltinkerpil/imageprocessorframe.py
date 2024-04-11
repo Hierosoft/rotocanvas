@@ -63,7 +63,8 @@ else:  # Python 2
 
 try:
     import PIL
-    from PIL import Image
+    from PIL import Image, ImageFile
+    ImageFile.LOAD_TRUNCATED_IMAGES = True  # Fix issue #14 GIMP-saved
 except ModuleNotFoundError as ex:
     print("{}".format(ex))
     print()
@@ -905,10 +906,16 @@ class MainFrame(ttk.Frame):
                 self.markBtn['state'] = tk.NORMAL
                 echo1('- loaded.')
             except PIL.UnidentifiedImageError:
+                # Must be *really* corrupt if
+                # ImageFile.LOAD_TRUNCATED_IMAGES = True
+                # doesn't work.
                 # self.imageLabels[index].configure(image='')
                 echo0(prefix+"index={}".format(index))
                 self.imageErrorVars[index].set("unreadable")
                 err = "Error: unreadable image"
+                # err = "{}: {}".format(type(ex).__name__, ex)
+                # ^ str(ex) is long & contains path, but path
+                #   will be shown anyway.
                 self.statusSV.set(err)
                 # return False, err
             except Exception as ex:
