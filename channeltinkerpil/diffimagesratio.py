@@ -62,19 +62,33 @@ def firstDifferentSubdirs(path1, path2):
 def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                            max_source_ratio=None, skipDirNames=[],
                            patchify=False, oldResults=None):
-    '''
-    This will show images added or where ratio changed (but not images
-    that were removed, because base_path isn't traversed, only checked
-    for existing files and directories parallel to head_path).
+    '''Show images added or where ratio changed
+    (but not images that were removed, because base_path isn't
+    traversed, only checked for existing files and directories parallel
+    to head_path).
 
-    Keyword arguments:
-    root -- This part is always removed from head_path before displaying
-            it.
-    max_source_ratio -- only show items where the source ratio is less
-                        than or equal to this number.
-    skipDirNames -- exclude these directory names.
+    ^ When adding new args, pass them onto BOTH recursive calls!
 
-    When adding new options, pass them onto BOTH recursive calls!
+    Args:
+        root (str): This part is always removed from head_path before
+            displaying it.
+        max_source_ratio (float): only show items where the source ratio
+            is less than or equal to this number.
+        skipDirNames (list[str]): exclude these directory names.
+        patchify (bool): Write commands to implement the change(s) to
+            results['prepatch_commands'] and/or
+            results['patch_commands'].
+        oldResults (dict): Existing dict for combining results
+            (if not None, used and modified for return).
+
+    Returns:
+        dict: Info about differences, such as:
+            - 'wider_images' (list[str]): paths
+            - 'narrower_images' (list[str]): paths
+            - 'prepatch_commands' (list[str]): preliminary bash commands
+              to merge head
+            - 'patch_commands' (list[str]): final bash commands to merge
+              head
     '''
     if max_source_ratio is not None:
         max_source_ratio = float(max_source_ratio)
@@ -124,12 +138,25 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
             if extLower not in checkDotTypes:
                 continue
             if os.path.isfile(baseSubPath):
+                if (os.path.realpath(baseSubPath)
+                        == os.path.realpath(headSubPath)):
+                    raise ValueError("head and base are same file")
+                # imgResults = None
+                # if os.path.isfile(headSubPath):
                 imgResults = diff_images_by_path(baseSubPath, headSubPath)
+                # else:
+                #     print(indent+"- [ ] doesn't exist: {}"
+                #           .format(headSubPath))
+                # if not imgResults:
+                #     changed = True
+                #     pass
                 if imgResults['head'].get('error') is not None:
                     print(indent+"- [ ] unreadable: {}".format(headSubPath))
+                    # caller should show the real 'error'
                 elif imgResults['base'].get('error') is not None:
                     print(indent+"- [ ] unreadable in previous version: {}"
                           .format(headSubPath))
+                    # caller should show the real 'error'
                 elif imgResults['head']['ratio'] > imgResults['base']['ratio']:
                     if ((max_source_ratio is not None)
                             and (imgResults['base']['ratio']
