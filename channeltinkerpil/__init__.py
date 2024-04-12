@@ -99,9 +99,22 @@ def diff_images_by_path(base_path, head_path, diff_path=None,
         head_path (str): Any image to compare to base_path.
         diff_path (str, optional): Where to save a visualization image
             to highlight differences.
-        raise_exception (bool, optional): Raise exception instead
-            of setting {'base': {"error": error}}
-            or {'head': {"error": error}}
+        raise_exceptions (bool, optional): Raise any exception instead
+            of setting {'base': {"error": error}} or {'head': {"error":
+            error}}
+
+    Raises:
+        PIL.UnidentifiedImageError: If image can't be parsed by PIL.
+            (use ImageFile.LOAD_TRUNCATED_IMAGES to help with PNG
+            files saved with GIMP using "Raw profile type exif"--See
+            issue #14). If raise_exceptions is False, not raised,
+            but stored as results[key][error_type] =
+            PIL.UnidentifiedImageError (type) and results[key][error]
+            (str) is the message.
+        FileNotFoundError: If either is not found. However,
+            if raise_exceptions is False, not raised, but stored as
+            results[key][error_type] (type) = FileNotFoundError
+            and results[key][error] (str) is the message.
     """
     result = None
     try:
@@ -115,8 +128,20 @@ def diff_images_by_path(base_path, head_path, diff_path=None,
                 'error': str(ex),
             },
             'head': {
+            },  # prevent KeyError in caller if no head error
+        }
+    except FileNotFoundError as ex:
+        if raise_exceptions:
+            raise
+        result = {
+            'base': {
+                'error_type': FileNotFoundError,
+                'error': str(ex),
+            },
+            'head': {
             },  # It must be a dict to prevent a key error.
         }
+
     try:
         head = Image.open(head_path)
     except PIL.UnidentifiedImageError as ex:
@@ -134,6 +159,22 @@ def diff_images_by_path(base_path, head_path, diff_path=None,
             result = result2
         else:
             result['head'] = result2['head']
+    except FileNotFoundError as ex:
+        if raise_exceptions:
+            raise
+        result2 = {
+            'base': {
+            },  # prevent KeyError in caller if no base error
+            'head': {
+                'error_type': FileNotFoundError,
+                'error': str(ex),
+            },
+        }
+        if result is None:
+            result = result2
+        else:
+            result['head'] = result2['head']
+
     if result is not None:
         # Return an error.
         return result
