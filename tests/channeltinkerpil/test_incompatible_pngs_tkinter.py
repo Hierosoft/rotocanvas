@@ -17,11 +17,13 @@ from PIL import (
     ImageFile,
 )
 
+# BELOW PREVENTS the regression *if* done in all files that import PIL:
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 # ^ Avoids issue #14 (GIMP images with
 #   "Raw profile type exif"), and image is displayed
 #   (often image isn't really broken,
 #   such as if saved with GIMP)
+
 TEST_SUBMODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 TESTS_DIR = os.path.dirname(TEST_SUBMODULE_DIR)
 REPO_DIR = os.path.dirname(TESTS_DIR)
