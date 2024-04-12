@@ -3,6 +3,7 @@
 # Based on
 # <https://geeksforgeeks.org/python-display-images-with-pygame/>
 # importing required library
+from __future__ import print_function
 from __future__ import division
 import os
 import sys
@@ -16,6 +17,11 @@ from PIL import (
     Image,
     ImageFile,
 )
+
+
+def echo0(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 
 # BELOW PREVENTS the regression *if* done in all files that import PIL:
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -40,7 +46,7 @@ class TestPilIncompatible(unittest.TestCase):
     #     unittest.TestCase.__init__(self, *args, **kwargs)
 
     def test_loading(self):
-        prefix = "[test_loading] "
+        prefix = "[TestPilIncompatible test_loading] "
         print(prefix+"{}".format(group_key))
         self.root = None
         self.path = None
@@ -49,11 +55,11 @@ class TestPilIncompatible(unittest.TestCase):
         self.path = None
         self.image_delay = 200
         self.load_delay = 1
-        if len(sys.argv) > 1:
-            self.path = sys.argv[1]
-            if len(sys.argv) > 2:
-                print("Error: Got extra arg.", file=sys.stderr)
-                return 1
+        # if len(sys.argv) > 1:
+        #     self.path = sys.argv[1]
+        #     if len(sys.argv) > 2:
+        #         echo0("Error: Got extra arg.", file=sys.stderr)
+        #         return 1
         if not self.path:
             image_paths = sorted(image_groups[group_key])
             if image_paths:
@@ -81,15 +87,26 @@ class TestPilIncompatible(unittest.TestCase):
         self.root.after(self.exit_delay, self.exit_window)
         # time.sleep(self.exit_delay/1000.0+1)
         self.root.mainloop()
+        # ^ or instead of mainloop, potentially do pump_events
+        #   (See ivan_pozdeev's answer
+        #   <https://stackoverflow.com/a/49028688/4541104>
+        #   based on IPython, answering
+        #   <https://stackoverflow.com/questions/4083796/
+        #   how-do-i-run-unittest-on-a-tkinter-app>)
+
+    def pump_events(self):
+        while self.root.dooneevent(tk.ALL_EVENTS | tk.DONT_WAIT):
+            pass
 
     def load(self):
-        print("[load] {}".format(group_key))
         if self.path_i is None:
             # load should run *after* test (that schedules it)
             raise ValueError("self.path_i was {}".format(self.path_i))
         if self.path_i >= len(self.paths):
+            print("[TestPilIncompatible load] passed for all images")
             return False
         try:
+            print("[TestPilIncompatible load] image {}".format(self.path_i))
             # image1.show()
             # show just opens it with the default application (or xv), so:
             image1 = Image.open(self.paths[self.path_i])
@@ -112,7 +129,7 @@ class TestPilIncompatible(unittest.TestCase):
             raise
 
     def exit_window(self):
-        print("[exit_window] {}".format(group_key))
+        print("[TestPilIncompatible exit_window] {}".format(group_key))
         if self.path_i is None:
             # exit_window should run *after* test (that schedules it)
             raise ValueError("self.path_i was {}".format(self.path_i))
