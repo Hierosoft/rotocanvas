@@ -6,6 +6,8 @@
 from __future__ import division
 import os
 import sys
+# import time
+import unittest
 
 import tkinter as tk
 # import PIL
@@ -29,72 +31,95 @@ from data_for_tests import image_groups  # noqa: E402
 # group_key = 'pil-compatible'  # never triggers issue #14
 group_key = 'pil-incompatible'
 
-root = None
-path = None
-paths = None
-path_i = 0
 
+class TestPilIncompatible(unittest.TestCase):
 
-def load():
-    global path_i
-    if path_i >= len(paths):
-        return False
-    try:
-        # image1.show()
-        # show just opens it with the default application (or xv), so:
-        image1 = Image.open(paths[path_i])
-        # ^ causes:
-        # PIL.UnidentifiedImageError: cannot identify image file '...'
-        # where ... is the path of a PIL-incompatible image (issue #14)
-        # *unless* ImageFile.LOAD_TRUNCATED_IMAGES = True
-        test = ImageTk.PhotoImage(image1)
-        label1 = tk.Label(root, image=test)
-        label1.image = test
-        label1.pack()
-        path_i += 1
-        root.after(200, load)
-    except Exception as ex:
-        label1 = tk.Label(
-            root,
-            text="{}: {}".format(type(ex).__name__, ex)
-        )
-        label1.pack()
-        raise
+    # def __init__(self, *args, **kwargs):
+    #     unittest.TestCase.__init__(self, *args, **kwargs)
 
+    def test_loading(self):
+        prefix = "[test_loading] "
+        print(prefix+"{}".format(group_key))
+        self.root = None
+        self.path = None
+        self.paths = None
+        self.path_i = 0
+        self.path = None
+        self.image_delay = 200
+        self.load_delay = 1
+        if len(sys.argv) > 1:
+            self.path = sys.argv[1]
+            if len(sys.argv) > 2:
+                print("Error: Got extra arg.", file=sys.stderr)
+                return 1
+        if not self.path:
+            image_paths = sorted(image_groups[group_key])
+            if image_paths:
+                self.paths = image_paths
+                self.path = image_paths[-1]
+                print('Automatically selected "{}"'.format(self.path))
+            else:
+                raise FileNotFoundError("tests/data/{}"
+                                        .format(group_key))
+        else:
+            self.paths = [self.path]
+        self.root = tk.Tk()
+        self.root.title("Tkinter Image Loading Test")
+        W = self.root.winfo_screenwidth() // 4
+        H = self.root.winfo_screenheight() // 4
 
-def exit_window():
-    root.destroy()
+        self.exit_delay = (
+            (self.image_delay * len(self.paths))
+            + self.image_delay
+            + self.load_delay
+        )  # Must wait to exit until *after* every image has been shown
+        print(prefix+" created a window.")
+        self.root.geometry("{}x{}".format(W, H))
+        self.root.after(self.load_delay, self.load)
+        self.root.after(self.exit_delay, self.exit_window)
+        # time.sleep(self.exit_delay/1000.0+1)
+        self.root.mainloop()
 
+    def load(self):
+        print("[load] {}".format(group_key))
+        if self.path_i is None:
+            # load should run *after* test (that schedules it)
+            raise ValueError("self.path_i was {}".format(self.path_i))
+        if self.path_i >= len(self.paths):
+            return False
+        try:
+            # image1.show()
+            # show just opens it with the default application (or xv), so:
+            image1 = Image.open(self.paths[self.path_i])
+            # ^ causes:
+            # PIL.UnidentifiedImageError: cannot identify image file '...'
+            # where ... is the path of a PIL-incompatible image (issue #14)
+            # *unless* ImageFile.LOAD_TRUNCATED_IMAGES = True
+            test = ImageTk.PhotoImage(image1)
+            label1 = tk.Label(self.root, image=test)
+            label1.image = test
+            label1.pack()
+            self.path_i += 1
+            self.root.after(self.image_delay, self.load)
+        except Exception as ex:
+            label1 = tk.Label(
+                self.root,
+                text="{}: {}".format(type(ex).__name__, ex)
+            )
+            label1.pack()
+            raise
 
-def main():
-    global root
-    global path
-    global paths
-    path = None
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
-        if len(sys.argv) > 2:
-            print("Error: Got extra arg.", file=sys.stderr)
-            return 1
-    if not path:
-        image_paths = sorted(image_groups[group_key])
-        if image_paths:
-            paths = image_paths
-            path = image_paths[-1]
-            print('Automatically selected "{}"'.format(path))
-    else:
-        paths = [path]
-    root = tk.Tk()
-    root.title("Tkinter Image Loading Test")
-    W = root.winfo_screenwidth() // 4
-    H = root.winfo_screenheight() // 4
+    def exit_window(self):
+        print("[exit_window] {}".format(group_key))
+        if self.path_i is None:
+            # exit_window should run *after* test (that schedules it)
+            raise ValueError("self.path_i was {}".format(self.path_i))
 
-    root.geometry("{}x{}".format(W, H))
-    root.after(1, load)
-    root.after(2000, exit_window)
-    root.mainloop()
-    return 0
+        if self.path_i < len(self.paths):
+            raise RuntimeError("Uh oh, only tested {} of {}"
+                               .format(self.path_i, len(self.paths)))
+        self.root.destroy()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    unittest.main()
