@@ -3,7 +3,7 @@
 For each pixel where the alpha is below the threshold, get a new color
 using the nearest opaque pixel.
 """
-
+from __future__ import print_function
 import math
 import sys
 from itertools import chain

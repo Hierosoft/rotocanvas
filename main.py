@@ -4,6 +4,7 @@ formerly (from KivyPixels) kivyspritetouch.py
 based on http://kivy.org/docs/examples/gen__canvas__fbo_canvas__py.html
 
 '''
+from __future__ import print_function
 try:
     import kivy
 except ImportError as ex:
@@ -13,10 +14,9 @@ except ImportError as ex:
     print("python -m pip install --user --upgrade kivy")
     exit(1)
 
-from kivy.uix.boxlayout import BoxLayout
+# from kivy.uix.boxlayout import BoxLayout
 # from kivy.uix.colorpicker import ColorPicker
 # from kivy.uix.button import Button
-import os
 # from kivy.graphics.instructions import InstructionGroup
 
 # from kivy.graphics import Color, Rectangle
@@ -84,7 +84,10 @@ class RotoCanvasApp(MDApp):
             text="Save",
             icon='content-save',
             on_press=self.pixelWidget.onSaveButtonClick,
-            pos_hint={"right": self.right_edge_ratio, "top": 1.0-m_ratio},
+            pos_hint={
+                "right": self.right_edge_ratio,
+                "top": 1.0 - m_ratio
+            },
             # ^ fixed later.
         )
         self.mainWidget.add_widget(self.saveButton)
@@ -164,7 +167,8 @@ class RotoCanvasApp(MDApp):
         echo0(f"self.mainWidget.width: {self.mainWidget.width}")
         top = f_ratio
         if self.previous_button is not None:
-            prev_bottom = (self.previous_button.pos[1]/self.mainWidget.height)
+            prev_bottom = (self.previous_button.pos[1]
+                           / self.mainWidget.height)
             echo0(f"prev_bottom: {prev_bottom}")
             top = prev_bottom - m_ratio
             echo0(f"top: {top}")

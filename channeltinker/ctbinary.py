@@ -1,3 +1,4 @@
+from __future__ import print_function
 import puremagic  # pure python implementation of magic
 
 

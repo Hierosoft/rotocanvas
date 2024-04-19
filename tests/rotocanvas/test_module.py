@@ -23,7 +23,7 @@ class ModuleTest(unittest.TestCase):
             for pair in pairs:
                 enclosed = (
                     pair[0]
-                    + original.replace(pair[1], '\\'+pair[1])
+                    + original.replace(pair[1], '\\' + pair[1])
                     + pair[1]
                 )
                 # enclosed_strings[original].append(enclosed)

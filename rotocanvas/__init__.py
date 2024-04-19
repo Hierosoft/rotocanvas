@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 import platform
@@ -230,7 +231,7 @@ def no_enclosures(value, pairs=None):
     for pair in pairs:
         if value.startswith(pair[0]) and value.endswith(pair[1]):
             # Remove quotes & replace escaped ender with ender:
-            value = value[1:-1].replace('\\'+pair[1], pair[1])
+            value = value[1:-1].replace('\\' + pair[1], pair[1])
     return value
 
 

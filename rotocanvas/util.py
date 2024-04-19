@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 import shutil
@@ -70,7 +71,7 @@ def get_frame_number(framePath, prefix=None, minDigits=None):
             minDigits = md
 
     # print("frameName: {}".format(frameName))
-    frameNoExt = frameName[:len(prefix)+minDigits]
+    frameNoExt = frameName[:len(prefix) + minDigits]
     # print("frameNoExt: {}".format(frameNoExt))
     # print("prefix: {}".format(prefix))
     # print("minDigits: {}".format(minDigits))

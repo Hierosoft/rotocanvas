@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os
 import sys
 import subprocess
@@ -52,7 +53,7 @@ class RCSource:
         if extensions is None:
             extensions = RCSource._defaultExtensions
         self._extensions = extensions
-        lowerDotExts = ["."+ext.lower() for ext in extensions]
+        lowerDotExts = ["." + ext.lower() for ext in extensions]
         dotExt = os.path.splitext(vidPath)[1]
         isImage = False
         self._ext = None
@@ -205,7 +206,7 @@ class RCSource:
             atList = onlyFrames
         else:
             p = os.path.dirname(self.vidPath)
-            lde = ["."+ext.lower() for ext in self._extensions]
+            lde = ["." + ext.lower() for ext in self._extensions]
             atList = []
             for sub in os.listdir(p):
                 if not sub.startswith(self._prefix):

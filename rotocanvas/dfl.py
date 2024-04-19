@@ -1321,7 +1321,7 @@ class DLM:
 
     def generateEnv(self):
         """
-        Mimic DeepFaceLab\_internal\setenv.bat but generate
+        Mimic DeepFaceLab/_internal/setenv.bat but generate
         self.env instead of setting environment variables.
         Always use getenv to use the variables to run another file.
 
@@ -1455,7 +1455,7 @@ class DLM:
 
     def train(self, model, baseModel="SAEHD", gpu="0"):
         """
-        Run DFL_ROOT\main.py to train the model on the aligned data.
+        Run DFL_ROOT/main.py to train the model on the aligned data.
         (Mimic "6) train SAEHD.bat")
 
         Sequential arguments:

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
 import re
 import sys
@@ -10,7 +11,8 @@ if os.path.isdir(os.path.join(REPO_DIR, "scripts")):
     sys.path.insert(0, REPO_DIR)
     print("[findbyappearance] using {}".format(REPO_DIR), file=sys.stderr)
 
-from channeltinkerpil.findbyappearance import main
+from channeltinkerpil.findbyappearance import main  # noqa: E402
+
 if __name__ == '__main__':
-    # sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.exit(main())

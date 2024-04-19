@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import division
-from datetime import datetime, timedelta
+from __future__ import print_function
+from datetime import timedelta
 
 from rotocanvas import (  # noqa: F401
     echo0,

@@ -47,7 +47,7 @@ class TestPilIncompatible(unittest.TestCase):
 
     def test_loading(self):
         prefix = "[TestPilIncompatible test_loading] "
-        print(prefix+"{}".format(group_key))
+        print(prefix + "{}".format(group_key))
         self.root = None
         self.path = None
         self.paths = None
@@ -81,7 +81,7 @@ class TestPilIncompatible(unittest.TestCase):
             + self.image_delay
             + self.load_delay
         )  # Must wait to exit until *after* every image has been shown
-        print(prefix+" created a window.")
+        print(prefix + " created a window.")
         self.root.geometry("{}x{}".format(W, H))
         self.root.after(self.load_delay, self.load)
         self.root.after(self.exit_delay, self.exit_window)

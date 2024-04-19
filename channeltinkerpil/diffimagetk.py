@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import os
 import sys
 
@@ -115,7 +115,7 @@ class DiffImageFrame(tk.Frame):
         for key, _ in self.paths.items():
             if not _:
                 continue
-            print(prefix+"loading {}".format(key))
+            print(prefix + "loading {}".format(key))
             this_result = self._load_item(key)
             if this_result:
                 # *Only* should be truthy on error.
@@ -128,7 +128,7 @@ class DiffImageFrame(tk.Frame):
             for key, meta in self.result.items():
                 error = meta.get('error')
                 if error:
-                    label = tk.Label(master=self.container, text=key+":")
+                    label = tk.Label(master=self.container, text=key + ":")
                     label.grid(row=row, column=0)
                     self.error_labels['{}.title'] = label
                     label = tk.Label(master=self.container, text=error)
@@ -192,7 +192,7 @@ def main():
     root = tk.Tk()
     screen_w = root.winfo_screenwidth()
     screen_h = root.winfo_screenheight()
-    root.minsize(screen_w//10, screen_h//10)
+    root.minsize(screen_w // 10, screen_h // 10)
     root.title("RotoCanvas DiffImage")
     mainform = DiffImageFrame(root)
     if len(sys.argv) > 1:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 # from decimal import Decimal
 # import decimal
 import locale as lc
@@ -107,7 +108,7 @@ class ProjectFrame(ttk.Frame):
         self.canvas.grid(
             column=0,
             row=row,
-            sticky=tk.W+tk.E,
+            sticky=tk.W + tk.E,
             columnspan=3
         )
         row += 1
@@ -115,7 +116,8 @@ class ProjectFrame(ttk.Frame):
         # ttk.Label(self, text="Status: ").grid(column=0, row=row, sticky=tk.E)
         resultE = ttk.Entry(self, textvariable=self.result,
                             state="readonly")
-        resultE.grid(column=0, columnspan=4, row=row, sticky=tk.E+tk.W)
+        resultE.grid(column=0, columnspan=4, row=row,
+                     sticky=tk.E + tk.W)
         # grid sticky=tk.W
         row += 1
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from __future__ import print_function
 import os
 import platform
 import sys
@@ -59,7 +59,7 @@ _pil_incompatible_files = [
 for sub in _pil_incompatible_files:
     sub_path = os.path.join(_pil_incompatible_dir, sub)
     if os.path.isfile(sub_path):
-        print("* found "+sub_path)
+        print("* found " + sub_path)
 
 pil_incompatible_dir = os.path.join(TEST_DATA_DIR, "pil-incompatible")
 pil_incompatible_files = [
@@ -131,7 +131,7 @@ class TestChanneltinkerpil(TestCase):
             diff = diff_images_by_path(diff_base, sub_path,
                                        raise_exceptions=True)
             if diff.get('error'):
-                raise Exception("{}:".format(sub_path)+diff['error'])
+                raise Exception("{}:".format(sub_path) + diff['error'])
             if 'same' not in diff:
                 # Should only be missing if exception was raised,
                 #   so if this happens, the implementation is wrong.

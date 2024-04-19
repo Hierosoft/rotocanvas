@@ -7,6 +7,7 @@ program (the value must be the path to the directory containing
 _internal--_internal will be added automatically when necessary so
 don't include that part).
 """
+from __future__ import print_function
 import sys
 import os
 if sys.version_info.major >= 3:

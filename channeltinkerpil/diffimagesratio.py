@@ -13,7 +13,7 @@ cd ~/minetest/games
 '''
 # ^ where {cmd} is diffimagesratio if you did "pip install rotocanvas"
 #   (See instances of __doc__ below for how to display docstring above)
-
+from __future__ import print_function
 import sys
 import os
 # from PIL import ImageDraw
@@ -121,7 +121,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                 newindent = indent + "  "
                 # print("sub: \"{}\"".format(sub))
                 # print("skipDirNames: \"{}\"".format(skipDirNames))
-                print(indent+"- +new dir:   {}".format(headSubPath))
+                print(indent + "- +new dir:   {}".format(headSubPath))
             results = showDiffRatioForImages(
                 baseSubPath,
                 headSubPath,
@@ -151,10 +151,10 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                 #     changed = True
                 #     pass
                 if imgResults['head'].get('error') is not None:
-                    print(indent+"- [ ] unreadable: {}".format(headSubPath))
+                    print(indent + "- [ ] unreadable: {}".format(headSubPath))
                     # caller should show the real 'error'
                 elif imgResults['base'].get('error') is not None:
-                    print(indent+"- [ ] unreadable in previous version: {}"
+                    print(indent + "- [ ] unreadable in previous version: {}"
                           .format(headSubPath))
                     # caller should show the real 'error'
                 elif imgResults['head']['ratio'] > imgResults['base']['ratio']:
@@ -162,7 +162,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                             and (imgResults['base']['ratio']
                                  > max_source_ratio)):
                         continue
-                    print(indent+"- [ ] wider:      {}"
+                    print(indent + "- [ ] wider:      {}"
                           "".format(headSubPath))
                     changed = True
                 elif imgResults['head']['ratio'] < imgResults['base']['ratio']:
@@ -170,7 +170,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                             and (imgResults['base']['ratio']
                                  > max_source_ratio)):
                         continue
-                    print(indent+"- [ ] narrower:   {}".format(headSubPath))
+                    print(indent + "- [ ] narrower:   {}".format(headSubPath))
                     changed = True
                 if changed:
                     if patchify:
@@ -201,7 +201,7 @@ def showDiffRatioForImages(base_path, head_path, root=None, indent="",
                         results['patch_commands'].append(patchCmd)
 
             else:
-                print(indent+"- [ ] +new file:  {}".format(headSubPath))
+                print(indent + "- [ ] +new file:  {}".format(headSubPath))
     return results
 
 

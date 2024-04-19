@@ -7,6 +7,7 @@ Similar projects:
 - [diffimg](https://github.com/sandsmark/diffimg): Displays difference
   as a color mask using Qt.
 '''
+from __future__ import print_function
 import sys
 # import os
 # from PIL import ImageDraw

@@ -3,6 +3,7 @@
 This module provides image and pixel manipulation that does not depend
 on a specific library.
 """
+from __future__ import print_function
 import os
 import math
 import sys
@@ -225,7 +226,7 @@ def convert_depth(color, channel_count, c_max=1.0):
         # print(msg_prefix + "WARNING: expanding {} to"
         #       " {}".format(color, new_color))
     elif p_len < len(color):
-        if (p_len == 1) and (len(color) >=3):
+        if (p_len == 1) and (len(color) >= 3):
             # FIXME: assumes not indexed
             v = float(color[0] + color[1] + color[2]) / 3.0
             prev_color = color
@@ -314,7 +315,7 @@ def get_drive_name(path):
             offset = 1
             if parent[-1] == slash:
                 offset = 0
-            drive_rel = path[len(parent)+offset:]
+            drive_rel = path[len(parent) + offset:]
             drive_parts = drive_rel.split(slash)
             drive_name = drive_parts[0]
             break
@@ -335,15 +336,15 @@ def generate_diff_name(base_path, head_path, file_name=None):
         base_drive = get_drive_name(base_name)
         head_drive = get_drive_name(head_name)
         if (base_drive is not None) and (head_drive is not None):
-            diff_name = name_fmt2.format(base_name+" (in "+base_drive,
-                                         "in "+head_drive+")")
+            diff_name = name_fmt2.format(base_name + " (in " + base_drive,
+                                         "in " + head_drive + ")")
         elif base_drive is not None:
             diff_name = name_fmt1.format(
-                "(base in "+base_drive+" vs "+head_name
+                "(base in " + base_drive + " vs " + head_name
             )
         elif head_drive is not None:
             diff_name = name_fmt1.format(
-                base_name+" (vs one in "+head_drive+")"
+                base_name + " (vs one in " + head_drive + ")"
             )
         else:
             base_l, base_r = os.path.split(base_path)
@@ -360,12 +361,12 @@ def generate_diff_name(base_path, head_path, file_name=None):
                     break
                 elif base_r == "":
                     diff_name = name_fmt2.format(
-                        "(a further up "+base_name+" vs in "+head_r+")"
+                        "(a further up " + base_name + " vs in " + head_r + ")"
                     )
                     break
                 elif head_r == "":
                     diff_name = name_fmt1.format(
-                        base_name+" (vs one further up)"
+                        base_name + " (vs one further up)"
                     )
                     break
                 elif base_r != head_r:
@@ -480,7 +481,7 @@ def diff_color(base_color, head_color, enable_convert=False,
             head_v = head_color[i]
             if base_v != head_v:
                 diff += float(base_v) - float(head_v)
-    return diff / float(len(base_indices)*c_max)
+    return diff / float(len(base_indices) * c_max)
 
 
 def diff_images(base, head, diff_size, diff=None,
@@ -569,7 +570,7 @@ def diff_images(base, head, diff_size, diff=None,
 
     if add_color == nochange_color:
         # choose an unused color (cast value to type of c_max):
-        tmp_color = (0, type(c_max)(c_max/2), 0, c_max)  # dark green
+        tmp_color = (0, type(c_max)(c_max / 2), 0, c_max)  # dark green
         if tmp_color == nochange_color:
             tmp_color = (c_max, c_max, 0, 0, c_max)  # yellow
             add_color = convert_depth(tmp_color, pix_len, c_max=c_max)
@@ -577,7 +578,7 @@ def diff_images(base, head, diff_size, diff=None,
             add_color = convert_depth(tmp_color, pix_len, c_max=c_max)
     if del_color == nochange_color:
         # choose an unused color (cast value to type of c_max)
-        tmp_color = (type(c_max)(c_max/2), 0, 0, c_max)  # dark red
+        tmp_color = (type(c_max)(c_max / 2), 0, 0, c_max)  # dark red
         if tmp_color == nochange_color:
             tmp_color = (c_max, 0, c_max, 0, c_max)  # magenta
             del_color = convert_depth(tmp_color, pix_len, c_max=c_max)
@@ -630,7 +631,7 @@ def diff_images(base, head, diff_size, diff=None,
                 if d != 0.0:
                     # color = (c_max, c_max, c_max, c_max)
                     this_len = min(pix_len, 3)
-                    color = [type(c_max)(c_max*d) for i in range(this_len)]
+                    color = [type(c_max)(c_max * d) for i in range(this_len)]
                     for i in range(pix_len - this_len):
                         color.append(c_max)
                     color = tuple(color)
@@ -769,7 +770,7 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
     diag = math.sqrt(2.0)
     # print("using diagonal pixel measurement: {}".format(diag))
     for rad in radii:
-        rad_f = float(rad) + epsilon + diag*2
+        rad_f = float(rad) + epsilon + diag * 2
         for pos in square_gen(center, rad):
             dist = idist(center, pos)
             # print("  navigating square {} ({} <= {})".format(pos, dist,

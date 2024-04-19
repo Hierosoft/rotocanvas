@@ -1,3 +1,6 @@
+from __future__ import print_function
+
+
 class FFMPEGTime:
     def __init__(self, timeStr, fps):
         self.parts = timeStr.split(":")

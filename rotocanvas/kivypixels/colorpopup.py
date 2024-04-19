@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import colorsys
 
 try:
@@ -142,8 +143,8 @@ class ColorPopup(Popup):
         for y in range(len(self.row_lists)):
             row = self.row_lists[y]
             for x in range(len(row)):
-                h = y*16.0/256.0
-                s = x*16.0/256.0
+                h = y * 16.0 / 256.0
+                s = x * 16.0 / 256.0
                 # a = 1.0
                 button = row[x]
                 # print("button.color:{}".format(button.color))
@@ -194,8 +195,8 @@ class ColorPopup(Popup):
             v = i * 16 / 256
             color = [v, v, v, 1.0]
             thisBtn = RectButton(
-                    color=color,
-                    on_press=self.onChangeBrightness
+                color=color,
+                on_press=self.onChangeBrightness
             )
             thisBtn.plainComponents = color
             thisBtn.plainColor = tuple(thisBtn.plainComponents)
@@ -218,8 +219,8 @@ class ColorPopup(Popup):
             # xPx = left
             for x in range(0, 16):
                 # hsla = [x*16.0/256.0, y*16.0/256.0, 0, 1.0]
-                h = y*16.0/256.0
-                s = x*16.0/256.0
+                h = y * 16.0 / 256.0
+                s = x * 16.0 / 256.0
                 # a = 1.0
                 # color = [x*16.0/256.0, y*16.0/256.0, 0, 1.0]
                 # color = list(colorsys.hls_to_rgb(h, l, s)) + [1.0]
@@ -317,7 +318,7 @@ class ColorPopup(Popup):
                 # this_dict = dict()
                 # this_dict["rect"] = this_rect
                 # this_dict["ci"] = _color_instruction
-                print("C:"+idStr)
+                print("C:" + idStr)
                 # print(" == Color: "+str( (_color_instruction.r, \
                 # # _color_instruction.g, \
                 # # _color_instruction.b ) ) )

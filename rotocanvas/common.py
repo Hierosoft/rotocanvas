@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import sys
 import traceback
 import copy
@@ -30,7 +30,7 @@ def get_dict_deepcopy(old_dict):
 
 def view_traceback():
     ex_type, ex, tb = sys.exc_info()
-    print(str(ex_type)+" "+str(ex)+": ")
+    print("{}: {}:".format(ex_type, ex))
     traceback.print_tb(tb)
     del tb
     print("")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os
 
 try:
@@ -85,7 +86,7 @@ class PixelWidget(Widget):
         self.viewImage.aOffset = self.viewImage_aOffset
 
         # self.viewImage.fill_icolor(0, 0, 0, 255)
-        print(prefix+"size: {}".format(self.viewImage.size))
+        print(prefix + "size: {}".format(self.viewImage.size))
         # print("TOTALBYTECOUNT:"+str(self.TOTALBYTECOUNT))
         # print("TOTALPIXELCOUNT:"+str(self.TOTALPIXELCOUNT))
 
@@ -174,8 +175,8 @@ class PixelWidget(Widget):
 
     def updatePixelViewSize(self):
         prefix = "[updatePixelViewSize] "
-        if ((self.fbo.size[0] != self.viewImage.size[0]) or
-                (self.fbo.size[1] != self.viewImage.size[1])):
+        if ((self.fbo.size[0] != self.viewImage.size[0])
+                or (self.fbo.size[1] != self.viewImage.size[1])):
             newKPImage = KPImage(self.fbo.size)
             newKPImage.blit_copy(self.viewImage)
             newKPImage.copyRuntimeVarsByRefFrom(self.viewImage)
@@ -185,7 +186,7 @@ class PixelWidget(Widget):
             self.viewImage.rOffset = self.viewImage_rOffset
             self.viewImage.aOffset = self.viewImage_aOffset
 
-            print(prefix+"size: {}".format(self.viewImage.size))
+            print(prefix + "size: {}".format(self.viewImage.size))
             # print("TOTALBYTECOUNT:" + str(self.TOTALBYTECOUNT))
             # print("TOTALPIXELCOUNT:" + str(self.TOTALPIXELCOUNT))
 
@@ -253,7 +254,7 @@ class PixelWidget(Widget):
             self.paletteWidget.open()
             self.paletteWidget.adjust_rects()
         else:
-            print(prefix+"touch.button: {}".format(touch.button))
+            print(prefix + "touch.button: {}".format(touch.button))
             if str(touch.button) == "scrollup":
                 self.setBrushColorToNextInPalette(forward=False)
             elif str(touch.button) == "scrolldown":
@@ -261,14 +262,15 @@ class PixelWidget(Widget):
             # else:
                 # self.setBrushColor(self.paletteWidget.pickedColor)
             # self.brushAt(touch.x-self.pos[0], touch.y-self.pos[1])
-            self.viewImage.brushAt(touch.x-self.pos[0],
-                                   touch.y-self.pos[1])
+            self.viewImage.brushAt(touch.x - self.pos[0],
+                                   touch.y - self.pos[1])
             self.uploadBufferToTexture()
 
     def on_touch_move(self, touch):
         super(PixelWidget, self).on_touch_move(touch)
         # self.brushAt(touch.x-self.pos[0], touch.y-self.pos[1])
-        self.viewImage.brushAt(touch.x-self.pos[0], touch.y-self.pos[1])
+        self.viewImage.brushAt(touch.x - self.pos[0],
+                               touch.y - self.pos[1])
         self.uploadBufferToTexture()
 
     def uploadBufferToTexture(self):
@@ -288,7 +290,7 @@ class PixelWidget(Widget):
         index = 1
         while os.path.isfile(saveFileName):
             index += 1
-            saveFileName = "Untitled"+str(index)+".png"
+            saveFileName = "Untitled{}.png".format(index)
         self.viewImage.saveAs(saveFileName)
         if self.enableDebug:
             if self.brushImage is not None:

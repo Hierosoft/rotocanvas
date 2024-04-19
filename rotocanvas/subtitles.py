@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-
-from datetime import datetime, timedelta
+from __future__ import print_function
+from datetime import timedelta
 import copy
 from rotocanvas.timestamp import srtTsToDelta, deltaToSrtTs
-from rotocanvas import (
+from rotocanvas import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -182,7 +182,7 @@ class Subtitles:
         zeroDelta = self.subs[-1].endDelta + pushDelta
         index = self.subs[-1].index
         print("* appending subtitle 1 as {} at {}"
-              "".format(index+1, zeroDelta))
+              "".format(index + 1, zeroDelta))
         for sub in nextSubs.subs:
             index += 1
             offsetSub = copy.deepcopy(sub)

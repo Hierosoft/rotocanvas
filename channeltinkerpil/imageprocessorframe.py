@@ -11,7 +11,7 @@ appended until a file is found, otherwise the line is skipped.
 Filenames can optionally be relative to the current working directory or
 the list file.
 '''
-
+from __future__ import print_function
 import copy
 # import inspect
 import json
@@ -55,8 +55,8 @@ if sys.version_info.major >= 3:
                       file=sys.stderr)
         raise
 else:  # Python 2
-    import Tkinter as tk
-    import ttk
+    import Tkinter as tk  # type: ignore
+    import ttk  # type: ignore
     tkdephelp = "sudo apt-get install python-tk"
     dephelp = "sudo apt-get install python-imaging python-pil.imagetk"
 
@@ -243,32 +243,33 @@ class MainFrame(ttk.Frame):
         row = 0
         # wide_width = 30
         commentLbl = ttk.Label(self, textvariable=self.commentSV)
-        commentLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
+        commentLbl.grid(column=0, row=row, sticky=tk.W + tk.E, columnspan=2)
         self.commentSV.set("No image was loaded.")
         row += 1
         statusLbl = ttk.Label(self, textvariable=self.statusSV)
-        statusLbl.grid(column=0, row=row, sticky=tk.W+tk.E, columnspan=2)
+        statusLbl.grid(column=0, row=row, sticky=tk.W + tk.E, columnspan=2)
         self.setStatus("Specify a main directory. Specify a file list.")
         row += 1
         mainLbl = ttk.Label(self, text="Main Directory:")
         mainLbl.grid(column=0, row=row, sticky=tk.E)
         mainEntry = ttk.Entry(self, width=25, textvariable=self.mainSV,
                               state="readonly")
-        mainEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        mainEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W + tk.E)
         row += 1
         ttk.Label(self, text="List:").grid(column=0, row=row, sticky=tk.E)
         listEntry = ttk.Entry(self, width=25, textvariable=self.listSV,
                               state="readonly")
-        listEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        listEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W + tk.E)
         row += 1
         ttk.Label(self, text="Name:").grid(column=0, row=row, sticky=tk.E)
         nameEntry = ttk.Entry(self, width=25, textvariable=self.nameSV,
                               state="readonly")
-        nameEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        nameEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W + tk.E)
         row += 1
         ttk.Label(self, text="Path:").grid(column=0, row=row, sticky=tk.E)
         self.pathEntry = ttk.Entry(self, width=25, textvariable=self.pathSV)
-        self.pathEntry.grid(column=1, columnspan=3, row=row, sticky=tk.W+tk.E)
+        self.pathEntry.grid(column=1, columnspan=3, row=row,
+                            sticky=tk.W + tk.E)
         row += 1
         self.prevBtn = ttk.Button(self, text="Previous", command=self.prevFile)
         self.prevBtn.grid(column=0, row=row, sticky=tk.E)
@@ -369,7 +370,7 @@ class MainFrame(ttk.Frame):
     def checkedPath(self):
         prefix = "[checkedPath] "
         if self.listPath is None:
-            echo0(prefix+"no filename")
+            echo0(prefix + "no filename")
             self.statusSV.set("Error: There is no filename")
             return
         # parts = os.path.splitext(self.listPath)
@@ -379,7 +380,7 @@ class MainFrame(ttk.Frame):
     def metaPath(self):
         prefix = "[metaPath] "
         if self.listPath is None:
-            echo0(prefix+"no filename")
+            echo0(prefix + "no filename")
             self.statusSV.set("Error: There is no filename")
             return
         return self.listPath + self.metaSuffix
@@ -399,15 +400,15 @@ class MainFrame(ttk.Frame):
         prefix = "[saveMeta] "
         destPath = self.metaPath()
         if not destPath:
-            echo0(prefix+"no filename")
+            echo0(prefix + "no filename")
             self.statusSV.set("Error: There is no filename")
             return
         if len(self.metas) < 1:
-            echo0(prefix+"no list loaded filename")
+            echo0(prefix + "no list loaded filename")
             self.statusSV.set("Error: There is no list loaded.")
             return
         destName = os.path.split(destPath)[1]
-        echo0(prefix+'destPath="{}"'.format(destPath))
+        echo0(prefix + 'destPath="{}"'.format(destPath))
         self.timedMessage('Saved "{}"'.format(destName))
         # active_keys = []
         with open(destPath, 'w') as outs:
@@ -429,15 +430,15 @@ class MainFrame(ttk.Frame):
         prefix = "[_saveChecked] "
         destPath = self.checkedPath()
         if not destPath:
-            echo0(prefix+"no filename")
+            echo0(prefix + "no filename")
             self.statusSV.set("Error: There is no filename")
             return
         if len(self.metas) < 1:
-            echo0(prefix+"no list loaded filename")
+            echo0(prefix + "no list loaded filename")
             self.statusSV.set("Error: There is no list loaded.")
             return
         destName = os.path.split(destPath)[1]
-        echo0(prefix+'destPath="{}"'.format(destPath))
+        echo0(prefix + 'destPath="{}"'.format(destPath))
         self.timedMessage("Saved {}".format(destName))
         with open(destPath, 'w') as outs:
             for meta in self.metas:
@@ -539,7 +540,7 @@ class MainFrame(ttk.Frame):
                     continue
                 indent = ""
                 if len(line) < len(line_key):
-                    indent = line_key[len(line_key)-len(line):]
+                    indent = line_key[len(line_key) - len(line):]
                 parts = line.split(" ")
                 cols = 1
                 paths = []
@@ -567,12 +568,12 @@ class MainFrame(ttk.Frame):
                     # process custom meta notation
                     signI = line.find("=", set_str_i)
                     if signI > -1:
-                        key = line[set_str_i+len(set_str):signI].strip()
-                        value = no_enclosures(line[signI+1:].strip())
+                        key = line[set_str_i + len(set_str):signI].strip()
+                        value = no_enclosures(line[signI + 1:].strip())
                         group_settings[key] = value
                         # meta[key] = group_settings[key]
                         # meta[key] = meta[key]
-                        echo0(prefix+"set {}={}".format(key, value))
+                        echo0(prefix + "set {}={}".format(key, value))
                         continue
                         # Don't add
                         # (group_settings are saved to later lines below)
@@ -652,7 +653,7 @@ class MainFrame(ttk.Frame):
         path = self.getListPath()
         if not path:
             base_path = self.getBasePath()
-            echo0(prefix+"There is no listPath. Using base_path={}"
+            echo0(prefix + "There is no listPath. Using base_path={}"
                   "".format(base_path))
             if not base_path:
                 self.generateList(os.getcwd())
@@ -683,7 +684,7 @@ class MainFrame(ttk.Frame):
             if len(self.metas) > 1:
                 self.nextBtn['state'] = tk.NORMAL
         else:
-            echo0(prefix+"meta not loaded since self.metas={}"
+            echo0(prefix + "meta not loaded since self.metas={}"
                   "".format(self.metas))
         if self.error:
             self.setStatus(self.error)
@@ -704,13 +705,13 @@ class MainFrame(ttk.Frame):
         if not os.path.isfile(checkedPath):
             self.meta = copy.deepcopy(self.default_meta)
             return False
-        echo0(prefix+'loading "{}"'.format(checkedPath))
+        echo0(prefix + 'loading "{}"'.format(checkedPath))
         with open(checkedPath, 'r') as stream:
             self.meta = json.load(stream)
         for key, value in self.default_meta.items():
             if key not in self.meta:
                 self.meta[key] = copy.deepcopy(value)
-        echo0(prefix+'self.meta="{}"'.format(self.meta))
+        echo0(prefix + 'self.meta="{}"'.format(self.meta))
         return True
 
     def loadCheckList(self):
@@ -747,7 +748,7 @@ class MainFrame(ttk.Frame):
         self.metaI = 0
         self.generated = True
         if os.path.isdir(path):
-            echo1(prefix+"Got dir {}, generating file list..."
+            echo1(prefix + "Got dir {}, generating file list..."
                   .format(path))
             self.listSV.set("")  # It isn't a listfile but a folder.
             self.setPath(path)
@@ -766,7 +767,7 @@ class MainFrame(ttk.Frame):
                 # echo1("* set path: \"{}\"".format(path))
                 self.setPath(path)
         elif os.path.isfile(path):
-            echo1(prefix+"Got file {}, generating nearby file list..."
+            echo1(prefix + "Got file {}, generating nearby file list..."
                   .format(path))
             self.listSV.set("")
             # ^ It isn't a listfile but a folder containing the
@@ -795,9 +796,9 @@ class MainFrame(ttk.Frame):
         index = self.findPath(path)
         if index >= 0:
             self.metaI = index
-            echo1(prefix+'Found at {}: "{}"'.format(index, path))
+            echo1(prefix + 'Found at {}: "{}"'.format(index, path))
         else:
-            echo0(prefix+'There is no "{}"'.format(path))
+            echo0(prefix + 'There is no "{}"'.format(path))
 
     def findPath(self, path):
         """Find the index of the metadata using the path.
@@ -890,7 +891,7 @@ class MainFrame(ttk.Frame):
         for path in paths:
             _, name = os.path.split(path)
             index += 1
-            echo1(prefix+'path={}'.format(path))
+            echo1(prefix + 'path={}'.format(path))
             try:
                 echo1('- working directory: "{}"'.format(os.getcwd()))
                 if not os.path.isfile(path):
@@ -910,7 +911,7 @@ class MainFrame(ttk.Frame):
                 # ImageFile.LOAD_TRUNCATED_IMAGES = True
                 # doesn't work.
                 # self.imageLabels[index].configure(image='')
-                echo0(prefix+"index={}".format(index))
+                echo0(prefix + "index={}".format(index))
                 self.imageErrorVars[index].set("unreadable")
                 err = "Error: unreadable image"
                 # err = "{}: {}".format(type(ex).__name__, ex)
@@ -926,7 +927,7 @@ class MainFrame(ttk.Frame):
 
             while index >= len(self.pimages):
                 self.pimages.append(None)
-                echo0(prefix+"Increased len(self.pimages) to"
+                echo0(prefix + "Increased len(self.pimages) to"
                       " {} since index is {}"
                       "".format(len(self.pimages), index))
             if len(paths) > 1:
@@ -993,7 +994,7 @@ class MainFrame(ttk.Frame):
             elif path:
                 echo0("* appending path={}".format(path))
                 cmd_parts += path  # Since is list in this case.
-            echo0(prefix+"Running: {}".format(cmd_parts))
+            echo0(prefix + "Running: {}".format(cmd_parts))
             subprocess.call(tuple(cmd_parts))
 
     def openWith(self, exe=None):
@@ -1008,7 +1009,7 @@ class MainFrame(ttk.Frame):
             cmd_parts = (exe, path)
         elif isinstance(path, list):
             # The line must have multiple lists.
-            cmd_parts = tuple([exe]+path)
+            cmd_parts = tuple([exe] + path)
         else:
             raise ValueError("str or list was expected for path, but got {} {}"
                              "".format(type(path).__name__, path))
@@ -1040,9 +1041,9 @@ class MainFrame(ttk.Frame):
         status_msg = \
             " ".join(paths) if isinstance(paths, (list, tuple)) else paths
         meta = self.metas[self.metaI]
-        echo0(prefix+"status_msg={}".format(status_msg))
+        echo0(prefix + "status_msg={}".format(status_msg))
         if not status_msg:
-            echo0(prefix+"meta={}".format(meta))
+            echo0(prefix + "meta={}".format(meta))
         comment = meta.get('comment')
         self.setComment(comment)  # Does clear if None.
 

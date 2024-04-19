@@ -33,9 +33,9 @@ else:
             print("Using modules dir: {}".format(reposDir))
             break
 
-from rotocanvas.ffmpegtime import FFMPEGTime
-from rotocanvas.rcproject import RCProject
-from rotocanvas.rcsource import RCSource
+from rotocanvas.ffmpegtime import FFMPEGTime  # noqa: E402
+from rotocanvas.rcproject import RCProject  # noqa: E402
+from rotocanvas.rcsource import RCSource  # noqa: E402
 # from rotocanvas.rcsettings import settings
 
 ra9Times = ["00:00:14", "00:00:41", "00:00:55", "00:02:20",
