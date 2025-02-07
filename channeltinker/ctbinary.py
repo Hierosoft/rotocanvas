@@ -1,6 +1,15 @@
 from __future__ import print_function
-import puremagic  # pure python implementation of magic
 
+import sys
+
+try:
+    import puremagic  # pure python implementation of magic
+except ImportError:
+    print("If apt is available, try:", file=sys.stderr)
+    print("  sudo apt install python3-puremagic", file=sys.stderr)
+    print("Otherwise 'pip install puremagic'  # preferably in a Python venv",
+          file=sys.stderr)
+    raise
 
 textchars = \
     bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7f})
