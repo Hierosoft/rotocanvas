@@ -1,31 +1,40 @@
 #!/bin/bash
 if [ ! -f rotocanvas/__init__.py ]; then
+    if [ -d ~/git/rotocanvas ]; then
+        cd ~/git/rotocanvas
+    fi
+fi
+if [ ! -f rotocanvas/__init__.py ]; then
     mkdir -p ~/git
-    git clone https://github.com/poikilos/rotocanvas ~/git/rotocanvas
-    cd ~/git/rotocanvas
+    echo "Cloning into ~/git/rotocanvas..."
+    git clone https://github.com/Hierosoft/rotocanvas.git ~/git/rotocanvas
+    cd ~/git/rotocanvas || exit $?
 fi
 if [ -f ~/.config/GIMP/2.10/plug-ins/channel_tinker.py ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py
+    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py || exit $?
 fi
 if [ -f ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py
+    rm ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py || exit $?
 fi
 if [ -d ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channel_tinker  # try symlink FIRST
-    if [ $? -ne 0 ]; then
-        # If there was an error, assume it is a directory:
+    if [ -L ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
+        # symlink
+        rm ~/.config/GIMP/2.10/plug-ins/channel_tinker
+    else
         rm -Rf ~/.config/GIMP/2.10/plug-ins/channel_tinker
     fi
 fi
 if [ -d ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channeltinker  # try symlink FIRST
-    if [ $? -ne 0 ]; then
-        # If there was an error, assume it is a directory:
+    if [ -L ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
+        # symlink
+        rm ~/.config/GIMP/2.10/plug-ins/channeltinker
+    else
         rm -Rf ~/.config/GIMP/2.10/plug-ins/channeltinker
     fi
 fi
 cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
 cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
+echo "Installed ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py"
 # or
 # ln -s ~/git/rotocanvas/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
 # ln -s ~/git/rotocanvas/channeltinker ~/.config/GIMP/2.10/plug-ins/
