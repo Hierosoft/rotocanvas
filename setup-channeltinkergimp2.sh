@@ -9,7 +9,7 @@ if [ ! -f rotocanvas/__init__.py ]; then
 fi
 if [ ! -f rotocanvas/__init__.py ]; then
     mkdir -p ~/git
-    echo "Cloning into ~/git/rotocanvas..."
+    echo "[$0] Cloning into ~/git/rotocanvas..."
     git clone https://github.com/Hierosoft/rotocanvas.git ~/git/rotocanvas
     cd ~/git/rotocanvas || exit $?
 fi
@@ -40,7 +40,8 @@ if [ -d ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
 fi
 cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
 cp $MODULE_NAME.py ~/.config/GIMP/2.10/plug-ins/
-echo "Installed ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py"
+chmod +x ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py
+echo "[$0] Installed ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py"
 # or
 # ln -s ~/git/rotocanvas/$MODULE_NAME.py ~/.config/GIMP/2.10/plug-ins/
 # ln -s ~/git/rotocanvas/channeltinker ~/.config/GIMP/2.10/plug-ins/

@@ -26,8 +26,21 @@ import traceback
 print("executable: %s" % repr(sys.executable))
 print("os.path.realpath(executable): %s"
       % repr(os.path.realpath(sys.executable)))
-import site  # noqa E402
-print("site-packages: %s" % repr(site.getsitepackages()))
+enable_site = False
+# print("channeltinker: Loading channeltinkerpil.imageprocessorframe")
+try:
+    import site  # noqa E402
+    from site import getsitepackages
+    enable_site = True
+except ImportError:
+    # GIMP 3.0 (Python 3)
+    def getsitepackages():
+        for path in sys.path:
+            if 'site-packages' in path:
+                return path
+        return None
+    pass
+print("site-packages: %s" % repr(getsitepackages()))
 
 venv_error_fmt = ("Import failed though %s exists, so the virtual"
                   " environment appears to be broken. Recreate it"
@@ -39,7 +52,7 @@ if sys.version_info.major >= 3:
         import tkinter as tk
         from tkinter import ttk
     except ImportError:
-        for site_packages in site.getsitepackages():
+        for site_packages in getsitepackages():
             try_sub = os.path.join(site_packages, "tkinter")
             if os.path.isdir(try_sub):
                 print(venv_error_fmt % try_sub,

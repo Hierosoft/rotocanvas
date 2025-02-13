@@ -18,7 +18,7 @@ Subsections of this disclosure contain prompts used to generate content, in a wa
 tool(s) used:
 - GPT-4-Turbo (Version 4o, chatgpt.com)
 
-Scope of use: code described in subsections--typically modified by hand to improve logic, variable naming, integration, etc, but in this commit, unmodified.
+Scope of use: code described in subsections--typically modified by hand to improve logic, variable naming, integration, etc.
 
 ## rotocanvas
 ### vob_to_dvd
@@ -68,3 +68,43 @@ Replace parts = line.split(',') with segments = line.split("Chapters:", 1) and p
 if sys.version_info.major >= 3, from subprocess import run as subprocess_run, else define a custom subprocess_run function that has the same args and returns but is python 2 compatible. Then use that in the program instead of subprocess.run
 
 check isn't accepted by Popen in Python 2. Do check=kwargs.get("check") then if "check" in kwargs del kwargs["check"], then do whatever check would do manually instead of passing it to Popen
+
+## channeltinkergimp
+- 2025-02-12
+
+gimpfu does not exist in GIMP 2.10.36. Please fix this gimp plug-in:
+
+- paste GIMP 2.0 version.
+
+ImportError: No module named gimp
+
+What is the new equivalent of register(
+    "python_fu_ct_remove_halo",
+- paste rest of register call
+
+ok now also implement
+
+- paste python_fu_ct_centered_square register call
+
+Finish reimplementing ct_remove_layer_halo based on the old global function (Make it into a method that is compatible with the new GIMP's required class-based approach, class ChannelTinker(Gimp.PlugIn) in our case):
+
+- paste old global ct_remove_layer_halo function
+
+Finish reimplementing this old global function (Make it into a method that is compatible with the new GIMP's required class-based approach, class ChannelTinker(Gimp.PlugIn) in our case):
+def ct_draw_centered_circle(image, drawable, radius, color, filled):
+
+- paste old global ct_draw_centered_circle function
+
+- 2025-02-12
+
+- start new conversation
+
+How can I make these custom utility classes from an older version using gimpfu compatible with the new gimp which uses from gi.repository import Gimp, GObject, GLib?
+
+- paste old GimpCTPI and GimpCTI
+
+## channeltinkerpil
+### imageprocessorframe
+- 2025-02-12
+
+Python 3 included in GIMP has no "site" module. How can I do something like: site.getsitepackages()

@@ -17,8 +17,11 @@ except ImportError:
     print(
         "Your version may require python3-gimp or python-gimp,"
         " but if package is not available, try a newer version"
-        " of channeltinker for Python 3 which is now included"
-        " in GIMP such as 2.10.36", file=sys.stderr)
+        " of channeltinker (Python 3 is included"
+        " in GIMP such as 2.10.36 too, and"
+        " there is no channeltinker for that, so you"
+        " must either downgrade or use GIMP 3.0",
+        file=sys.stderr)
     raise
 from channeltinker import (
     # convert_depth,
@@ -128,8 +131,8 @@ def ct_draw_centered_circle(image, drawable, radius, color, filled):
     cti = GimpCTI(image, drawable=drawable)
     draw_circle_from_center(cti, (x, y), radius,
                             color=color, filled=filled)
-    pdb.gimp_drawable_update(drawable, 0, 0, drawable.width,
-                             drawable.height)
+    pdb.gimp_drawable_update(drawable, 0, 0, drawable.get_width(),
+                             drawable.get_height())
     pdb.gimp_displays_flush()
     image.enable_undo()
 
@@ -163,8 +166,8 @@ def ct_draw_centered_square(image, drawable, radius, color, filled):
     cti = GimpCTI(image, drawable=drawable)
     draw_square_from_center(cti, (x, y), radius, color=color,
                             filled=filled)
-    pdb.gimp_drawable_update(drawable, 0, 0, drawable.width,
-                             drawable.height)
+    pdb.gimp_drawable_update(drawable, 0, 0, drawable.get_width(),
+                             drawable.get_height())
     pdb.gimp_displays_flush()
     image.enable_undo()
 
@@ -187,8 +190,8 @@ def ct_remove_layer_halo(image, drawable, minimum, maximum, good_minimum,
     # if drawable is None:
     #     drawable = pdb.gimp_image_active_drawable(image)
 
-    pdb.gimp_drawable_update(drawable, 0, 0, drawable.width,
-                             drawable.height)
+    pdb.gimp_drawable_update(drawable, 0, 0, drawable.get_width(),
+                             drawable.get_height())
     pdb.gimp_displays_flush()
     # ^ update the image; still you must first do#
     # pdb.gimp_drawable_update(...)

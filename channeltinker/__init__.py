@@ -4,6 +4,7 @@ This module provides image and pixel manipulation that does not depend
 on a specific library.
 """
 from __future__ import print_function
+from __future__ import division
 import os
 import math
 import sys
@@ -13,7 +14,22 @@ name_fmt0 = "{}-{}-vs-{}.png"
 name_fmt1 = "diffimage {}.png"
 name_fmt2 = "diffimage {} vs. {}.png"
 verbosity = False
+print("channeltinker: Loading", file=sys.stderr)
 
+if sys.version_info.major >= 3:
+    from logging import getLogger
+    logger = getLogger(__name__)
+else:
+    class Logger():
+        def error(message):
+            print("[channeltinker] Error: {}".format(message),
+                  file=sys.stderr)
+
+        def warning(message):
+            print("[channeltinker] Warning: {}".format(message),
+                  file=sys.stderr)
+
+    logger = Logger()
 
 def safePathParam(path):
     if "'" in path:
@@ -37,6 +53,10 @@ if platform.system() == "Windows":
         'rm': 'del',
     }
     # TODO: Redefine safePathParam if necessary.
+
+
+def emit_cast(value):
+    return "{}({})".format(type(value).__name__, repr(value))
 
 
 class ChannelTinkerProgressInterface:
@@ -103,6 +123,7 @@ class ChannelTinkerInterface(object):
         characters, such as ('R', 'G', 'B', 'A') (or tuple('L') for
         grayscale).
         """
+        # Probably deprecated in Gegl (just use color.set_rgba?)
         raise NotImplementedError("The ChannelTinkerInterface"
                                   " implementation must implement"
                                   " getbands.")
@@ -214,7 +235,7 @@ def convert_depth(color, channel_count, c_max=1.0):
             color = 0.0
         prev_color = color
         color = tuple([int(round((color/c_max) * 255))])
-        # print(msg_prefix + "WARNING: converting {} to"
+        # logger.warning("converting {} to"
         #       " {}".format(prev_color, color))
 
     p_len = channel_count
@@ -223,7 +244,7 @@ def convert_depth(color, channel_count, c_max=1.0):
         new_color = [i for i in color]
         while len(new_color) < p_len:
             new_color.append(255)
-        # print(msg_prefix + "WARNING: expanding {} to"
+        # logger.warning("expanding {} to"
         #       " {}".format(color, new_color))
     elif p_len < len(color):
         if (p_len == 1) and (len(color) >= 3):
@@ -231,13 +252,13 @@ def convert_depth(color, channel_count, c_max=1.0):
             v = float(color[0] + color[1] + color[2]) / 3.0
             prev_color = color
             color = tuple([int(round(v))])
-            # print(msg_prefix + "WARNING: shrinking {} to"
+            # logger.warning("shrinking {} to"
             #       " {}".format(prev_color, color))
         else:
             new_color = []
             for i in range(p_len):
                 new_color.append(color[i])
-            # print(msg_prefix + "WARNING: expanding {} to"
+            # logger.warning("expanding {} to"
             #       " {}".format(color, new_color))
     if new_color is not None:
         color = tuple(new_color)
@@ -651,22 +672,74 @@ def diff_images(base, head, diff_size, diff=None,
     return results
 
 
-msg_prefix = "[channel_tinker] "
+def convert_channel(value, new_type, name=None):
+    if isinstance(value, new_type):
+        return value
+    if name is None:
+        name = ""
+    else:
+        name = " " + name
+    if new_type is int:
+        if isinstance(value, float):
+            return int(round(value * 255))
+        else:
+            raise TypeError(
+                "Unknown{} type {}"
+                .format(name, emit_cast(value)))
+    elif new_type is float:
+        if isinstance(value, int):
+            return float(value / 255)
+        else:
+            raise TypeError(
+                "Unknown{} type {}"
+                .format(name, emit_cast(value)))
+    else:
+        raise TypeError(
+            "Unknown pixel type {}"
+            .format(emit_cast(new_type)))
 
 
-def find_opaque_pos(cti, center, good_minimum=255, max_rad=None,
+def find_opaque_pos(cti, center, good_minimum=1.0, max_rad=None,
                     w=None, h=None):
     """Find the position of an opaque pixel within the image.
     Args:
         cti (Union(Image,ChannelTinkerInterface)): Original image.
         center (tuple(float)) This location, or the closest location to
             it meeting criteria, is the search target.
-        good_minimum (int, optional) (0 to 255) If the pixel's alpha is
+        good_minimum (int, optional) (0 to 1.0) If the pixel's alpha is
             this or higher, get it (the closest in location to center).
     """
+    int_mode = False
+    max_a = -1
+    px_type = cti.getPixelType()
+    # if not isinstance(good_minimum, px_type):
+    #     good_minimum = convert_channel(good_minimum, px_type,
+    #                                    name="good_minimum")
+    if int_mode:
+        if float(good_minimum) != float(int(good_minimum)):
+            # indicates range is 0 to 1.0 (Use 0 to 255 in int_mode)
+            raise NotImplementedError(
+                "In int mode, but got good_minimum={}"
+                .format(emit_cast(good_minimum)))
+    else:
+        assert255 = convert_channel(255, px_type, "assert255")
+        assert assert255 == 1.0, "convert(255)={} expected 1".format(assert255)
+        if px_type is not float:
+            raise NotImplementedError(
+                "Everything except UI should be float as of GIMP 3.0 (Gegl),"
+                " but got px_type {}".format(px_type))
+        if not isinstance(good_minimum, float):
+            raise NotImplementedError(
+                "Everything except UI should be float as of GIMP 3.0 (Gegl),"
+                " but got good_minimum={}".format(emit_cast(good_minimum)))
+        if good_minimum > 1.0:
+            raise NotImplementedError(
+                "Everything except UI should be float (0 to 1.0)"
+                " as of GIMP 3.0 (Gegl), but got good_minimum={}"
+                .format(emit_cast(good_minimum)))
     circular = False
     # ^ True fails for some reason (try it in
-    # draw_square to see the problem).
+    #   draw_square to see the problem).
     if good_minimum < 0:
         good_minimum = 0
     epsilon = sys.float_info.epsilon
@@ -718,12 +791,19 @@ def find_opaque_pos(cti, center, good_minimum=255, max_rad=None,
                 # print("  navigating square {} ({} <="
                 #       " {})".format(pos, dist, rad))
                 pixel = cti.getpixel(pos)
+                if pixel[3] > max_a:
+                    max_a = pixel[3]
+                    if max_a > 1.0:
+                        raise NotImplementedError(
+                            "Everything except UI should be float (0 to 1)"
+                            " as of GIMP 3.0 (Gegl) but got {}".format(pixel))
                 if pixel[3] >= good_minimum:
                     return pos
             else:
                 # print("  navigating square {} SKIPPED ({} > "
                 #       "{})".format(pos, dist, rad))
                 pass
+    logger.warning("find_opaque_pos max_a={} (too low)".format(max_a))
     return None
 
 
@@ -734,10 +814,11 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
         cti (Union(Image,ChannelTinkerInterface)): Original image.
     """
     # Get any available pixel, to get p_len:
-    p_len = len(cti.getbands())
+    # p_len = len(cti.getbands())
     # pixel = cti.getpixel(0, 0)
-    color = convert_depth(color, p_len)
-    new_channels = p_len  # must match dest, else ExecutionError
+    # color = convert_depth(color, p_len)
+    # new_channels = p_len  # must match dest, else ExecutionError in GIMP 2.0
+    new_channels = 4
     w, h = cti.size
     if color is None:
         if new_channels == 1:
@@ -821,20 +902,65 @@ def extend(cti, minimum=1, maximum=254,
             progress bar or similar progress feature, provide an
             implementation of ChannelTinkerProgressInterface.
     """
+
     if maximum < 0:
         maximum = 0
     if minimum < 0:
         minimum = 0
     if maximum > 254:
         maximum = 254
+
+    px_type = cti.getPixelType()
+    if px_type is float:
+        assert255 = convert_channel(255, px_type, "assert255")
+        assert assert255 == 1.0, "convert(255)={} expected 1".format(assert255)
+    else:
+        raise NotImplementedError(
+            "Everything except UI should be float as of GIMP 3.0 (Gegl),"
+            " but extend got px_type {}".format(px_type))
+
+    if not isinstance(minimum, px_type):
+        minimum = convert_channel(minimum, px_type, name="minimum")
+    if not isinstance(good_minimum, px_type):
+        good_minimum = convert_channel(good_minimum, px_type,
+                                       name="good_minimum")
+    else:
+        logger.warning(
+            "good_minimum is already {}: {}"
+            .format(px_type, emit_cast(good_minimum)))
+    if not isinstance(maximum, px_type):
+        maximum = convert_channel(maximum, px_type, name="maximum")
+    if not isinstance(threshold, px_type):
+        threshold = convert_channel(threshold, px_type, name="threshold")
+    if px_type is float:
+        if minimum > 1.0:
+            raise NotImplementedError(
+                "Everything except UI should be float as of GIMP 3.0 (Gegl),"
+                " but got minimum={}".format(emit_cast(minimum)))
+
     w, h = cti.size
 
     # print("Size: {}".format((w, h)))
-    total_f = float(w * h)
+    px_count = w * h
+    total_f = float(px_count)
     count_f = 0.0
     # ok = True
     n_pix = None
     msg = None
+    max_a = -1.0
+    error_counts = {}
+    formatted_errors = {}
+    def collect_error(msg_fmt, *values):
+        if msg_fmt not in error_counts:
+            error_counts[msg_fmt] = 1
+        else:
+            error_counts[msg_fmt] += 1
+        formatted_errors[msg_fmt] = (
+            msg_fmt.format(*values)
+            + " ({} occurrence(s))".format(error_counts[msg_fmt])
+        )
+        return formatted_errors[msg_fmt]
+    done_ratio = 0.0
     for y in range(h):
         # if not ok:
         #     break
@@ -843,7 +969,7 @@ def extend(cti, minimum=1, maximum=254,
             # if count_f is None:
             count_f = float(y) * float(w) + float(x)
             # print("checking {}".format(cti.getpixel((x, y))))
-            p_len = len(cti.getbands())
+            # p_len = len(cti.getbands())
             pixel = cti.getpixel((x, y))
             if (pixel[3] >= minimum) and (pixel[3] <= maximum):
                 # if all([p == q for p, q in zip(pixel,
@@ -854,19 +980,28 @@ def extend(cti, minimum=1, maximum=254,
                                              good_minimum=good_minimum)
                 if opaque_pos is not None:
                     if opaque_pos == pos:
+                        msg_fmt = (
+                            "Uh oh, got own pos when checking"
+                            " for better color than"
+                            " {} (a>={})..."
+                        )
+                        msg_values = [pixel, good_minimum]
+                        msg = collect_error(msg_fmt, msg_values)
+
                         if msg is None:  # only show 1 messagebox
-                            msg = ("Uh oh, got own pos when checking"
-                                   " for better color than"
-                                   " {}...".format(pixel))
                             echo1(msg)
                             if ctpi is not None:
-                                ctpi.show_message(msg)
-                                ctpi.set_status(msg)
-                                ctpi.progress_update(0.0)
+                                pass
+                                # commented since 'error' return shown anyway:
+                                # ctpi.show_message(msg)
+                                # ctpi.progress_update(0.0)
+                                # ctpi.progress_update(done_ratio)
                             # ok = False
+                        if ctpi is not None:
+                            ctpi.set_status(msg)
                     else:
                         n_pix = cti.getpixel(opaque_pos)
-                        p_len = len(cti.getbands())
+                        # p_len = len(cti.getbands())
                         if n_pix != pixel:
                             if make_opaque:
                                 # n_pix = (n_pix[0], n_pix[1],
@@ -904,7 +1039,7 @@ def extend(cti, minimum=1, maximum=254,
                             #     ctpi.progress_update(count_f / total_f)
                             # count_f = None
                             # time.sleep(10)
-                            # return
+                            # return {'error': msg}
                             # continue
                             pass
                 else:
@@ -915,7 +1050,7 @@ def extend(cti, minimum=1, maximum=254,
                         if ctpi is not None:
                             ctpi.show_message(msg)
                     if not enable_threshold:
-                        return
+                        return {'error': msg}
             if enable_threshold and not used_th:
                 if pixel[3] > threshold:
                     n_pix = (pixel[0], pixel[1], pixel[2], 255)
@@ -925,4 +1060,16 @@ def extend(cti, minimum=1, maximum=254,
             if count_f is not None:
                 # count_f += 1.0
                 if ctpi is not None:
-                    ctpi.progress_update(count_f / total_f)
+                    ctpi.progress_update((count_f + 1.0) / total_f)
+                    # ^ + 1 since pixel 0 is done when count_f is 0
+            # if ctpi:
+            #     done_ratio = (y*w + (x+1)) / total_f
+            #     ctpi.progress_update(done_ratio)
+        # if ctpi:
+        #     done_ratio = y / (h - 1)
+        #     ctpi.progress_update(done_ratio)
+    if formatted_errors:
+        msg = str(formatted_errors.values())
+    return {
+        'error': msg,
+    }
