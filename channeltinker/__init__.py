@@ -7,6 +7,10 @@ from __future__ import print_function
 from __future__ import division
 import os
 import math
+try:
+    import numpy as np
+except ImportError:
+    import channeltinker.nonumpy as np
 import sys
 import platform
 
@@ -192,6 +196,24 @@ def set_echo(callback):
     _echo_fn = callback
 
 
+def quadrant_of_pos(pos, axis=None, inverse_cartesian=False):
+    if axis is not None:
+        old_pos = pos
+        pos = []
+        for i in range(len(old_pos)):
+            pos.append(old_pos[i]-axis[i])
+    if pos[0] < 0:
+        if ((pos[1] * -1) if inverse_cartesian else pos[1]) < 0:
+            return 2  # 3rd
+        else:
+            return 1  # 2nd
+    else:  # right side
+        if ((pos[1] * -1) if inverse_cartesian else pos[1]) < 0:
+            return 3  # 4th
+        else:
+            return 0  # 1st
+
+
 def convert_depth(color, channel_count, c_max=1.0):
     """Convert any color to a 0-255 color.
     Args:
@@ -265,7 +287,7 @@ def convert_depth(color, channel_count, c_max=1.0):
     return color
 
 
-def square_gen(pos, rad):
+def square_gen(pos, rad, enable_np=True):
     left = pos[0] - rad
     right = pos[0] + rad
     top = pos[1] - rad
@@ -281,7 +303,10 @@ def square_gen(pos, rad):
     ss_R = 3
     d = ss_R
     while True:
-        yield (x, y)
+        if enable_np:
+            yield np.array((x, y), dtype=np.float64)
+        else:
+            yield (x, y)
         # Do not use `elif` below:
         # Each case MUST fall through to next case, or a square with 0
         # radius will be larger than 1 pixel, and possibly other
@@ -308,15 +333,27 @@ def square_gen(pos, rad):
                 break
 
 
-def fdist(pos1, pos2):
-    return math.sqrt((pos2[0] - pos1[0])**2 + (pos2[1] - pos1[1])**2)
+def distance_squared_to(p1, p2):
+    return sum((a - b) ** 2 for a, b in zip(p1, p2))
 
 
-def idist(pos1, pos2):
-    pos1 = [float(i) for i in pos1]
-    pos2 = [float(i) for i in pos2]
-    # TODO: round or something?
-    return fdist(pos1, pos2)
+def fdist(a_pt, b_pt):
+    if not (isinstance(a_pt, (list, tuple, np.array)) and isinstance(b_pt, (list, tuple, np.array))):
+        raise TypeError("Both points must be lists")
+    if len(a_pt) != len(b_pt):
+        raise ValueError("Points must have the same dimension")
+    return math.sqrt(sum((a - b) ** 2 for a, b in zip(a_pt, b_pt)))
+
+
+def idist(p1, p2):
+    return fdist(p1, p2)
+    if len(p1) != len(p2):
+        raise ValueError("Length mismatch for {} and {}"
+                         .format(p1, p2))
+    if len(p1) == 2:
+        return math.sqrt((float(p2[0]) - float(p1[0]))**2
+                          + (float(p2[1]) - float(p1[1]))**2)
+    raise NotImplementedError("{}D points".format(len(p1)))
 
 
 def profile_name():
@@ -737,7 +774,7 @@ def find_opaque_pos(cti, center, good_minimum=1.0, max_rad=None,
                 "Everything except UI should be float (0 to 1.0)"
                 " as of GIMP 3.0 (Gegl), but got good_minimum={}"
                 .format(emit_cast(good_minimum)))
-    circular = False
+    circular = True
     # ^ True fails for some reason (try it in
     #   draw_square to see the problem).
     if good_minimum < 0:
@@ -767,42 +804,50 @@ def find_opaque_pos(cti, center, good_minimum=1.0, max_rad=None,
                 max_rad = dist
     # print("find_opaque_pos(...,{},...) # max_rad:{}".format(center,
     #                                                         max_rad))
+    positions = []
+    rad_f = 0.0
     for rad in range(0, max_rad + 1):
         # print("  rad: {}".format(rad))
         rad_f = float(rad) + epsilon + 1.0
-        left = center[0] - rad
-        right = center[0] + rad
-        top = center[1] - rad
-        bottom = center[1] + rad
-        # For each side of the square, only use positions within the
-        # circle:
-        for pos in square_gen(center, rad):
-            x, y = pos
-            if y < 0:
-                continue
-            if y >= h:
-                continue
-            if x < 0:
-                continue
-            if x >= w:
-                continue
-            dist = idist(center, pos)
-            if (not circular) or (dist <= rad_f):
-                # print("  navigating square {} ({} <="
-                #       " {})".format(pos, dist, rad))
-                pixel = cti.getpixel(pos)
-                if pixel[3] > max_a:
-                    max_a = pixel[3]
-                    if max_a > 1.0:
-                        raise NotImplementedError(
-                            "Everything except UI should be float (0 to 1)"
-                            " as of GIMP 3.0 (Gegl) but got {}".format(pixel))
-                if pixel[3] >= good_minimum:
-                    return pos
-            else:
-                # print("  navigating square {} SKIPPED ({} > "
-                #       "{})".format(pos, dist, rad))
-                pass
+        # left = center[0] - rad
+        # right = center[0] + rad
+        # top = center[1] - rad
+        # bottom = center[1] + rad
+        positions += square_gen(center, rad)
+        # NOTE: only positions in rad_f are used below
+
+    sorted_positions = sorted(positions, key=lambda p: idist(p, center))
+    rad_f_squared = rad_f ** 2
+    for pos in sorted_positions:
+        x, y = pos
+        if y < 0:
+            continue
+        if y >= h:
+            continue
+        if x < 0:
+            continue
+        if x >= w:
+            continue
+        dist = idist(center, pos)
+        dist_sq = distance_squared_to(center, pos)
+        # if (not circular) or (dist <= rad_f):
+        if (not circular) or (dist_sq <= rad_f_squared):
+            # limit to circle if circular
+            # print("  navigating square {} ({} <="
+            #       " {})".format(pos, dist, rad))
+            pixel = cti.getpixel(pos)
+            if pixel[3] > max_a:
+                max_a = pixel[3]
+                if max_a > 1.0:
+                    raise NotImplementedError(
+                        "Everything except UI should be float (0 to 1)"
+                        " as of GIMP 3.0 (Gegl) but got {}".format(pixel))
+            if pixel[3] >= good_minimum:
+                return pos
+        else:
+            # print("  navigating square {} SKIPPED ({} > "
+            #       "{})".format(pos, dist, rad))
+            pass
     logger.warning("find_opaque_pos max_a={} (too low)".format(max_a))
     return None
 
@@ -833,32 +878,49 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
             color = [255 for i in range(new_channels)]
     radii = None
     epsilon = sys.float_info.epsilon
-    if filled:
-        radii = []
-        max_rad = 0
-        side_distances = [
-            abs(0 - center[0]),
-            abs(w - center[0]),
-            abs(0 - center[1]),
-            abs(h - center[1]),
-        ]
-        for dist in side_distances:
-            if dist > max_rad:
-                max_rad = dist
-        for rad in range(0, max_rad + 1):
-            radii.append(rad)
-    else:
-        radii = [rad]
-    diag = math.sqrt(2.0)
+    radii = [rad] if not filled else list(range(0, rad + 1))
+    diag = math.sqrt(2.0)  # one diagonal (don't miss edge of circle)
     # print("using diagonal pixel measurement: {}".format(diag))
+    # print("using epsilon: {}".format(epsilon)) ~2.220446049250313e-16
+    diag_offset = math.sqrt(2) / 2
+    # cart_quad_mid_vec2s = (  # cartesian
+    #     np.array([diag_offset, diag_offset], dtype=np.float64),
+    #     np.array([-diag_offset, diag_offset], dtype=np.float64),
+    #     np.array([-diag_offset, -diag_offset], dtype=np.float64),
+    #     np.array([diag_offset, -diag_offset], dtype=np.float64),
+    # )
+    quadrant_mid_vec2s = (  # inverse cartesian
+        np.array([diag_offset, -diag_offset], dtype=np.float64),
+        np.array([-diag_offset, -diag_offset], dtype=np.float64),
+        np.array([-diag_offset, diag_offset], dtype=np.float64),
+        np.array([diag_offset, diag_offset], dtype=np.float64),
+    )
+    center = np.array(center)
+    print("using radii={}".format(radii))
+    # rad_f_squared = float(rad) ** 2
     for rad in radii:
-        rad_f = float(rad) + epsilon + diag * 2
+        # rad_f = float(rad) + epsilon + diag * 2  # +1px diagonal for coverage
         for pos in square_gen(center, rad):
+            x, y = pos
+            # q_i = quadrant_of_pos(pos-center)
+            # quad_mid_vec2 = quadrant_mid_vec2s[q_i]
+            # diagonality = \
+            #     max(0, np.dot(quad_mid_vec2, (pos - center)) - 0.5) * 2.0
+            # rad_f = float(rad) + epsilon + diag * diagonality
+            rad_f = float(rad) + diag_offset
+            rad_f_squared = float(rad**2) + diag_offset**2
+            # ^ only add diagonal offset of pixel *here* (not sqrt(2) always)
             dist = idist(center, pos)
+            # dist_sq = distance_squared_to(center, pos)
+            dist2 = math.sqrt((pos[0]-center[0])**2 + (pos[1]-center[1])**2)
+            manhattan_dist = abs(pos[0] - center[0]) + abs(pos[1] - center[1])
+            # print(pos, "-", center, "=", pos-center, "idist", round(dist, 3), "distance", round(dist2, 3))
             # print("  navigating square {} ({} <= {})".format(pos, dist,
             #                                                  rad))
+            dist = math.dist(center, pos)
+            used = 1
+            # if (not circular) or (dist_sq <= rad_f_squared):
             if (not circular) or (dist <= rad_f):
-                x, y = pos
                 if x < 0:
                     continue
                 if y < 0:
@@ -867,8 +929,9 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
                     continue
                 if y >= h:
                     continue
+                used = dist / rad_f
                 cti.putpixel((x, y), color)
-
+            print('"{},{}": {},'.format(pos[0], pos[1], dist))
 
 def draw_circle_from_center(cti, center, rad, color=None, filled=False):
     """Draw a centered circle

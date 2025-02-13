@@ -108,3 +108,8 @@ How can I make these custom utility classes from an older version using gimpfu c
 - 2025-02-12
 
 Python 3 included in GIMP has no "site" module. How can I do something like: site.getsitepackages()
+
+## channeltinker
+- 2025-02-13
+- This only affects fdist and a few lines of testing (3D etc)
+write some tests for a distance formula called idist that accepts 2 points. Each point is a Python list.

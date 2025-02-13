@@ -111,7 +111,11 @@ class GimpCTI(ChannelTinkerInterface):
     def putpixel(self, pos, rgba):
         # if self._p_len is None:
         #     self._p_len = len(self.getbands())  # Generates _p_len
-        if isinstance(rgba[0], int):
+        if isinstance(rgba, Gegl.Color):
+            color = rgba
+            rgba = None  # color.get_rgba()
+        elif isinstance(rgba[0], int):
+            raise TypeError("Everything should be float now")
             # hex_singles_str = (
             #     "#"
             #     + format(rgba[0] // 16, 'x')
@@ -140,7 +144,7 @@ class GimpCTI(ChannelTinkerInterface):
         #     color.set_rgba(color[0], color[0], color[0], 255)
         # self.drawable.set_pixel(pos[0], pos[1], color)
 
-# Gegl.init(None)
+# Gegl.init(None)  # Here is causes "Warning: Two different plugins tried to register 'gegl_op_average'" on the Gimp.main line at bottom
 
 class ChannelTinker(Gimp.PlugIn):
     __gtype_name__ = "ChannelTinker"
@@ -300,7 +304,7 @@ class ChannelTinker(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR, error)
         else:
             drawable = drawables[0]
-
+        # Gegl.init(None)
         if run_mode == Gimp.RunMode.INTERACTIVE:
             # See https://github.com/GNOME/gimp/blob/095727b0746262bc1cf30e1f1994f81288280edc/plug-ins/python/foggify.py#L33
             GimpUi.init(procedure.get_name())
@@ -449,7 +453,7 @@ class ChannelTinker(Gimp.PlugIn):
         if post_msg:
             msg = ("The image has an even number of pixels, so the current"
                    " drawing function cannot draw exactly centered "
-                   f"{post_msg}.")
+                   "{}.".format(post_msg))
             Gimp.message(msg)
 
         # exists, x1, y1, x2, y2 = drawable.get_selection_bounds()  # Uncomment if needed
