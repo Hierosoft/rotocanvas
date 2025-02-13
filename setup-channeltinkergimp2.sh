@@ -1,4 +1,7 @@
 #!/bin/bash
+VERY_OLD_MODULE_NAME=channeltinkergimp
+MODULE_NAME=channeltinkergimp2
+
 if [ ! -f rotocanvas/__init__.py ]; then
     if [ -d ~/git/rotocanvas ]; then
         cd ~/git/rotocanvas
@@ -13,8 +16,11 @@ fi
 if [ -f ~/.config/GIMP/2.10/plug-ins/channel_tinker.py ]; then
     rm ~/.config/GIMP/2.10/plug-ins/channel_tinker.py || exit $?
 fi
-if [ -f ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py ]; then
-    rm ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py || exit $?
+if [ -f ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py || exit $?
+fi
+if [ -f ~/.config/GIMP/2.10/plug-ins/$VERY_OLD_MODULE_NAME.py ]; then
+    rm ~/.config/GIMP/2.10/plug-ins/$VERY_OLD_MODULE_NAME.py || exit $?
 fi
 if [ -d ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
     if [ -L ~/.config/GIMP/2.10/plug-ins/channel_tinker ]; then
@@ -33,9 +39,9 @@ if [ -d ~/.config/GIMP/2.10/plug-ins/channeltinker ]; then
     fi
 fi
 cp -R channeltinker ~/.config/GIMP/2.10/plug-ins/
-cp channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
-echo "Installed ~/.config/GIMP/2.10/plug-ins/channeltinkergimp.py"
+cp $MODULE_NAME.py ~/.config/GIMP/2.10/plug-ins/
+echo "Installed ~/.config/GIMP/2.10/plug-ins/$MODULE_NAME.py"
 # or
-# ln -s ~/git/rotocanvas/channeltinkergimp.py ~/.config/GIMP/2.10/plug-ins/
+# ln -s ~/git/rotocanvas/$MODULE_NAME.py ~/.config/GIMP/2.10/plug-ins/
 # ln -s ~/git/rotocanvas/channeltinker ~/.config/GIMP/2.10/plug-ins/
 # ls -l ~/.config/GIMP/2.10/plug-ins/channeltinker

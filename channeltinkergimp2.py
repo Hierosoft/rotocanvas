@@ -8,8 +8,18 @@ from __future__ import print_function
 # import sys
 # from itertools import chain
 # import time
+import sys
 
-from gimpfu import *  # by convention, import *
+try:
+    # by convention, import *:
+    from gimpfu import *
+except ImportError:
+    print(
+        "Your version may require python3-gimp or python-gimp,"
+        " but if package is not available, try a newer version"
+        " of channeltinker for Python 3 which is now included"
+        " in GIMP such as 2.10.36", file=sys.stderr)
+    raise
 from channeltinker import (
     # convert_depth,
     # echo1,
