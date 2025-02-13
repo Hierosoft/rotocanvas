@@ -157,10 +157,9 @@ sequence name (such as, if mygreatvideo0000.png is first frame,
 `<sequenceName>` is mygreatvideo) and where the base folder (containing
 `<sequenceName>` folder) is the folder where the images in an image
 sequence are stored:
-
 ```
 <sequenceName> [folder]
-  rotocanvas.yml [not yet implemented]
+  rotocanvas.json [not yet implemented]
   frames [folder]
     <frameNumber> [folder; only exists if frame is a keyframe]
       alpha.png [file where only alpha channel is used (and applied to background upon export)--
@@ -168,19 +167,19 @@ sequence are stored:
       reducing storage use; then alpha is applied]
       layers [folder]
         <layerNumber>.png
-        <layerNumber>.yml [not yet implemented]
+        <layerNumber>.json [not yet implemented]
 ```
-* an older considered method:
+* an older considered method (formerly YAML):
 ```
   Storage Format
   *.rotocanvas folder with L folder under it (Layers folder) where * is base name of sequence (excluding sequential numbering)
   folder for each keyframe containing layer files (whether hand-painted movement frame or actual interpolated keyframe)
-    Each layer has a png file and a yml file
-    YML file specifies:
+    Each layer has a png file and a json file
+    JSON specifies:
     paint_type:  # can be:
       mask (use alpha as final alpha, and ignore colors)
       reveal (any transparent areas reveal background--provides a maximum alpha to all previous layers)
-      plain (just paint--use normal alpha overlay)
+      plain (just paint--use alpha to overlay)
     motion_type:  # can be:
       static (non-interpolated keyframe aka paint)
       interpolated (position[and rotation & scale eventually] interpolated until next)
