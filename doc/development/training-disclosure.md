@@ -128,3 +128,21 @@ Write a tkinter canvas program with File Open menu that opens json files and whe
 Now assume that instead of true and false, there will be a float value from 0 to 1. Create a gray pixel of the value.
 
 Instead of a bunch of rectangles, use a PIL image and set pixel. Add a Save As menu item that opens a file chooser, replaces .json with .png to save default output file path, then confirms to overwrite if file exists.
+
+Here is partial updated save code:
+```
+    if not img:
+        messagebox.showinfo(
+            "Save File", "There is no image."
+        )
+        return
+    initialfile = None
+    if file_path:
+        initialfile = os.path.splitext(file_path)[0] = ".png"
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".png",
+        filetypes=[("PNG files", "*.png")],
+        initialfile=initialfile,
+    )
+```
+. Now make the whole program object-oriented.
