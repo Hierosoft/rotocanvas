@@ -113,3 +113,16 @@ Python 3 included in GIMP has no "site" module. How can I do something like: sit
 - 2025-02-13
 - This only affects fdist and a few lines of testing (3D etc)
 write some tests for a distance formula called idist that accepts 2 points. Each point is a Python list.
+
+## output-reader.py
+Draw this as ascii art:
+
+- paste output from program (commented print line)
+
+Actually use 0 and 1
+
+Write a tkinter canvas program with File Open menu that opens json files and when one is opened, assume it is a dict. First fill the canvas with gray. Iterate the pairs. The key is a string, and should be split by "," to get coordinates, converted to an int pair. If the value is True, draw black at the coordinates, otherwise draw white. Here is an example input file: {
+
+- paste new (partial JSON) output
+
+Now assume that instead of true and false, there will be a float value from 0 to 1. Create a gray pixel of the value.
