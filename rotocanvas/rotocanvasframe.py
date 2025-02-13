@@ -3,7 +3,9 @@ from __future__ import print_function
 import copy
 # import decimal
 # import math
+import json
 import os
+import shutil
 import puremagic
 import sys
 
@@ -42,7 +44,8 @@ try:
     ENABLE_AV = True
     from rotocanvas import rc_av
 except ImportError:
-    pass
+    rc_av = None
+
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.dirname(MODULE_DIR)
 
@@ -59,13 +62,15 @@ from rotocanvas.moremimetypes import (
     path_mimetype,
 )
 
-from rotocanvas import rc_av
+DEFAULT_SETTINGS = {
+    'recent_paths': [],
+}
 
 logger = getLogger(__name__)
 
 
 class ProjectFrame(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, **kwargs):
         self.localeResult = lc.setlocale(lc.LC_ALL, "")
         if self.localeResult == "C":
             lc.setlocale(lc.LC_ALL, "en_US")
@@ -77,8 +82,16 @@ class ProjectFrame(ttk.Frame):
         self.seqPath = tk.StringVar()
         self.frameRate = tk.StringVar()
         self.result = tk.StringVar()
+        self.cols = 5
 
-        ttk.Frame.__init__(self, parent)
+        style = ttk.Style()
+        style.configure("Custom.TFrame", background="darkgray")
+
+        # kwargs['style'] = "Custom.TFrame"
+
+        ttk.Frame.__init__(self, parent, **kwargs)
+
+
         self.menu = tk.Menu(parent)
         self.fileMenu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="File", menu=self.fileMenu)
@@ -86,15 +99,26 @@ class ProjectFrame(ttk.Frame):
         self.fileMenu.add_command(label="Open Video", command=self.askOpen)
         self.fileMenu.add_command(label="Save", command=self.save)
         self.fileMenu.add_command(label="Save As", command=self.saveAs)
-        self.fileMenu.add_command(label="Exit",
-                                  command=self.parent.destroy)
+        self.fileMenu.add_separator()
+        # self.recentPathsIndex = len(self.fileMenu.children)
+        # NOTE: ^ 0 for some reason.
+        self.recentPathsIndex = 4  # FIXME: hard-coded
+        self.loadSettings()
+        recent_paths = self.settings.get("recent_paths")
+        if recent_paths:
+            for path in recent_paths:
+                self.fileMenu.add_command(
+                    label=path,
+                    command=lambda p=path: self.open(p),
+                    # ^ p=path for early binding or all will open last path
+                )
+            self.fileMenu.add_separator()
+        self.fileMenu.add_command(label="Exit", command=self.parent.destroy)
 
         self.prepMenu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Prepare", menu=self.prepMenu)
-        self.prepMenu.add_command(
-            label="Super Resolution (This Frame)",
-            command=self.srFrame
-        )
+        self.prepMenu.add_command(label="Super Resolution (This Frame)",
+                                  command=self.srFrame)
 
         # self.themeMenu = tk.Menu(self.menu, tearoff=0)
         # self.menu.add_cascade(label="Theme", menu=self.themeMenu)
@@ -111,48 +135,45 @@ class ProjectFrame(ttk.Frame):
         parent.config(menu=self.menu)
         self.pack(fill=tk.BOTH, expand=True)
         row = 0
-        ttk.Label(self, text="Sequence:").grid(column=0, row=row,
-                                               sticky=tk.E)
-        ttk.Entry(self, textvariable=self.seqPath).grid(column=1,
-                                                        columnspan=3,
-                                                        row=row,
-                                                        sticky=tk.W)
+        self.seq_label = ttk.Label(self, text="Sequence:")
+        self.seq_label.grid(column=0, row=row, sticky=tk.E)
+        self.seq_entry = ttk.Entry(self, textvariable=self.seqPath)
+        self.seq_entry.grid(column=1, columnspan=self.cols-1, row=row,
+                            sticky=tk.EW)
         row += 1
-        ttk.Label(self, text="Frame Rate:").grid(column=0, row=row,
-                                                 sticky=tk.E)
-        ttk.Entry(self, textvariable=self.frameRate).grid(column=1,
-                                                          columnspan=3,
-                                                          row=row,
-                                                          sticky=tk.W)
+        self.fr_label = ttk.Label(self, text="Frame Rate:")
+        self.fr_label.grid(column=0, row=row, sticky=tk.E)
+        self.fr_entry = ttk.Entry(self, textvariable=self.frameRate)
+        self.fr_entry.grid(column=1, columnspan=self.cols-1, row=row,
+                           sticky=tk.EW)
         self.frameRate.set("60000/1001")
         # Entry width=25, state="readonly"
         row += 1
         self.prev_button = ttk.Button(self, text="<", command=self.prev)
         self.prev_button.grid(column=0, row=row, sticky=tk.W)
-        self.play_button = ttk.Button(self, text="Play",
-                                      command=self.play)
-        self.play_button.grid(column=1, row=row, sticky=tk.E)
+        self.play_button = ttk.Button(self, text="Play", command=self.play)
+        self.play_button.grid(column=2, row=row, sticky=tk.EW)
         self.next_button = ttk.Button(self, text=">", command=self.next)
-        self.next_button.grid(column=2, row=row, sticky=tk.E)
+        self.next_button.grid(column=self.cols-1, row=row, sticky=tk.E)
         row += 1
         # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
         # exitBtn.grid(column=2, row=row, sticky=tk.W)
         # row += 1
 
-        self.canvas = tk.Canvas(self)
-        self.canvas.grid(
-            column=0,
-            row=row,
-            sticky=tk.W + tk.E,
-            columnspan=3
-        )
+        self.canvas_frame = ttk.Frame(self, style="Custom.TFrame")
+        # self.canvas = tk.Canvas(self)
+        # self.canvas.grid(column=0, row=row, sticky=tk.NSEW,
+        #                  columnspan=self.cols)
+        self.canvas_frame.grid(column=0, row=row, sticky=tk.NSEW,
+                               columnspan=self.cols)
+        self.canvas = tk.Canvas(self.canvas_frame)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas_row = row
         row += 1
 
         # ttk.Label(self, text="Status: ").grid(column=0, row=row, sticky=tk.E)
-        resultE = ttk.Entry(self, textvariable=self.result,
-                            state="readonly")
-        resultE.grid(column=0, columnspan=4, row=row,
-                     sticky=tk.E + tk.W)
+        resultE = ttk.Entry(self, textvariable=self.result, state="readonly")
+        resultE.grid(column=0, columnspan=self.cols, row=row, sticky=tk.EW)
         # grid sticky=tk.W
         row += 1
 
@@ -164,6 +185,68 @@ class ProjectFrame(ttk.Frame):
         self.project = RCProject()
         self.titleFmt = "RotoCanvas - {}"
         root.title(self.titleFmt.format(self.project.path))
+
+        # weight=1 allows widget to expand:
+        for i in range(self.cols):
+            if i == 0 or i == self.cols - 1:
+                self.columnconfigure(i, weight=0)
+            else:
+                self.columnconfigure(i, weight=1)
+
+        for i in range(row):  # 'row' holds the last used row index
+            if i == self.canvas_row:
+                self.rowconfigure(i, weight=1)  # weight=1 to expand
+            else:
+                self.rowconfigure(i, weight=0)
+
+    def configsPath(self):
+        confs_dir = os.path.join(sysdirs['APPDATA'], "rotocanvas")
+        if not os.path.isdir(confs_dir):
+            os.makedirs(confs_dir)
+        return confs_dir
+
+    def configPath(self):
+        return os.path.join(self.configsPath(), "settings.json")
+
+    def addRecent(self, path):
+        if path in self.settings['recent_paths']:
+            self.settings['recent_paths'].remove(path)
+            self.fileMenu.delete(path)
+        self.fileMenu.insert(
+            self.recentPathsIndex,
+            'command',
+            label=path,
+            command=lambda p=path: self.open(p),
+        )
+        if not self.settings['recent_paths']:
+            # If it is the first one, add a separator.
+            self.fileMenu.insert_separator(
+                self.recentPathsIndex + 1,
+            )
+        self.settings['recent_paths'].insert(0, path)
+
+    def loadSettings(self):
+        path = self.configPath()
+        loaded = False
+        if os.path.isfile(path):
+            with open(path, 'r') as stream:
+                settings = json.load(stream)
+                loaded = True
+        else:
+            settings = {}
+        self.settings = copy.deepcopy(DEFAULT_SETTINGS)
+        for key, value in settings.items():
+            self.settings[key] = value
+        return loaded
+
+    def saveSettings(self):
+        path = self.configPath()
+        tmp = path + ".tmp"
+        with open(tmp, 'w') as stream:
+            json.dump(self.settings, stream)
+        if os.path.isfile(path):
+            os.remove(path)
+        shutil.move(tmp, path)
 
     def setTheme(self, name):
         self.parent.style.theme_use(name)
@@ -239,7 +322,8 @@ class ProjectFrame(ttk.Frame):
                     self.photo = ImageTk.PhotoImage(file=path)
                     results['category'] = "image"
                 except PIL.UnidentifiedImageError:
-                    # arst
+                    raise
+                    raise NotImplementedError()
                     # self.photo = ImageTk.PhotoImage()
                     results['category'] = "video"
             else:
@@ -264,6 +348,7 @@ class ProjectFrame(ttk.Frame):
             else:
                 logger.error("PIL is not enabled.")
                 raise
+        return results
 
     def onLoadProgress(self, event_d):
         ratio = event_d.get('ratio')
@@ -285,7 +370,9 @@ class ProjectFrame(ttk.Frame):
             # See analyze_video in docs/development
             # Generate a picture (or use canvas directly?) to show video.
         else:
-            raise RuntimeError("Only PyAV is implemented (not pyav) but av is not detected/enabled.")
+            raise RuntimeError(
+                "Only PyAV is implemented (not pyav)"
+                " but av is not detected/enabled.")
         return results
 
     def showFrame(self, frame_number):
@@ -315,16 +402,19 @@ class ProjectFrame(ttk.Frame):
         self.clearCanvas()
         self.image_instruction = \
             self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
-        raise NotImplementedError(
-            "self.image_instruction={}({})"
-            .format(type(self.image_instruction).__name__,
-                    self.image_instruction))
+        # self.image_instruction example: int(1)
+        # raise NotImplementedError(
+        #     "self.image_instruction={}({})"
+        #     .format(type(self.image_instruction).__name__,
+        #             self.image_instruction))
 
     def open(self, path, results_template=None):
         results = make_real(results_template)
         # self.project.open(path)
         self.project.addVideo(path, self.frameRate.get())
         self.seqPath.set(path)
+        self.addRecent(path)
+        self.saveSettings()
         self.clearCanvas()
         try:
             file_info = puremagic.from_file(path)
@@ -384,6 +474,8 @@ def main():
             demo_link = os.path.join(REPO_DIR, "video.mp4")
             if not os.path.islink(demo_link):
                 os.symlink(demo_path, demo_link)
+            if not ENABLE_AV and demo_path.lower().endswith(".mp4"):
+                continue
             root.after(0, frame.open, demo_path)
             break
     root.mainloop()
