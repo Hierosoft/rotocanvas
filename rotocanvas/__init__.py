@@ -5,6 +5,8 @@ import os
 import platform
 import sys
 
+from channeltinker import set_configs_dir
+
 # region same as hierosoft/__init__.py
 
 
@@ -87,6 +89,8 @@ del HOME
 sysdirs.readonly()
 
 # endregion same as hierosoft/__init__.py
+
+set_configs_dir(os.path.join(sysdirs['APPDATA'], "rotocanvas"))
 
 verbosity_levels = {
     0: 50,  # CRITICAL

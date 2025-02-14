@@ -5,6 +5,7 @@ on a specific library.
 """
 from __future__ import print_function
 from __future__ import division
+import json
 import os
 import math
 try:
@@ -13,6 +14,18 @@ except ImportError:
     import channeltinker.nonumpy as np
 import sys
 import platform
+
+_draw_square_dump = None
+_square_dump_name = "draw_square_dump.json"
+last_square_dump_path = ""
+
+configs_dir = None
+
+def set_configs_dir(path):
+    global configs_dir
+    configs_dir = path
+    if not os.path.isdir(configs_dir):
+        os.makedirs(configs_dir)
 
 name_fmt0 = "{}-{}-vs-{}.png"
 name_fmt1 = "diffimage {}.png"
@@ -852,12 +865,36 @@ def find_opaque_pos(cti, center, good_minimum=1.0, max_rad=None,
     return None
 
 
+def save_draw_square_dump():
+    global last_square_dump_path
+    if _draw_square_dump is None:
+        raise RuntimeError(
+            "There is no square drawn yet."
+            " Call draw_square_from_center first."
+        )
+    if not configs_dir:
+        try_path = os.path.expanduser("~/git/rotocanvas")
+        if os.path.isdir(try_path):
+            set_configs_dir(try_path)
+    path = _square_dump_name
+    if configs_dir:
+        path = os.path.join(configs_dir, _square_dump_name)
+    elif last_square_dump_path:
+        path = last_square_dump_path
+    with open(path, "w") as stream:
+        json.dump(_draw_square_dump, stream)
+    last_square_dump_path = os.path.realpath(path)
+    print("Saved {}".format(repr(last_square_dump_path)))
+
+
 def draw_square_from_center(cti, center, rad, color=None, filled=False,
                             circular=False):
     """Draw a square centered within the image.
     Args:
         cti (Union(Image,ChannelTinkerInterface)): Original image.
     """
+    global _draw_square_dump
+    _draw_square_dump = {}
     # Get any available pixel, to get p_len:
     # p_len = len(cti.getbands())
     # pixel = cti.getpixel(0, 0)
@@ -898,40 +935,45 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
     center = np.array(center)
     print("using radii={}".format(radii))
     # rad_f_squared = float(rad) ** 2
+    c_x = float(center[0])
+    c_y = float(center[1])
     for rad in radii:
+        good_rad = float(rad)
         # rad_f = float(rad) + epsilon + diag * 2  # +1px diagonal for coverage
         for pos in square_gen(center, rad):
             x, y = pos
-            # q_i = quadrant_of_pos(pos-center)
-            # quad_mid_vec2 = quadrant_mid_vec2s[q_i]
-            # diagonality = \
-            #     max(0, np.dot(quad_mid_vec2, (pos - center)) - 0.5) * 2.0
-            # rad_f = float(rad) + epsilon + diag * diagonality
-            rad_f = float(rad) + diag_offset
-            rad_f_squared = float(rad**2) + diag_offset**2
-            # ^ only add diagonal offset of pixel *here* (not sqrt(2) always)
-            dist = idist(center, pos)
-            # dist_sq = distance_squared_to(center, pos)
-            dist2 = math.sqrt((pos[0]-center[0])**2 + (pos[1]-center[1])**2)
-            manhattan_dist = abs(pos[0] - center[0]) + abs(pos[1] - center[1])
-            # print(pos, "-", center, "=", pos-center, "idist", round(dist, 3), "distance", round(dist2, 3))
-            # print("  navigating square {} ({} <= {})".format(pos, dist,
-            #                                                  rad))
-            dist = math.dist(center, pos)
-            used = 1
-            # if (not circular) or (dist_sq <= rad_f_squared):
-            if (not circular) or (dist <= rad_f):
-                if x < 0:
+            if x < 0 or y < 0 or x >= w or y >= h:
+                continue
+            # # q_i = quadrant_of_pos(pos-center)
+            # # quad_mid_vec2 = quadrant_mid_vec2s[q_i]
+            # # diagonality = \
+            # #     max(0, np.dot(quad_mid_vec2, (pos - center)) - 0.5) * 2.0
+            # # rad_f = float(rad) + epsilon + diag * diagonality
+            # rad_f = float(rad) + diag_offset
+            # rad_f_squared = float(rad**2) + diag_offset**2
+            # # ^ only add diagonal offset of pixel *here* (not sqrt(2) always)
+            # dist = idist(center, pos)
+            # # dist_sq = distance_squared_to(center, pos)
+            # dist2 = math.sqrt((pos[0]-center[0])**2 + (pos[1]-center[1])**2)
+            # manhattan_dist = abs(pos[0] - center[0]) + abs(pos[1] - center[1])
+            # # print(pos, "-", center, "=", pos-center, "idist", round(dist, 3), "distance", round(dist2, 3))
+            # # print("  navigating square {} ({} <= {})".format(pos, dist,
+            # #                                                  rad))
+            # # dist = math.dist(center, pos)
+            # used = 1
+            # # if (not circular) or (dist_sq <= rad_f_squared):
+            # dist = 0
+            dist = math.sqrt((x - c_x)**2 + (y - c_y)**2)
+            if circular:
+                if dist > good_rad:
+                    _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
                     continue
-                if y < 0:
-                    continue
-                if x >= w:
-                    continue
-                if y >= h:
-                    continue
-                used = dist / rad_f
-                cti.putpixel((x, y), color)
-            print('"{},{}": {},'.format(pos[0], pos[1], dist))
+            # if (not circular) or (dist <= rad_f):
+            #     used = dist / rad_f
+            cti.putpixel((x, y), color)
+            _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
+    save_draw_square_dump()
+
 
 def draw_circle_from_center(cti, center, rad, color=None, filled=False):
     """Draw a centered circle

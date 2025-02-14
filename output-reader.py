@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
+from channeltinker import last_square_dump_path
+
 class JSONCanvasApp:
     def __init__(self, root):
         self.root = root
@@ -27,7 +29,13 @@ class JSONCanvasApp:
         self.current_file = None
 
     def open_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
+        initialdir = None
+        if os.path.isfile(last_square_dump_path):
+            initialdir = os.path.dirname(last_square_dump_path)
+        file_path = filedialog.askopenfilename(
+            filetypes=[("JSON files", "*.json")],
+            initialdir=initialdir,
+        )
         if not file_path:
             return
 
@@ -49,7 +57,7 @@ class JSONCanvasApp:
                 gray_value = int(value / max_value * 255)
                 self.img.putpixel((x, y), (gray_value, gray_value, gray_value))
             except ValueError:
-                print(f"Skipping invalid key: {key}")
+                print("Skipping invalid key: {}".format(key))
 
         self.tk_img = ImageTk.PhotoImage(self.img.resize((400, 400), Image.NEAREST))
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_img)
@@ -78,7 +86,7 @@ class JSONCanvasApp:
                 return
 
         self.img.save(file_path, "PNG")
-        messagebox.showinfo("Save File", f"Image saved as {file_path}")
+        # messagebox.showinfo("Save File", f"Image saved as {file_path}")
 
 if __name__ == "__main__":
     root = tk.Tk()

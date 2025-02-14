@@ -135,3 +135,5 @@ dmypy.json
 /.vscode/settings.json
 # ^ settings.json is ignored since may have machine-specific setting such as {"python.defaultInterpreterPath": "/home/user/.virtualenvs/kivy/bin/python"} (recommended). See settings.json.example.
 /video.mp4
+/draw_square_dump.json
+/draw_square_dump.png

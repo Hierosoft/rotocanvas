@@ -200,10 +200,12 @@ class ProjectFrame(ttk.Frame):
                 self.rowconfigure(i, weight=0)
 
     def configsPath(self):
-        confs_dir = os.path.join(sysdirs['APPDATA'], "rotocanvas")
-        if not os.path.isdir(confs_dir):
-            os.makedirs(confs_dir)
-        return confs_dir
+        configs_dir = os.path.join(sysdirs['APPDATA'], "rotocanvas")
+        # See also set_configs_dir (sysdirs sets it for channeltinker
+        #   only if rotocanvas is running it not GIMP running it)
+        if not os.path.isdir(configs_dir):
+            os.makedirs(configs_dir)
+        return configs_dir
 
     def configPath(self):
         return os.path.join(self.configsPath(), "settings.json")
