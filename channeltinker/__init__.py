@@ -933,8 +933,8 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
         np.array([diag_offset, diag_offset], dtype=np.float64),
     )
     center = np.array(center)
-    print("using radii={}".format(radii))
-    # rad_f_squared = float(rad) ** 2
+    # print("using radii={}".format(radii))
+    rad_f_squared = float(rad) ** 2
     c_x = float(center[0])
     c_y = float(center[1])
     largest_rad = float(rad)
@@ -953,19 +953,22 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
             # rad_f = float(rad) + diag_offset
             # rad_f_squared = float(rad**2) + diag_offset**2
             # # ^ only add diagonal offset of pixel *here* (not sqrt(2) always)
-            # dist = idist(center, pos)
+            # dist = idist(center, pos)  # also works
             # # dist_sq = distance_squared_to(center, pos)
             # dist2 = math.sqrt((pos[0]-center[0])**2 + (pos[1]-center[1])**2)
             # manhattan_dist = abs(pos[0] - center[0]) + abs(pos[1] - center[1])
+            # manhattan_dist = abs(x - center[0]) + abs(y - center[1])  # doesn't help (tried comparing to rad_f_squared)
             # # print(pos, "-", center, "=", pos-center, "idist", round(dist, 3), "distance", round(dist2, 3))
             # # print("  navigating square {} ({} <= {})".format(pos, dist,
             # #                                                  rad))
-            # # dist = math.dist(center, pos)
+            dist = math.dist(center, pos)  # Use theirs for speed
             # used = 1
             # # if (not circular) or (dist_sq <= rad_f_squared):
             # dist = 0
-            dist = math.sqrt((x - c_x)**2 + (y - c_y)**2)
+            # dist = math.sqrt((x - c_x)**2 + (y - c_y)**2)
+            # dist = math.sqrt((x - center[0])**2 + (y - center[1])**2)
             if circular:
+                # if manhattan_dist > rad_f_squared:
                 if dist > rad_f:
                     if dump:
                         _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
