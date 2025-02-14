@@ -888,7 +888,7 @@ def save_draw_square_dump():
 
 
 def draw_square_from_center(cti, center, rad, color=None, filled=False,
-                            circular=False):
+                            circular=False, dump=False):
     """Draw a square centered within the image.
     Args:
         cti (Union(Image,ChannelTinkerInterface)): Original image.
@@ -967,13 +967,16 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
             dist = math.sqrt((x - c_x)**2 + (y - c_y)**2)
             if circular:
                 if dist > rad_f:
-                    _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
+                    if dump:
+                        _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
                     continue
             # if (not circular) or (dist <= rad_f):
             #     used = dist / rad_f
             cti.putpixel((x, y), color)
-            _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
-    save_draw_square_dump()
+            if dump:
+                _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
+    if dump:
+        save_draw_square_dump()
 
 
 def draw_circle_from_center(cti, center, rad, color=None, filled=False):
