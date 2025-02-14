@@ -937,18 +937,19 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
     # rad_f_squared = float(rad) ** 2
     c_x = float(center[0])
     c_y = float(center[1])
+    largest_rad = float(rad)
     for rad in radii:
-        good_rad = float(rad)
         # rad_f = float(rad) + epsilon + diag * 2  # +1px diagonal for coverage
         for pos in square_gen(center, rad):
             x, y = pos
             if x < 0 or y < 0 or x >= w or y >= h:
                 continue
-            # # q_i = quadrant_of_pos(pos-center)
-            # # quad_mid_vec2 = quadrant_mid_vec2s[q_i]
-            # # diagonality = \
-            # #     max(0, np.dot(quad_mid_vec2, (pos - center)) - 0.5) * 2.0
-            # # rad_f = float(rad) + epsilon + diag * diagonality
+            rad_f = largest_rad + .5
+            # q_i = quadrant_of_pos(pos-center)
+            # quad_mid_vec2 = quadrant_mid_vec2s[q_i]
+            # diagonality = \
+            #     max(0, np.dot(quad_mid_vec2, (pos - center)) - 0.5) * 2.0
+            # rad_f = float(largest_rad) + epsilon + diag * diagonality
             # rad_f = float(rad) + diag_offset
             # rad_f_squared = float(rad**2) + diag_offset**2
             # # ^ only add diagonal offset of pixel *here* (not sqrt(2) always)
@@ -965,7 +966,7 @@ def draw_square_from_center(cti, center, rad, color=None, filled=False,
             # dist = 0
             dist = math.sqrt((x - c_x)**2 + (y - c_y)**2)
             if circular:
-                if dist > good_rad:
+                if dist > rad_f:
                     _draw_square_dump['{},{}'.format(pos[0], pos[1])] = dist
                     continue
             # if (not circular) or (dist <= rad_f):
