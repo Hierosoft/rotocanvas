@@ -97,11 +97,17 @@ class RCSettings:
     def assertOpenCV(self):
         if not self._enable_opencv:
             if not os.path.isfile(self.thisPython):
-                raise RuntimeError(_opencv_tip)
+                raise AssertionError(_opencv_tip)
+
+    def opencv_enabled(self):
+        return self._enable_opencv
 
 
 settings = RCSettings()
 
-_opencv_tip = ("You must first install opencv-python available to {}"
-               " or in a virtual environment"
-               " at {}".format(sys.executable, settings.thisPython))
+_opencv_tip = (
+    "You must first install opencv-python available to {}"
+    " or in a virtual environment"
+    " at {} (Then restart the program)"
+    .format(sys.executable, settings.thisPython)
+)

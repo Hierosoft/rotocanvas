@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from collections import OrderedDict
 import copy
 # import decimal
 # import math
@@ -20,7 +21,7 @@ if sys.version_info.major >= 3:
         askopenfilename,
         asksaveasfilename,
     )
-    # import tkinter.messagebox as messagebox
+    import tkinter.messagebox as messagebox
 else:  # Python 2
     import Tkinter as tk  # type: ignore
     import ttk  # type: ignore
@@ -28,7 +29,7 @@ else:  # Python 2
         askopenfilename,
         asksaveasfilename,
     )
-    # import tkMessageBox as messagebox
+    import tkMessageBox as messagebox
 
 ENABLE_PIL = False
 try:
@@ -56,6 +57,9 @@ from rotocanvas import (
     sysdirs,
     make_real,
 )
+
+from rotocanvas.morelogging import formatted_ex
+from rotocanvas.rcnewfileframe import NewFileFrame
 from rotocanvas.rcproject import RCProject  # noqa: E402
 from rotocanvas.moremimetypes import (
     # dot_ext_mimetype,
@@ -68,6 +72,28 @@ DEFAULT_SETTINGS = {
 
 logger = getLogger(__name__)
 
+options_setting_types = OrderedDict(
+    name={
+        'caption': "Name",
+        'cast_fn': str,
+    },
+    width={
+        'caption': "Width",
+        'cast_fn': int,
+        'min': 1,
+        'max': 9000,
+        'default': 800,
+        'unit': "px",
+    },
+    height={
+        'caption': "Height",
+        'cast_fn': int,
+        'min': 1,
+        'max': 9000,
+        'default': 800,
+        'unit': "px",
+    },
+)
 
 class ProjectFrame(ttk.Frame):
     def __init__(self, parent, **kwargs):
@@ -75,8 +101,11 @@ class ProjectFrame(ttk.Frame):
         if self.localeResult == "C":
             lc.setlocale(lc.LC_ALL, "en_US")
         # example: moneyStr = lc.currency(amount, grouping=True)
+        self.dialog = None
         self.parent = parent
-        root = self.parent
+        self.root = self.parent
+        if hasattr(self.parent, 'root'):
+            self.root = self.parent.root
         self.photo = None
         self.image_instruction = None
         self.seqPath = tk.StringVar()
@@ -90,19 +119,28 @@ class ProjectFrame(ttk.Frame):
         # kwargs['style'] = "Custom.TFrame"
 
         ttk.Frame.__init__(self, parent, **kwargs)
+        # Subclassing ttk.Notebook in top fails, no tabs
+        # ttk.Notebook.__init__(self, parent, **kwargs)
+        self.project = RCProject()
+        self._gui(parent)
 
+    def _gui(self, container):
+        self.titleFmt = "RotoCanvas - {}"
+        self.root.title(self.titleFmt.format(self.project.path))
 
-        self.menu = tk.Menu(parent)
+        self.menu = tk.Menu(self.root)
         self.fileMenu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="File", menu=self.fileMenu)
 
+        self.fileMenu.add_command(label="New Project", command=self.askNew)
         self.fileMenu.add_command(label="Open Video", command=self.askOpen)
         self.fileMenu.add_command(label="Save", command=self.save)
         self.fileMenu.add_command(label="Save As", command=self.saveAs)
+        # self.recentPathsIndex = len(self.fileMenu.children)
+        self.recentPathsIndex = 5  # FIXME: hard-coded since children not ready
         self.fileMenu.add_separator()
         # self.recentPathsIndex = len(self.fileMenu.children)
         # NOTE: ^ 0 for some reason.
-        self.recentPathsIndex = 4  # FIXME: hard-coded
         self.loadSettings()
         recent_paths = self.settings.get("recent_paths")
         if recent_paths:
@@ -132,35 +170,47 @@ class ProjectFrame(ttk.Frame):
         #   systems, all of them (clam, alt, default, classic) are all
         #   the same, like motif (thick "3D" edges like Windows 3.1)
 
-        parent.config(menu=self.menu)
+        self.root.config(menu=self.menu)
         self.pack(fill=tk.BOTH, expand=True)
+
+        top_frame = self
+        self.notebook = ttk.Notebook(top_frame)
+        self.canvas_tab = ttk.Frame(self.notebook)
+        self.options_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.canvas_tab, text="Canvas")
+        self.canvas_tab_id = len(self.notebook.children) - 1
+        self.notebook.add(self.options_tab, text="Options")
+        self.options_tab_id = len(self.notebook.children) - 1
+        # self.notebook.pack(fill=tk.BOTH, expand=True)
+        container = self.canvas_tab
+
         row = 0
-        self.seq_label = ttk.Label(self, text="Sequence:")
+        self.seq_label = ttk.Label(container, text="Sequence:")
         self.seq_label.grid(column=0, row=row, sticky=tk.E)
-        self.seq_entry = ttk.Entry(self, textvariable=self.seqPath)
+        self.seq_entry = ttk.Entry(container, textvariable=self.seqPath)
         self.seq_entry.grid(column=1, columnspan=self.cols-1, row=row,
                             sticky=tk.EW)
         row += 1
-        self.fr_label = ttk.Label(self, text="Frame Rate:")
+        self.fr_label = ttk.Label(container, text="Frame Rate:")
         self.fr_label.grid(column=0, row=row, sticky=tk.E)
-        self.fr_entry = ttk.Entry(self, textvariable=self.frameRate)
+        self.fr_entry = ttk.Entry(container, textvariable=self.frameRate)
         self.fr_entry.grid(column=1, columnspan=self.cols-1, row=row,
                            sticky=tk.EW)
         self.frameRate.set("60000/1001")
         # Entry width=25, state="readonly"
         row += 1
-        self.prev_button = ttk.Button(self, text="<", command=self.prev)
+        self.prev_button = ttk.Button(container, text="<", command=self.prev)
         self.prev_button.grid(column=0, row=row, sticky=tk.W)
-        self.play_button = ttk.Button(self, text="Play", command=self.play)
+        self.play_button = ttk.Button(container, text="Play", command=self.play)
         self.play_button.grid(column=2, row=row, sticky=tk.EW)
-        self.next_button = ttk.Button(self, text=">", command=self.next)
+        self.next_button = ttk.Button(container, text=">", command=self.next)
         self.next_button.grid(column=self.cols-1, row=row, sticky=tk.E)
         row += 1
         # exitBtn = ttk.Button(self, text="Exit", command=root.destroy)
         # exitBtn.grid(column=2, row=row, sticky=tk.W)
         # row += 1
 
-        self.canvas_frame = ttk.Frame(self, style="Custom.TFrame")
+        self.canvas_frame = ttk.Frame(container, style="Custom.TFrame")
         # self.canvas = tk.Canvas(self)
         # self.canvas.grid(column=0, row=row, sticky=tk.NSEW,
         #                  columnspan=self.cols)
@@ -172,8 +222,9 @@ class ProjectFrame(ttk.Frame):
         row += 1
 
         # ttk.Label(self, text="Status: ").grid(column=0, row=row, sticky=tk.E)
-        resultE = ttk.Entry(self, textvariable=self.result, state="readonly")
-        resultE.grid(column=0, columnspan=self.cols, row=row, sticky=tk.EW)
+        resultE = ttk.Entry(self.root, textvariable=self.result, state="readonly")
+        # resultE.grid(column=0, columnspan=self.cols, row=row, sticky=tk.EW)
+        resultE.pack(fill=tk.X, expand=True)
         # grid sticky=tk.W
         row += 1
 
@@ -181,10 +232,6 @@ class ProjectFrame(ttk.Frame):
             child.grid_configure(padx=6, pady=3)
         # self.prev_button['state'] = tk.DISABLED
         # self.next_button['state'] = tk.DISABLED
-
-        self.project = RCProject()
-        self.titleFmt = "RotoCanvas - {}"
-        root.title(self.titleFmt.format(self.project.path))
 
         # weight=1 allows widget to expand:
         for i in range(self.cols):
@@ -198,6 +245,9 @@ class ProjectFrame(ttk.Frame):
                 self.rowconfigure(i, weight=1)  # weight=1 to expand
             else:
                 self.rowconfigure(i, weight=0)
+
+    def set_status(self, message):
+        self.result.set(message)
 
     def configsPath(self):
         configs_dir = os.path.join(sysdirs['APPDATA'], "rotocanvas")
@@ -263,17 +313,22 @@ class ProjectFrame(ttk.Frame):
         pass
 
     def srFrame(self):
-        video = self.project._videos[self.seqPath.get()]
-        video.superResolutionAI(
-            onlyTimes=None,
-            forceRatio=None,
-            outFmt="png",
-            qscale_v=2,
-            minDigits=None,
-            preserveDim=1,
-            organizeMode=0,
-            onlyFrames=None
-        )
+        try:
+            video = self.project._videos[self.seqPath.get()]
+            video.superResolutionAI(
+                onlyTimes=None,
+                forceRatio=None,
+                outFmt="png",
+                qscale_v=2,
+                minDigits=None,
+                preserveDim=1,
+                organizeMode=0,
+                onlyFrames=None
+            )
+        except AssertionError as ex:
+            messagebox.showerror("Super Resolution", ex)
+        except Exception as ex:
+            messagebox.showerror("Super Resolution", formatted_ex(ex))
 
     def saveAs(self):
         path = asksaveasfilename(
@@ -290,6 +345,33 @@ class ProjectFrame(ttk.Frame):
         saveError = self.project.save()
         if saveError is not None:
             self.result.set(saveError)
+
+    def askNew(self):
+        if self.dialog:
+            return
+        self.dialog = NewFileFrame(
+            self.options_tab,
+            options_setting_types,
+            self.onCreated,
+        )
+        self.dialog.pack()
+        # self.dialog.attributes('-topmost', True)
+        self.notebook.select(self.options_tab_id)
+
+    def onCreated(self, event_d):
+        # Done unless 'error" is set.
+        cancel = event_d.get('cancel')
+        if cancel:
+            return
+        error = event_d.get('error')
+        if error:
+            self.set_status(error)
+            return
+        self.set_status("Not yet implemented.")
+        self.notebook.select(0)
+        # raise NotImplementedError(event_d)
+        self.dialog.pack_forget()
+        self.dialog = None
 
     def askOpen(self):
         startIn = RCProject.VIDEOS
@@ -478,7 +560,7 @@ def main():
                 os.symlink(demo_path, demo_link)
             if not ENABLE_AV and demo_path.lower().endswith(".mp4"):
                 continue
-            root.after(0, frame.open, demo_path)
+            root.after(10, frame.open, demo_path)
             break
     root.mainloop()
     project.stop()
