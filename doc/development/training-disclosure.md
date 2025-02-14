@@ -114,6 +114,69 @@ Python 3 included in GIMP has no "site" module. How can I do something like: sit
 - This only affects fdist and a few lines of testing (3D etc)
 write some tests for a distance formula called idist that accepts 2 points. Each point is a Python list.
 
+turn this pseudocode into python: this_diag = (max(0, dot(quadrant_diagonal_vec2, (pos-center)) - .5) * 2.0)
+
+how would I make float NumPy vec2 arrays pos and center, as well as quadrant_diagonal_vec2 normalized from (1, 1)?
+
+
+### nonumpy
+- 2025-02-13
+- 609de7db47a546543318e90d89774e6ab9d09631
+
+implement vector normalization like: class linalg:
+    @staticmethod
+    def norm(vec):
+
+Also create a __truediv__ method to implement vector division.
+
+Also implement vector on vector division such as can be used like:
+```
+quadrant_diagonal_vec2 /= np.linalg.norm(quadrant_diagonal_vec2)  # Normalize
+    nn_quadrant_diagonal_vec2 /= linalg.norm(nn_quadrant_diagonal_vec2)  # Normalize
+
+    assertAllEqual(quadrant_diagonal_vec2, nn_quadrant_diagonal_vec2)
+```
+. Here is where to put your implementation:
+```
+class array(list):
+    def __init__(self, values, dtype=float64):
+        list.__init__(self)
+        self += values
+```
+
+The following test:
+- paste original version of test_array_and_norm (originally in module itself using `if __name__ == "__main__":`)
+fails with:
+```Python
+Traceback (most recent call last):
+  File "/home/owner/git/rotocanvas/channeltinker/nonumpy.py", line 79, in <module>
+    assertAllEqual(quadrant_diagonal_vec2, nn_quadrant_diagonal_vec2)
+  File "/home/owner/git/rotocanvas/channeltinker/nonumpy.py", line 50, in assertAllEqual
+    assert a_vec[i] == b_vec[i], "{} != {}".format(a_vec, b_vec)
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: [0.70710678 0.70710678] != [1.4142135623730951, 1.4142135623730951]
+(.venv) owner@roamtop:~/git/rotocanvas$ /home/owner/git/rotocanvas/.venv/bin/python /home/owner/git/rotocanvas/channeltinker/nonumpy.py
+Traceback (most recent call last):
+  File "/home/owner/git/rotocanvas/channeltinker/nonumpy.py", line 79, in <module>
+    assertAllEqual(quadrant_diagonal_vec2, nn_quadrant_diagonal_vec2)
+  File "/home/owner/git/rotocanvas/channeltinker/nonumpy.py", line 50, in assertAllEqual
+    assert a_vec[i] == b_vec[i], "{}[{}] != {}[{}]".format(a_vec, i, b_vec, i)
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: [0.70710678 0.70710678][0] != [1.4142135623730951, 1.4142135623730951][0]
+```
+because you return a list from norm. Fix norm. Numpy's returns 1.4142135623730951 and yours returns [0.7071067811865475, 0.7071067811865475]
+
+You still return array, stop doing that.
+
+Fix norm so it returns a magnitude like numpy does, but only use Python's builtin modules such as math, not numpy itself:
+- paste old version of class linalg partially made from code generated above other than class and __init__
+
+Here is the documentation:
+- Paste https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html contents
+
+Now implement dot for it. Here is the documentation:
+- Paste https://numpy.org/doc/stable/reference/generated/numpy.dot.html contents
+
 ## output-reader.py
 Draw this as ascii art:
 
@@ -146,3 +209,4 @@ Here is partial updated save code:
     )
 ```
 . Now make the whole program object-oriented.
+
