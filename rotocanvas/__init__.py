@@ -7,6 +7,33 @@ import sys
 
 from channeltinker import set_configs_dir
 
+# region based on backupnow/__init__.py
+
+MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
+ASSETS_DIR = os.path.join(MODULE_DIR, "assets")
+
+SEARCH_DIRS = {
+    ASSETS_DIR: "License: See readme.md",
+    os.path.join(ASSETS_DIR, "icons"): "License: See readme.md",
+    os.path.join(ASSETS_DIR, "icons", "md"): (
+        "Assets here use [Pictogrammers Free License]"
+        "(https://github.com/Templarian/MaterialDesign"
+        "/tree/master?tab=License-1-ov-file#readme)"
+    ),
+}
+
+
+def find_resource(name):
+    if os.path.exists(name):
+        return os.path.realpath(name)
+    for parent in SEARCH_DIRS:
+        sub_path = os.path.join(parent, name)
+        if os.path.exists(sub_path):
+            return sub_path
+    return None
+
+# endregion based on backupnow/__init__.py
+
 # region same as hierosoft/__init__.py
 
 
@@ -212,6 +239,7 @@ def echo4(*args, **kwargs):
 
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
+# REPO_DIR = os.path.dirname(MODULE_DIR)
 ASSETS_DIR = os.path.join(MODULE_DIR, "assets")
 BRUSH_IMAGES_DIR = os.path.join(ASSETS_DIR, "brushes")
 if not os.path.isdir(BRUSH_IMAGES_DIR):

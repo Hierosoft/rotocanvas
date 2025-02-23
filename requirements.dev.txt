@@ -1,0 +1,4 @@
+-r requirements.txt
+av
+numpy
+cairosvg
