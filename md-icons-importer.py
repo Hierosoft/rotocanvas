@@ -142,6 +142,17 @@ class IconSearchApp(App):
         self.status_var = message
         self.status_entry.value = message
 
+    def search_if(self):
+        if self.status_entry.value != self._results_of:
+            # FIX: self.stop_load_images_sync()  # stuck at 0 (race condition?)
+            # Try again. Must have typed during search.
+            # self._cancel_loading = True
+            # time.sleep(.1)  # wait for load_images thread just a little.
+            # ^ also messes things up (images don't load)
+            #   since search_if is called directly after
+            #   search starts the image loading thread.
+            self.on_search_entry_changed()
+
     def on_search_entry_changed(self):
         if self.search_thread is not None:
             print("search thread is busy: {:.0%}  ".format(self.ratio))
@@ -312,6 +323,7 @@ class IconSearchApp(App):
         print("Done search_thread")
         self.ratio = 0
         self.search_thread = None
+        self.after(0, self.search_if)
         return
 
     def import_image(self, result):
@@ -376,6 +388,10 @@ class IconSearchApp(App):
                 command=lambda r=result: self.import_image(r),
                 # borderwidth=0,
             )
+            if self._cancel_loading:
+                sys.stderr.write("cancelled _load_images before add...")
+                sys.stderr.flush()
+                break
             result.picture.grid(column=0, row=result.row)
             result.widgets.append(result.picture)
         self.loading_ratio = 1
@@ -446,8 +462,13 @@ class IconSearchApp(App):
         print(result.name)
 
     def clear(self):
+        self._cancel_loading = True
+        time.sleep(.1)  # wait for load_images thread just a little.
+        # FIXME: self.stop_load_images_sync()  # won't start (race condition?)
         print("clear")
-        for result in reversed(self._results):
+        for result in self._results:
+            # Doing it forward prevents race condition where misses one
+            #   added by load_images thread.
             for widget in result.widgets:
                 widget.destroy()  # widget.hide()
         self._results.clear()
