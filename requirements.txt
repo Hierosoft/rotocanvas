@@ -1,3 +1,4 @@
 Pillow
 puremagic
-guizero
+pygame-ce
+pygame-gui
