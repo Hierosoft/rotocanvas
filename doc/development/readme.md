@@ -248,3 +248,12 @@ rotocanvas (formerly pyrotocanvas).
 - See the [changelog](changelog.md) entry for 2021-12-04.
 
 
+## Troubleshooting
+- ImportError: cannot import name 'DIRECTION_LTR' from 'pygame'
+  - SOLVED: Caused by having both pygame and pygame-ce installed. Solve by uninstalling both then installing pygame-ce: `pip uninstall pygame pygame-ce` `pip install pygame-ce` as per <https://github.com/MyreMylar/pygame_gui/issues/611>.
+
+- Pylance and code completion can't find module
+  when using `-e
+  - Known [issue](https://github.com/microsoft/pylance-release/issues/6980#issuecomment-2680162310): considered by Pylance to be upstream setuptools issue
+  - SOLVED (as per Pylance editable module troubleshooting documentation mentioned at issue link above): use `--config-settings editable_mode=strict` with `-e`.
+    Example: `pip install -e ~/git/pysdl2-sdl2ui --config-settings editable_mode=strict`
