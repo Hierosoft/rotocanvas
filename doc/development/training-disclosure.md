@@ -20,6 +20,7 @@ tool(s) used:
 
 Scope of use: code described in subsections--typically modified by hand to improve logic, variable naming, integration, etc.
 
+
 ## rotocanvas
 ### vob_to_dvd
 Use linux to combine all of the VOBs from a DVD at /media/owner/MYMOVIE into one VOB, decrypted
@@ -69,6 +70,7 @@ if sys.version_info.major >= 3, from subprocess import run as subprocess_run, el
 
 check isn't accepted by Popen in Python 2. Do check=kwargs.get("check") then if "check" in kwargs del kwargs["check"], then do whatever check would do manually instead of passing it to Popen
 
+
 ## channeltinkergimp
 - 2025-02-12
 
@@ -103,11 +105,13 @@ How can I make these custom utility classes from an older version using gimpfu c
 
 - paste old GimpCTPI and GimpCTI
 
+
 ## channeltinkerpil
 ### imageprocessorframe
 - 2025-02-12
 
 Python 3 included in GIMP has no "site" module. How can I do something like: site.getsitepackages()
+
 
 ## channeltinker
 - 2025-02-13
@@ -177,6 +181,7 @@ Here is the documentation:
 Now implement dot for it. Here is the documentation:
 - Paste https://numpy.org/doc/stable/reference/generated/numpy.dot.html contents
 
+
 ## output-reader.py
 Draw this as ascii art:
 
@@ -210,5 +215,62 @@ Here is partial updated save code:
 ```
 . Now make the whole program object-oriented.
 
+
 ## md-icons-importer.py
 I will use tk terms here but make me a pure guizero program, using only imaging libraries as nessary and avoid tk-specific code. Make an object-oriented tkinter app. In init, set self._last_search_time, set self._names = None, set self._results =[], set self._images = {}, set self._svg_dir = os.expanduser("~/Downloads/git/Templarian/MaterialDesign/svg"). Create a SearchResult class with a widgets = [] attribute. Using root.after, run a method that will list all files in self.svg_dir and set self.names to the result, or if not isdir, self.set_status("{} does not exist".format(repr(self.svg_dir))). For backward compatibility use format instead of f strings. The main has 3 parts, a ttk.Entry named search_entry with self.search_var tk.StringVar weight 0, and second part (row 1, stored as self.results_row) is a scrollable frame weight 1, the 3rd part is ttk.Entry state=readonly stringvar=self.status_var. Make a set_status(message) method that sets self.status_var to message. Whenever search_var changes, if len is >=2, run self.search with no args using root.after, otherwise run self.clear(). The search method should iterate self._names and if search_var.get() is in name, call self._add_result(name). The _add_result method should first try image = self._images.get(name). If None, load the file. If os.path.splitext(name).lower() == ".svg" convert it to an image allowing alpha transparency. Otherwise just load the image. Set self._images[name] to the resulting image. Create two widgets, an image widget with self._images[name] and a ttk label widget with text=name. For both use row=len(self._results). Place them in the scrollable panel, image at column 0 and label at column 1. Then add a new SearchResult named result and append both widgets to result.widgets. Append result to self._results. The clear method should iterate through self._results, and an inner loop iterate result.widgets and perform grid_forget on each.
+
+
+## rotocanvas/texturemage.py
+- 2025-09-06 ChatGPT 5
+
+Use a Python script to scale with edge directed interpolation, using CLI tools (or wrappers like wand) if necessary.
+
+use argparse, and default width and height to 128. Move main code to a main method, calling it via sys.exit(main()) and returning 0 if good, or nonzero on error.
+
+First convert the image to RGB32 using PIL. Save the temp image as f"{name_no_ext}.32bit.tmp.png". Default the output filename for this operation to f"{name_no_ext}_displacement.png". Add a boolean to the method for grayscale, defaulting to True. Convert the image to grayscale if True when saving the output.
+
+Use the av module from pypi, a.k.a. PyAV, pythonic bindings for ffmpeg.
+
+Make a separate function that creates a separate image name defaulting f"{name_no_ext}_diffuse.png". Change the output argument to a named argument "--output-displacement" and add a new argument "--output-diffuse". The function should use pyav if possible to mimic the result (otherwise use wand, Pythonic wrapper for PIL, only if necessary), but make a sigmoidal_contrast tuple argument that defaults to (5,50), and if None, exclude the argument from the process:
+```
+if [ "$add_noise" = "false" ]; then
+
+  # For glass or image already >=64x64
+convert \( $1 \
+-colorspace Gray \
+-filter Triangle \
+-resize 128x128 \
+-sigmoidal-contrast 5,50% \) \
+-quality 100 \
+$OUTPUT
+
+else
+
+convert \( $1 \
+-colorspace Gray \
+-filter Triangle \
+-resize 128x128 \
+-sigmoidal-contrast 5,50% \) \
+\(  -size 128x128 xc:gray50 \
+    -attenuate 0.45 \
+    +noise Uniform  \
+    -colorspace Gray    \
+    -level 35%,65%      \
+\) \
+-compose overlay \
+-composite \
+-quality 100 \
+$OUTPUT
+
+fi
+```
+
+Rename make_diffuse_map to soft_scale and add a path_fmt parameter that defaults to "{}_diffuse.png". If the user doesn't include "{}" and only one "{}" in the parameter, raise a ValueError. Make add_noise default to True. Use the exact same noise for scale_with_edi but using only av. Make the scaling method a parameter and document all possible values available to av in the docstring and add it to the "--help" screen by adding the help and argument --diffuse-scale-method that defaults to what we have in that extra soft_scale function and a --bump-scale-method that defaults to edi.
+
+Always output both maps. If a name argument is not defined, use the defaults.
+
+Make a separate soft_scale_wand method. Move all of the old wand code from soft_scale to that. Only use the soft_scale_wand method if the "--diffuse-with-wand" argument is passed. Use it for bump (instead of make_bump_map) if "--diffuse-with-bump" is passed. Rename make_bump_map to enhanced_scale. Do not make a grayscale argument for the program. Always pass grayscale=True if generating a bump map, and always pass grayscale=False when generating a diffuse map.
+
+At this point we can eliminate enhanced_scale and just set scale_method to the highest quality when generating a bump map ("nnedi", but if "--scale-bump-with-wand", use the method that is best quality available to wand, make a new scale_method for soft_scale_wand, and add all of the possible values to the docstring).
+
+Split soft_scale into two methods, one called "soft_scale_file" that operates on files and calls soft_scale which operates on Image objects. Use the same technique to split soft_scale_wand and move file handling code and arguments to a soft_scale_wand_file function that calls it.
