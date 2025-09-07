@@ -362,3 +362,7 @@ No, use noise native to each backend to allow fully leveraging each backend. Als
 
 Yes, and don't forget the docstrings including an "Available scale methods" section in each.
 
+- ". . . Do you want me to also implement the temp RGB32 conversion step like your first requirements, so that all backends operate on a consistent 32-bit input? This can help maintain uniform scaling behavior."
+
+Yes
+

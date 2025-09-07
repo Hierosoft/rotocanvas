@@ -12,17 +12,21 @@ Backends:
 - Wand (ImageMagick wrapper)
 
 Usage:
-    python soft_scale.py input.png
-    python soft_scale.py input.png --diffuse-with-av --bump-with-wand
+    python filtered_scale.py input.png
+    python filtered_scale.py input.png --diffuse-with-av --bump-with-wand
 """
+# TODO: Consider using Image.ANTIALIAS if scaling down (input>128)
 
-import sys
 import argparse
-from pathlib import Path
-from typing import Optional, Tuple
-
-from PIL import Image
 import numpy as np
+import shutil
+import sys
+import tempfile
+
+from argparse import RawTextHelpFormatter
+from pathlib import Path
+from PIL import Image
+from typing import Optional, Tuple
 
 # Try imports
 as_wand = False
@@ -41,10 +45,23 @@ except ModuleNotFoundError:
     has_av = False
 
 
+def convert_to_rgb32_temp(in_file: Path) -> Path:
+    """
+    Convert an input image to RGB32 and save as a temporary PNG.
+
+    Returns the path to the temporary file.
+    """
+    img = Image.open(in_file).convert("RGBA")  # RGBA = 32bit
+    temp_dir = tempfile.mkdtemp()
+    temp_file = Path(temp_dir) / f"{in_file.stem}.32bit.tmp.png"
+    img.save(temp_file)
+    return temp_file
+
+
 # ----------------------
 # Pillow backend
 # ----------------------
-def soft_scale(
+def filtered_scale(
     img: Image.Image,
     width: int = 128,
     height: int = 128,
@@ -69,7 +86,7 @@ def soft_scale(
     }
     method = method_map.get(scale_method.lower(), Image.BICUBIC)
 
-    img = img.convert("RGB32")
+    img = img.convert("RGBA")
     img = img.resize((width, height), method)
 
     if sigmoidal_contrast is not None:
@@ -92,7 +109,7 @@ def soft_scale(
     return img
 
 
-def soft_scale_file(
+def filtered_scale_file(
     in_file: Path,
     out_file: Path,
     width: int = 128,
@@ -104,7 +121,7 @@ def soft_scale_file(
     sigmoidal_contrast: Optional[Tuple[int, int]] = (5, 50),
 ):
     img = Image.open(in_file)
-    out_img = soft_scale(img, width, height,
+    out_img = filtered_scale(img, width, height,
                          grayscale=grayscale,
                          scale_method=scale_method,
                          add_noise=add_noise,
@@ -115,7 +132,7 @@ def soft_scale_file(
 # ----------------------
 # Wand backend
 # ----------------------
-def soft_scale_wand(
+def filtered_scale_wand(
     img: Image.Image,
     width: int,
     height: int,
@@ -153,9 +170,9 @@ def soft_scale_wand(
         return img_out
 
 
-def soft_scale_wand_file(in_file, out_file, **kwargs):
+def filtered_scale_wand_file(in_file, out_file, **kwargs):
     img = Image.open(in_file)
-    out_img = soft_scale_wand(img, **kwargs)
+    out_img = filtered_scale_wand(img, **kwargs)
     out_img.save(out_file, quality=100)
 
 
@@ -226,7 +243,7 @@ def _av_filtergraph_process_single_frame(
     return graph.pull()
 
 
-def soft_scale_av(
+def filtered_scale_av(
     img: Image.Image,
     width: int = 128,
     height: int = 128,
@@ -257,9 +274,9 @@ def soft_scale_av(
     return out_frame.to_image()
 
 
-def soft_scale_av_file(in_file, out_file, **kwargs):
+def filtered_scale_av_file(in_file, out_file, **kwargs):
     img = Image.open(in_file)
-    out_img = soft_scale_av(img, **kwargs)
+    out_img = filtered_scale_av(img, **kwargs)
     out_img.save(out_file, quality=100)
 
 
@@ -269,12 +286,14 @@ def soft_scale_av_file(in_file, out_file, **kwargs):
 def main():
     parser = argparse.ArgumentParser(
         description="Generate diffuse and bump maps\n\n"
-        "Pillow (default):\nAvailable scale methods: nearest, bilinear, bicubic, "
-        "lanczos, box\n\n"
-        "AV:\nAvailable scale methods: nnedi, bilinear, bicubic, lanczos\n\n"
-        "Wand:\nAvailable scale methods: point, box, triangle, hermite, hanning, "
+        "Available scale methods:\n"
+        "* Pillow (default): nearest, bilinear, bicubic, "
+        "lanczos, box\n"
+        "* AV: nnedi (default for bump), bilinear, bicubic, lanczos\n"
+        "* Wand: Available scale methods: point, box, triangle, hermite, hanning, "
         "hamming, blackman, gaussian, quadratic, cubic, catrom, mitchell, sinc, "
-        "lanczos, bessel, bartlett, lagrange\n\n"
+        "lanczos, bessel, bartlett, lagrange\n\n",
+        formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument("input", help="Input image file")
     parser.add_argument("--output-diffuse", help="Diffuse map output filename")
@@ -326,33 +345,39 @@ def main():
         scale_method=default_bump_method,
     )
 
+    # Convert to RGB32 temp file
+    temp_file = convert_to_rgb32_temp(in_path)
+
     # Diffuse backend
     if args.diffuse_with_wand:
         if not has_wand:
             print("Wand not available", file=sys.stderr)
             return 1
-        soft_scale_wand_file(in_path, out_diffuse, **diffuse_kwargs)
+        filtered_scale_wand_file(temp_file, out_diffuse, **diffuse_kwargs)
     elif args.diffuse_with_av:
         if not has_av:
             print("PyAV not available", file=sys.stderr)
             return 1
-        soft_scale_av_file(in_path, out_diffuse, **diffuse_kwargs)
+        filtered_scale_av_file(temp_file, out_diffuse, **diffuse_kwargs)
     else:
-        soft_scale_file(in_path, out_diffuse, **diffuse_kwargs)
+        filtered_scale_file(temp_file, out_diffuse, **diffuse_kwargs)
 
     # Bump backend
     if args.bump_with_wand:
         if not has_wand:
             print("Wand not available", file=sys.stderr)
             return 1
-        soft_scale_wand_file(in_path, out_bump, **bump_kwargs)
+        filtered_scale_wand_file(temp_file, out_bump, **bump_kwargs)
     elif args.bump_with_av:
         if not has_av:
             print("PyAV not available", file=sys.stderr)
             return 1
-        soft_scale_av_file(in_path, out_bump, **bump_kwargs)
+        filtered_scale_av_file(temp_file, out_bump, **bump_kwargs)
     else:
-        soft_scale_file(in_path, out_bump, **bump_kwargs)
+        filtered_scale_file(temp_file, out_bump, **bump_kwargs)
+
+    # Clean up temporary file/directory
+    shutil.rmtree(temp_file.parent)
 
     print("Generated diffuse:", out_diffuse)
     print("Generated bump:", out_bump)
