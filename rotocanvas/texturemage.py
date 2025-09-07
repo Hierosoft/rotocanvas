@@ -452,6 +452,7 @@ def main():
     parser.add_argument("--output-bump", help="Bump map output filename")
     parser.add_argument("--diffuse-method", help="Diffuse map scaling method")
     parser.add_argument("--bump-method", help="Bump map scaling method")
+    parser.add_argument("--mt-texture-pack", help="Move to Minetest texture pack directory (Example: ~/minetest/textures/RetroPBR)")
     parser.add_argument("--diffuse-with-pil", action="store_true")
     parser.add_argument("--diffuse-with-av", action="store_true")
     parser.add_argument("--bump-with-pil", action="store_true")
@@ -483,15 +484,26 @@ def main():
     logger.info("bump_method={}".format(bump_method))
     logger.info("diffuse_method={}".format(diffuse_method))
 
+
     diffuse_name = Path(args.output_diffuse or f"{name_no_ext}_diffuse.png")
-    bump_name = Path(args.output_bump or f"{name_no_ext}_bump.png")
     diffuse_tmp_name = Path(args.output_diffuse or f"{name_no_ext}_diffuse-tiled-shifted-resampled.tmp.png")
+    bump_name = Path(args.output_bump or f"{name_no_ext}_bump.png")
     bump_tmp_name = Path(args.output_bump or f"{name_no_ext}_bump-tiled-shifted-resampled.tmp.png")
+
     destination_dir = in_path.parent
+    bump_destination_dir = in_path.parent
+    if args.mt_texture_pack:
+        if not os.path.isdir(args.mt_texture_pack):
+            raise ValueError("{} does not exist.".format(repr(args.mt_texture_pack)))
+        destination_dir = Path(args.mt_texture_pack)
+        bump_destination_dir = destination_dir / "WIP"
+        if not os.path.isdir(bump_destination_dir):
+            os.makedirs(bump_destination_dir)
+
     out_tmp_diffuse = destination_dir / diffuse_tmp_name
-    out_tmp_bump = destination_dir / bump_tmp_name
+    out_tmp_bump = bump_destination_dir / bump_tmp_name
     out_diffuse = destination_dir / diffuse_name
-    out_bump = destination_dir / bump_name
+    out_bump = bump_destination_dir / bump_name
     temp_width = args.width * 2 if seamless else args.width
     temp_height = args.height * 2 if seamless else args.height
     diffuse_kwargs = dict(
