@@ -2,9 +2,11 @@
 """
 Fake detail generator for pixel art textures.
 
+Initial version: https://chatgpt.com/share/68bd0186-32c4-8009-b0df-066fe046b18f
+
 Generates two images:
-- Diffuse: low-quality scaling, grayscale=False, noise overlay optional
-- Bump: high-quality scaling, grayscale=True, noise overlay optional
+- Diffuse: low-quality resampling, grayscale=False, noise overlay optional
+- Bump: high-quality resampling, grayscale=True, noise overlay optional
 
 Backends:
 - Pillow (default)
@@ -15,7 +17,7 @@ Usage:
     python filtered_resample.py input.png
     python filtered_resample.py input.png --diffuse-with-av --bump-with-wand
 """
-# TODO: Consider using Image.ANTIALIAS if scaling down (input>128)
+# TODO: Consider using Image.ANTIALIAS if resampling down (input>128)
 from __future__ import print_function
 from __future__ import division
 import argparse
@@ -59,15 +61,20 @@ except ModuleNotFoundError:
 logger = getLogger(__name__)
 
 
+def split_multiline_csv(paragraph):
+    return (paragraph.replace("\n", "").replace("\r", "").replace(" ", "")
+            .strip().split(","))
+
+
 def preprocess(in_file: Path, tile_and_shift: bool) -> Path:
     """
     Convert an input image to RGB32 and save as a temporary PNG.
 
     Args:
         in_file (Path): The original or preprocessed image (typically
-            preprocessed to scale seamless textures without introducing
+            preprocessed to resample seamless textures without introducing
             edge artifacts, but RGBA is forced here either way to avoid
-            jagged edges when scaling non-truecolor images, so either is
+            jagged edges when resampling non-truecolor images, so either is
             technically acceptable).
         tile_and_shift (bool): double the resolution by tiling, and
             shift by half of original size on each dimension to prevent
@@ -110,7 +117,7 @@ def preprocess(in_file: Path, tile_and_shift: bool) -> Path:
 
 
 def postprocess(processed_file: Path, destination_file: Path,
-                untile_and_unshift: bool):
+                untile_and_unshift: bool, remove_processed: bool = True):
     """Transfer the resampled image to the destination.
 
     Args:
@@ -118,6 +125,10 @@ def postprocess(processed_file: Path, destination_file: Path,
         destination_file (Path): The file to write/overwrite.
         untile_and_unshift (bool): Recover the original image from the
             tiled image (See tile_and_shift in preprocess).
+        remove_processed (bool): Remove the processed_file after
+            generating destination_file. Ignored if untile_and_unshift
+            is False, since the image is unchanged and this method only
+            serves to move the file in that case.
     """
     img = Image.open(processed_file).convert("RGBA")  # RGBA = 32bit
     if untile_and_unshift:
@@ -133,10 +144,16 @@ def postprocess(processed_file: Path, destination_file: Path,
         #   automatically by Pillow since size above is half):
         imgHalf.paste(img, (-oldImgPos[0], -oldImgPos[1]))
         imgHalf.save(destination_file)
+        if remove_processed:
+            os.remove(processed_file)
     else:
         if os.path.isfile(destination_file):
             os.remove(destination_file)
-        shutil.move(processed_file, destination_file)
+        if remove_processed:
+            shutil.move(processed_file, destination_file)
+        else:
+            # There is no intermediate file.
+            pass
 
 
 def pil_resampling_dict(to_lower=True):
@@ -190,8 +207,8 @@ def filtered_resample(
     sigmoidal_contrast: Optional[Tuple[int, int]] = (5, 50),
 ) -> Image.Image:
     """
-    Pillow-based scaling with optional sigmoidal contrast and noise.
-    Newer versions may have additional scaling methods
+    Pillow-based resampling with optional sigmoidal contrast and noise.
+    Newer versions may have additional resampling methods
     such as "hamming".
 
     Available resampling methods:
@@ -269,10 +286,11 @@ def filtered_resample_wand(
     sigmoidal_contrast: Optional[Tuple[int, int]] = (5, 50),
 ) -> Image.Image:
     """
-    Wand-based scaling with optional sigmoidal contrast and noise.
-    NOTE: liquid_rescale is not available in wand-git as of 2025-09-06,
-    but it has a very poor outcome on low-res images (16x16 stone
-    texture ends up looking like a waterfall).
+    Wand-based (ImageMagick) resampling with optional sigmoidal contrast
+    and noise.
+    - NOTE: liquid_rescale is not available in wand-git as of
+      2025-09-06, but it has a very poor outcome on low-res images
+      (16x16 stone texture ends up looking like a waterfall) anyway.
 
     Args:
         sigmoidal_contrast (tuple[int]): Tuple of strength, midpoint.
@@ -297,7 +315,7 @@ def filtered_resample_wand(
         if add_noise:
             wi_clone = WandImage(width=width, height=height, background='gray50')
             wi_clone.noise(channel='all', attenuate=0.45)
-            wi_clone.level(0.35, 0.65)
+            wi_clone.level(0.25, 0.85)
             wi.composite(wi_clone, 0, 0, 'overlay')
         if grayscale:
             wi.type = 'grayscale'
@@ -305,11 +323,6 @@ def filtered_resample_wand(
         # So convert to bytes:
         img_out = Image.frombytes("RGBA", (wi.width, wi.height), bytes(arr))
         return img_out
-
-
-def split_multiline_csv(paragraph):
-    return (paragraph.replace("\n", "").replace("\r", "").replace(" ", "")
-            .strip().split(","))
 
 
 resampling_heading = "Available resampling methods:"
@@ -407,7 +420,7 @@ def filtered_resample_av(
     resample_method: str = "nnedi",
 ) -> Image.Image:
     """
-    AV-based scaling with optional sigmoidal contrast and noise.
+    AV-based resampling with optional sigmoidal contrast and noise.
 
     Available resampling methods:
       nnedi, bilinear, bicubic, lanczos
@@ -450,8 +463,8 @@ def main():
     parser.add_argument("input", help="Input image file")
     parser.add_argument("--output-diffuse", help="Diffuse map output filename")
     parser.add_argument("--output-bump", help="Bump map output filename")
-    parser.add_argument("--diffuse-method", help="Diffuse map scaling method")
-    parser.add_argument("--bump-method", help="Bump map scaling method")
+    parser.add_argument("--diffuse-method", help="Diffuse map resampling method")
+    parser.add_argument("--bump-method", help="Bump map resampling method")
     parser.add_argument("--mt-texture-pack", help="Move to Minetest texture pack directory (Example: ~/minetest/textures/RetroPBR)")
     parser.add_argument("--diffuse-with-pil", action="store_true")
     parser.add_argument("--diffuse-with-av", action="store_true")
@@ -523,6 +536,9 @@ def main():
         resample_method=bump_method,
         # sigmoidal_contrast=(5, 50),  # make waves round (fix pyramid
         #   artifacts caused by triangle a.k.a. linear resampling)
+        # - not really necessary if resampling with the following
+        #   wand (ImageMagick) methods: blackman, lagrange
+        #   (and blocky ones like hermite)
         sigmoidal_contrast=None,
     )
 
